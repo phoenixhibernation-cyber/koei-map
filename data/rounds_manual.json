@@ -64,14 +64,5 @@
   "expected": "2027年5月上旬",
   "url": "https://www.to-kousya.or.jp/kouei/toeibosyu/index_teiki.html",
   "note": "例年の時期から。公式発表待ち"
- },
- {
-  "id": "kanagawa-next",
-  "operator": "kanagawa",
-  "label": "神奈川県営住宅 次回募集",
-  "kind": "",
-  "expected": "公式発表待ち",
-  "url": "https://www.kanagawa-jk.or.jp/kenei/",
-  "note": "募集ページを確認中（公社サイトに見当たらず）"
  }
 ]

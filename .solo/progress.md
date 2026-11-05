@@ -71,7 +71,10 @@ status: 進行中
 ## 作業メモ（技術の細かいこと）
 - データの流れ：scripts/sources/<op>.py → scripts/build_all.py → data/listings.json, data/rounds.json（手入力は data/rounds_manual.json、運営元は data/operators.json）。住所→緯度経度は国土地理院API＋ data/geocode_cache.json
 - 毎日 06:00 JST に .github/workflows/build.yml が build_all → notify_line（Secret があるとき）→ push。読み取りが0件になった運営元は前回の値を残し、Issue を立てる
-- 未着手の運営元：神奈川県営（募集ページ未発見）、横浜市営（しおりPDF 19MB）、千葉県営（Shift_JIS のHTML、1月期に団地一覧が出る）、さいたま市営（12/1に案内公開）、UR（団地の静的ページのみ）
+- 全運営元の読み取りあり（SOURCES 10個）。神奈川県営＝県サイト pref.kanagawa.jp（しおりPDF）、横浜＝定期募集中だけしおりPDF（常時募集一覧は robots 禁止）、さいたま市＝HTML団地表＋申込者数PDF（案内PDFは画像のみ）、千葉県営＝団地一覧HTML（cp932）＋常時募集＋期間中 akidan PDF、UR＝都県の list ページ→団地詳細HTML（701枚、30日で40枚ずつ取り直し）。CI は data/raw を actions/cache
+- 期間外は「団地情報」（units=None, subtype に 団地情報）として出す。UI は isInfo() で家賃・戸数を「募集時に発表」に
+- build_all で cat_group（区分の大くくり）と layouts の幅展開（1DK〜3DK）を付ける
+- 更新は週2回（cron 0 21 * * 0,3）
 - GitHub Pages は data を10分キャッシュ。fetch は cache:"no-cache" にした
 - 技術の選び方（04）：静的サイト（HTML/CSS/JS＋Leaflet）で続行。Next.js は使っていない。通知・自動検知・送客計測などサーバーが要るものは 06 で Vercel（Next.js か Functions）を足す
 - 共通データ形式：data/listings.json（scripts/import_toei.py で都営から変換）、data/rounds.json（運営元と募集の予定）。ピンの色は運営元ごと

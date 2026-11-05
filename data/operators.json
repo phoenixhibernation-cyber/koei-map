@@ -23,13 +23,16 @@
   "long": "神奈川県営住宅",
   "color": "#17806a",
   "pref": "神奈川県",
-  "url": "https://www.kanagawa-jk.or.jp/kenei/",
+  "url": "https://www.pref.kanagawa.jp/docs/h5z/cnt/f6022/index.html",
   "schedule": {
-   "months": [],
-   "days": "",
-   "how": "抽選",
-   "anytime": false,
-   "note": "公式発表待ち"
+   "months": [
+    5,
+    11
+   ],
+   "days": "中旬〜（約2週間）",
+   "how": "抽選・郵送",
+   "anytime": true,
+   "anytime_note": "常時募集は10月〜翌3月末（先着順）"
   }
  },
  "saitama": {

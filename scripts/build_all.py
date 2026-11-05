@@ -12,13 +12,42 @@
 日付はすべて日本時間。
 """
 from __future__ import annotations
-import sys, json, argparse, datetime, importlib, pathlib, traceback
+import sys, re, json, argparse, datetime, importlib, pathlib, traceback
 
 ROOT = pathlib.Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / "scripts"))
 from sources import common as C  # noqa: E402
 
-SOURCES = ["toei", "saitama", "kawasaki", "sagamihara", "chibacity"]
+SOURCES = ["toei", "kanagawa", "yokohama", "kawasaki", "sagamihara", "saitama", "saitamacity", "chiba", "chibacity", "ur"]
+
+
+LAYOUT_ORDER = ["1R", "1K", "1DK", "1LDK", "2K", "2DK", "2LDK", "3K", "3DK", "3LDK", "4K", "4DK", "4LDK", "5DK", "5LDK"]
+
+
+def expand_layouts(ls: list) -> list:
+    """『1DK〜3DK』のような幅を、絞り込みで引けるよう 1DK・1LDK・2K…3DK に広げる。"""
+    out = []
+    for l in ls:
+        m = re.match(r"^(\S+?)[〜～~-](\S+)$", l or "")
+        if m and m.group(1) in LAYOUT_ORDER and m.group(2) in LAYOUT_ORDER:
+            a, z = LAYOUT_ORDER.index(m.group(1)), LAYOUT_ORDER.index(m.group(2))
+            out += LAYOUT_ORDER[min(a, z):max(a, z) + 1]
+        elif l:
+            out.append(l)
+    return list(dict.fromkeys(out))
+
+
+def cat_group(c: str) -> str:
+    """運営元ごとに違う区分名を、絞り込み用の大きなくくりにそろえる。"""
+    c = c or ""
+    if any(k in c for k in ("病死", "事故", "特別あき家")): return "事故等があった住宅"
+    if any(k in c for k in ("車いす", "障害", "障がい")): return "障害者向け"
+    if "高齢" in c: return "高齢者向け"
+    if any(k in c for k in ("子育て", "若年", "新婚", "多子")): return "子育て・若年世帯向け"
+    if "単身" in c: return "単身者向け"
+    if any(k in c for k in ("多人数", "大家族")): return "多人数世帯向け"
+    if any(k in c for k in ("先着", "常時", "随時", "UR")): return "先着順（いつでも）"
+    return "一般世帯向け"
 OPS_PATH = ROOT / "data" / "operators.json"
 MANUAL = ROOT / "data" / "rounds_manual.json"
 LISTINGS = ROOT / "data" / "listings.json"
@@ -75,6 +104,9 @@ def main():
     kept_items = [r for r in prev_items if r["operator"] in keep_ops]
     kept_rounds = [r for r in prev_rounds if r["operator"] in keep_ops and not r.get("manual")]
     all_items = listings + kept_items
+    for r in all_items:
+        r["cat_group"] = cat_group(r.get("category"))
+        r["layouts"] = expand_layouts(r.get("layouts") or [])
     auto_rounds = rounds + kept_rounds
     auto_ops = {r["operator"] for r in auto_rounds}
     auto_ids = {r["id"] for r in auto_rounds}

@@ -240,7 +240,7 @@ def listing(**kw) -> dict:
         base["layouts"] = [x for x in re.split(r"[・/,、]", base["layout"]) if x]
     acc = z2h(base["access"]).replace("ﾊﾞｽ", "バス")
     if acc and not base["stations"]:
-        base["stations"] = [s + "駅" for s in re.findall(r"「?([^「」\s（）()『』｢｣、/]+?)駅", acc)][:3]
+        base["stations"] = station_names(acc)
     if acc and base["walk_min"] is None:
         m = re.search(r"徒歩\s*(\d+)\s*分", acc)
         base["walk_min"] = int(m.group(1)) if m else None
@@ -248,6 +248,17 @@ def listing(**kw) -> dict:
     if base["persons"] and not base["single_ok"]:
         base["single_ok"] = bool(re.search(r"単身|1人|１人|1～2人", z2h(base["persons"])))
     return base
+
+
+def station_names(acc: str) -> list[str]:
+    """交通の文から駅名を最大3つ。『戸塚バスセンターからバス藤沢駅行き』のような語は駅名にしない。"""
+    out = []
+    for seg in re.split(r"から|、|・|／|/|または|又は|\s", z2h(acc or "").replace("ﾊﾞｽ", "バス")):
+        for m in re.findall(r"「?([^「」（）()『』｢｣]+?)駅", seg):
+            m = re.sub(r"^.*?(線|バス|行き|下車|徒歩)", "", m)
+            if m and len(m) <= 8 and "バス" not in m and m + "駅" not in out:
+                out.append(m + "駅")
+    return out[:3]
 
 
 def station_parts(s: str) -> str:

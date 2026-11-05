@@ -22,6 +22,7 @@
     builtFrom: null, areaMin: null, ratioMax: null, walkMax: null, noBus: false, bf: false, priority: false, unitsMin: null, vacant: false, cats: new Set() };
   const RESET = () => Object.assign(F, { prefs: new Set(), cities: new Set(), rentMax: null, layouts: new Set(), ops: new Set(), single: false, ev: false, q: "", round: null, now: true, builtFrom: null, areaMin: null, ratioMax: null, walkMax: null, noBus: false, bf: false, priority: false, unitsMin: null, vacant: false, cats: new Set() });
   const LAYOUTS = ["1DK", "1LDK", "2K", "2DK", "2LDK", "3DK", "3LDK", "4DK"];
+  const isInfo = (r) => r.units == null && /団地情報/.test(r.subtype || "");   // 募集期間外に出す「団地の情報だけ」の項目
 
   /* ---------------- 地図 ---------------- */
   const map = L.map("map", { zoomControl: false, zoomSnap: 0.5, maxZoom: 17, tap: true, attributionControl: true });
@@ -129,7 +130,7 @@
     if (F.priority && !r.priority_lottery) return false;
     if (F.unitsMin != null && (r.units == null || r.units < F.unitsMin)) return false;
     if (F.vacant && !(r.vacant_now > 0)) return false;
-    if (F.cats.size && !F.cats.has(r.category)) return false;
+    if (F.cats.size && !F.cats.has(r.cat_group || r.category)) return false;
     return true;
   }
   const nz = (v, big) => (v == null || Number.isNaN(v) ? (big ? 1e12 : -1) : v);
@@ -164,7 +165,7 @@
     const li = document.createElement("li"); li.className = "item" + (r.id === activeId ? " active" : ""); li.dataset.id = r.id; li.tabIndex = 0;
     const walk = r.walk_min != null ? `${r.bus ? "バス" : ""}${r.stations[0] || ""}${r.walk_min}分` : (r.stations[0] || "");
     const ratio = r.ratio_prev != null ? `・前回${r.ratio_prev}倍` : "";
-    li.innerHTML = `<b>${esc(r.name)}</b><span class="rent">¥${yen(r.rent_min)}〜</span>
+    li.innerHTML = `<b>${esc(r.name)}</b><span class="rent">${isInfo(r) ? '<small class="info">団地情報</small>' : r.rent_min != null ? `¥${yen(r.rent_min)}〜` : "家賃は募集時に"}</span>
       <span class="sub"><span class="tag" style="--op:${OPS[r.operator].color}">${esc(r._opLabel)}</span>${esc([r.layout, r.area_text ? r.area_text + "㎡" : ""].filter(Boolean).join(" "))}${r.layout || r.area_text ? "・" : ""}${esc(walk)}${ratio}${r.single_ok ? "・単身可" : ""}</span>`;
     li.addEventListener("click", () => openDetail(r.id, true));
     li.addEventListener("keydown", (e) => { if (e.key === "Enter") openDetail(r.id, true); });
@@ -245,7 +246,7 @@
       b.appendChild(selectRow("この年より新しい建物", [["", "指定なし"], ...[2015, 2010, 2005, 2000, 1995, 1990, 1985, 1980, 1975, 1970].map((v) => [v, `${v}年以降（築${y - v}年以内）`])], F.builtFrom, (v) => { F.builtFrom = v; }));
       const h = document.createElement("p"); h.className = "hint"; h.textContent = "並び替えで「築年が新しい順／古い順」も選べます。"; b.appendChild(h);
     } else if (k === "more") {
-      const cats = [...new Set(ITEMS.map((r) => r.category))];
+      const cats = [...new Set(ITEMS.map((r) => r.cat_group || r.category))];
       b.appendChild(group("募集の種類", cats.map((c) => opt(c, F.cats.has(c), () => { F.cats.has(c) ? F.cats.delete(c) : F.cats.add(c); }))));
       b.appendChild(selectRow("広さ", [["", "指定なし"], [30, "30㎡以上"], [35, "35㎡以上"], [40, "40㎡以上"], [50, "50㎡以上"], [60, "60㎡以上"]], F.areaMin, (v) => { F.areaMin = v; }));
       b.appendChild(selectRow("前回の倍率", [["", "指定なし"], [1, "1倍以下（ほぼ当たる）"], [3, "3倍以下"], [5, "5倍以下"], [10, "10倍以下"]], F.ratioMax, (v) => { F.ratioMax = v; }));
@@ -325,7 +326,8 @@
     if (fromList && r.lat != null) { map.setView([r.lat, r.lon], Math.max(map.getZoom(), 15), { animate: true }); }
     else if (r.lat != null && !DESKTOP.matches) { map.panTo([r.lat, r.lon - 0], { animate: true }); }
     const rd = r._round;
-    const deadline = rd && rd.apply_to ? `${fmtMD(rd.apply_to)}まで${daysLeft(rd.apply_to) >= 0 ? `<span class="deadline">あと${daysLeft(rd.apply_to)}日</span>` : ""}` : rd && rd.anytime ? "いつでも（先着順）" : "—";
+    let deadline = rd && rd.apply_to ? `${fmtMD(rd.apply_to)}まで${daysLeft(rd.apply_to) >= 0 ? `<span class="deadline">あと${daysLeft(rd.apply_to)}日</span>` : ""}` : rd && rd.anytime ? "いつでも（先着順）" : "—";
+    if (isInfo(r)) deadline = rd && rd.apply_from ? `次回の募集 ${fmtMD(rd.apply_from)}〜${rd.apply_to ? fmtMD(rd.apply_to) : ""}。この団地が募集されるかは募集時に公式で` : rd && rd.expected ? `次回の募集 ${esc(rd.expected)}` : "次回の募集は公式で";
     const gq = encodeURIComponent(`${r.pref}${r.address}`);
     const rows = [
       ["締切", deadline],
@@ -340,11 +342,11 @@
     if (r.priority_lottery) rows.push(["優遇", "優遇抽せんあり"]);
     $("detailBody").innerHTML = `
       <h2>${esc(r.name)}</h2>
-      <p class="addr"><span class="tag" style="--op:${OPS[r.operator].color}">${esc(r._opLabel)}</span><span class="tag cat">${esc(r.category)}</span>${esc(r.pref)}${esc(r.address)}</p>
+      <p class="addr"><span class="tag" style="--op:${OPS[r.operator].color}">${esc(r._opLabel)}</span><span class="tag cat">${esc(isInfo(r) ? "団地情報（いまは募集期間外）" : r.category)}</span>${esc(r.pref)}${esc(r.address)}</p>
       <div class="kv-grid">
-        <div class="kv"><div class="k">家賃（月）</div><div class="v">¥${yen(r.rent_min)}〜${yen(r.rent_max)}</div></div>
+        <div class="kv"><div class="k">家賃（月）</div><div class="v">${r.rent_min != null ? `¥${yen(r.rent_min)}〜${yen(r.rent_max)}` : '<small>募集時に発表</small>'}</div></div>
         <div class="kv"><div class="k">間取り・広さ</div><div class="v">${esc(r.layout)} <small>${esc(r.area_text)}㎡</small></div></div>
-        <div class="kv"><div class="k">募集戸数</div><div class="v">${r.units ?? "—"}戸${r.vacant_now != null ? `<small> いま空き${r.vacant_now}</small>` : ""}</div></div>
+        <div class="kv"><div class="k">募集戸数</div><div class="v">${r.units != null ? `${r.units}戸` : '<small>募集時に発表</small>'}${typeof r.vacant_now === "number" ? `<small> いま空き${r.vacant_now}</small>` : ""}</div></div>
         <div class="kv"><div class="k">前回倍率</div><div class="v">${r.ratio_prev != null ? `${r.ratio_prev}倍` : "—"}</div></div>
       </div>
       <table>${rows.map(([k, v]) => `<tr><td>${k}</td><td>${v}</td></tr>`).join("")}</table>
