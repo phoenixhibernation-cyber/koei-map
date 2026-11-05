@@ -3,7 +3,7 @@ app: 公営住宅マップ（仮）
 work_dir: ~/Projects/koei-map
 obsidian_note: ~/Brain/07_Projects/都営住宅マップ（サービス化）.md
 current_step: "04"
-status: 進行中
+status: オーナー確認待ち
 ---
 
 ## 工程
@@ -13,7 +13,7 @@ status: 進行中
 | 01 コンセプト設計 | 完了 | 2026-11-05 | 無料＋送客（アフィリエイト）・ステルス・名前は要再検討 |
 | 02 仕様設計 | 完了 | 2026-11-05 | 戦略・要件・構造の3層OK |
 | 03 画面設計 | 完了 | 2026-11-05 | S1-B・S4-A・S5-B（終わったなし）・S6-B |
-| 04 プロトタイプ実装 | 進行中 | | |
+| 04 プロトタイプ実装 | オーナー確認待ち | | 都営1,647件で一通り動く。e2e 15項目OK |
 | 05 価値検証 | 未着手 | | |
 | 06 本番実装 | 未着手 | | |
 | 07 価格設計 | 未着手 | | |
@@ -50,11 +50,15 @@ status: 進行中
 - 2026-11-05 工程03：通知の中身（募集以外の全体情報）は何を優先するか吟味 → 07・10 で決める
 
 ## オーナー待ちのこと
-- 
+- 工程04：自分の端末で触って「流れが止まる所」を一言。スマホで見るには公開先が要る（GitHub Pages の限定公開か、手元のMacのLAN公開）
 
 - 
 
 ## 作業メモ（技術の細かいこと）
+- 技術の選び方（04）：静的サイト（HTML/CSS/JS＋Leaflet）で続行。Next.js は使っていない。通知・自動検知・送客計測などサーバーが要るものは 06 で Vercel（Next.js か Functions）を足す
+- 共通データ形式：data/listings.json（scripts/import_toei.py で都営から変換）、data/rounds.json（運営元と募集の予定）。ピンの色は運営元ごと
+- LAN公開（--bind 0.0.0.0）は自動モードの権限で止められた。オーナーのスマホで見せるなら、オーナー自身が `! python3 -m http.server 8777 --bind 0.0.0.0` を打つか、GitHub Pages に限定公開
+- e2e: ~/Projects/toei-housing-map/.venv/bin/python tests/e2e.py
 - 骨組みは wireframes/*.html（白黒・wf.css）。選ぶページは `python3 -m http.server 8777` で http://127.0.0.1:8777/decisions/2026-11-05_%E7%94%BB%E9%9D%A2.html （8765は別プロジェクトの古いサーバーが使用中）
 - 土台の試作：~/Projects/toei-housing-map（静的サイト・Leaflet・国土地理院API・PDF読み取り build.py・e2eテストあり）。04 でここから持ってくる
 - docs は Obsidian の設計フォルダへのシンボリックリンク（git には入れない）
