@@ -5,70 +5,177 @@
    "long": "都営住宅（東京都）",
    "color": "#2d5fa8",
    "pref": "東京都",
-   "url": "https://www.to-kousya.or.jp/kouei/toeibosyu/index_teiki.html"
+   "url": "https://www.to-kousya.or.jp/kouei/toeibosyu/index_teiki.html",
+   "schedule": {
+    "months": [
+     2,
+     5,
+     8,
+     11
+    ],
+    "days": "上旬〜中旬（約2週間）",
+    "how": "抽せん",
+    "anytime": false,
+    "note": "年4回。2月はポイント方式（家族向）"
+   }
   },
   "kanagawa": {
    "label": "県営",
    "long": "神奈川県営住宅",
    "color": "#17806a",
    "pref": "神奈川県",
-   "url": "https://www.kanagawa-jk.or.jp/kenei/"
+   "url": "https://www.pref.kanagawa.jp/docs/h5z/cnt/f6022/index.html",
+   "schedule": {
+    "months": [
+     5,
+     11
+    ],
+    "days": "中旬〜（約2週間）",
+    "how": "抽選・郵送",
+    "anytime": true,
+    "anytime_note": "常時募集は10月〜翌3月末（先着順）"
+   }
   },
   "saitama": {
    "label": "県営",
    "long": "埼玉県営住宅",
    "color": "#17806a",
    "pref": "埼玉県",
-   "url": "https://www.saijk.or.jp/lookingfor/kenei/"
+   "url": "https://www.saijk.or.jp/lookingfor/kenei/",
+   "schedule": {
+    "months": [
+     1,
+     4,
+     7,
+     10
+    ],
+    "days": "1日〜21日",
+    "how": "抽せん",
+    "anytime": true,
+    "anytime_note": "随時募集（先着順）あり"
+   }
   },
   "chiba": {
    "label": "県営",
    "long": "千葉県営住宅",
    "color": "#17806a",
    "pref": "千葉県",
-   "url": "http://www.chiba-kousya.or.jp/jutak/akitop.html"
+   "url": "http://www.chiba-kousya.or.jp/jutak/akitop.html",
+   "schedule": {
+    "months": [
+     1,
+     4,
+     7,
+     10
+    ],
+    "days": "1日〜15日",
+    "how": "抽選",
+    "anytime": true,
+    "anytime_note": "常時募集（先着順）あり"
+   }
   },
   "yokohama": {
    "label": "市営",
    "long": "横浜市営住宅",
    "color": "#c96a1b",
    "pref": "神奈川県",
-   "url": "https://www.yokohama-kousya.or.jp/municipal/regular.php"
+   "url": "https://www.yokohama-kousya.or.jp/municipal/regular.php",
+   "schedule": {
+    "months": [
+     4,
+     10
+    ],
+    "days": "中旬（約2週間）",
+    "how": "抽選",
+    "anytime": true,
+    "anytime_note": "常時募集は2〜6月・8〜12月"
+   }
   },
   "kawasaki": {
    "label": "市営",
    "long": "川崎市営住宅",
    "color": "#c96a1b",
    "pref": "神奈川県",
-   "url": "https://www.city.kawasaki.jp/500/page/0000191065.html"
+   "url": "https://www.city.kawasaki.jp/500/page/0000191065.html",
+   "schedule": {
+    "months": [
+     3,
+     6,
+     9,
+     12
+    ],
+    "days": "",
+    "how": "抽選",
+    "anytime": true,
+    "anytime_note": "常時募集（申込順）。一覧は毎週火曜更新"
+   }
   },
   "sagamihara": {
    "label": "市営",
    "long": "相模原市営住宅",
    "color": "#c96a1b",
    "pref": "神奈川県",
-   "url": "https://www.city.sagamihara.kanagawa.jp/kurashi/1026489/sumai/1026509/1007952.html"
+   "url": "https://www.city.sagamihara.kanagawa.jp/kurashi/1026489/sumai/1026509/1007952.html",
+   "schedule": {
+    "months": [
+     5,
+     11
+    ],
+    "days": "上旬〜中旬（約2週間）",
+    "how": "公開抽選",
+    "anytime": true,
+    "anytime_note": "随時募集（電話・先着順）あり"
+   }
   },
   "saitamacity": {
    "label": "市営",
    "long": "さいたま市営住宅",
    "color": "#c96a1b",
    "pref": "埼玉県",
-   "url": "https://www.saijk.or.jp/lookingfor/shiei/saitama/"
+   "url": "https://www.saijk.or.jp/lookingfor/shiei/saitama/",
+   "schedule": {
+    "months": [
+     4,
+     8,
+     12
+    ],
+    "days": "1日〜21日",
+    "how": "抽せん",
+    "anytime": false
+   }
   },
   "chibacity": {
    "label": "市営",
    "long": "千葉市営住宅",
    "color": "#c96a1b",
    "pref": "千葉県",
-   "url": "https://www.cjkk.or.jp/shiei/shiei/result/"
+   "url": "https://www.cjkk.or.jp/shiei/shiei/result/",
+   "schedule": {
+    "months": [
+     1,
+     4,
+     7,
+     10
+    ],
+    "days": "1日〜10日（再募集は15日〜24日）",
+    "how": "抽選",
+    "anytime": true,
+    "anytime_note": "常時募集（先着順）あり"
+   }
   },
   "ur": {
    "label": "UR",
    "long": "UR賃貸住宅（1都3県）",
    "color": "#1a8a9e",
    "pref": "",
-   "url": "https://www.ur-net.go.jp/chintai/kanto/"
+   "url": "https://www.ur-net.go.jp/chintai/kanto/",
+   "schedule": {
+    "months": [],
+    "days": "",
+    "how": "先着順",
+    "anytime": true,
+    "anytime_note": "いつでも（空き部屋は公式で）"
+   }
   }
  },
  "rounds": [
@@ -88,11 +195,11 @@
    "operator": "yokohama",
    "label": "横浜市営住宅 常時募集（先着順）",
    "kind": "先着順・公社窓口で申込",
+   "anytime": false,
+   "url": "https://www.yokohama-kousya.or.jp/municipal/about.php",
+   "note": "定期募集で応募がなかった住宅を先着順で受付（公社窓口のみ）。住戸一覧は公式ページのPDF（毎週水曜更新）で確認。令和8年11月4日更新。現在、単身向住戸なし",
    "apply_from": "2026-08-27",
-   "apply_to": "2026-12-28",
-   "url": "https://www.yokohama-kousya.or.jp/municipal/regular.php",
-   "note": "定期募集で応募がなかった住宅。年2回の定期募集（4月・10月）は10月分が終了、抽選は2027/1/6",
-   "manual": true
+   "apply_to": "2026-12-28"
   },
   {
    "id": "saitama-anytime",
@@ -104,6 +211,17 @@
    "anytime": false,
    "url": "https://www.saijk.or.jp/lookingfor/kenei/zuiji/",
    "note": "空き住戸を先着順で受付。一覧は10月23日更新"
+  },
+  {
+   "id": "kanagawa-anytime-2026-10",
+   "operator": "kanagawa",
+   "label": "神奈川県営住宅 常時募集（先着順）",
+   "kind": "原則先着順・郵送申込（同日消印が募集戸数を超えると抽選）",
+   "url": "https://www.pref.kanagawa.jp/docs/h5z/cnt/f6022/p28456.html",
+   "anytime": false,
+   "note": "募集戸数は9月1日現在のあき家状況。受付終了の住宅もあるので協会（045-201-3673）で確認",
+   "apply_from": "2026-10-01",
+   "apply_to": "2027-03-31"
   },
   {
    "id": "sagamihara-2026-11",
@@ -122,7 +240,6 @@
    "kind": "抽せん方式（家族向・単身者向等）",
    "apply_from": "2026-11-02",
    "apply_to": "2026-11-17",
-   "lottery": null,
    "units": 3802,
    "url": "https://www.to-kousya.or.jp/kouei/toeibosyu/teiki_2026_11.html",
    "note": ""
@@ -134,8 +251,7 @@
    "kind": "先着順・いつでも",
    "anytime": true,
    "url": "https://www.ur-net.go.jp/chintai/kanto/",
-   "note": "礼金・仲介手数料・更新料・保証人が不要",
-   "manual": true
+   "note": "礼金・仲介手数料・更新料・保証人が不要"
   },
   {
    "id": "chibacity-anytime",
@@ -149,12 +265,11 @@
   {
    "id": "chiba-anytime",
    "operator": "chiba",
-   "label": "千葉県営住宅 常時募集",
-   "kind": "先着順",
+   "label": "千葉県営住宅 常時募集（先着順）",
+   "kind": "先着順・郵送で申込",
    "anytime": true,
    "url": "http://www.chiba-kousya.or.jp/jutak/jojitop.html",
-   "note": "団地ごとのページで公開",
-   "manual": true
+   "note": "団地ごとのページで公開（一般：市原市菊間・袖ケ浦市蔵波、特定公共賃貸：市原市五所、地域特別賃貸：船橋市薬円台）。空家募集との重複申込は不可"
   },
   {
    "id": "kawasaki-anytime",
@@ -192,30 +307,36 @@
    "kind": "抽選",
    "apply_from": "2027-01-01",
    "apply_to": "2027-01-15",
-   "lottery": "2027-01-29",
    "url": "http://www.chiba-kousya.or.jp/jutak/akitop.html",
-   "note": "案内配布 12/22から。年4回（4・7・10・1月、各1日〜15日）",
-   "manual": true
+   "note": "令和8年度の募集日程表より。申込は郵送（期間内の消印）。一覧表は募集期間中に団地一覧ページでPDF公開。案内配布 12/22以降。入居時期 3月17日",
+   "lottery": "2027-01-29"
+  },
+  {
+   "id": "saitamacity-2026-12",
+   "operator": "saitamacity",
+   "label": "さいたま市営住宅 12月定期募集",
+   "kind": "公開抽選・郵送またはWeb申込",
+   "expected": "例年4・8・12月の1日〜21日（次は2026年12月の見込み。日付は募集月の1日ごろ公式で）",
+   "url": "https://www.saijk.or.jp/lookingfor/shiei/saitama/",
+   "note": "年3回（原則4・8・12月の1日〜21日）。郵送またはWeb申込、公開抽選"
   },
   {
    "id": "yokohama-2027-04",
    "operator": "yokohama",
    "label": "横浜市営住宅 4月定期募集",
    "kind": "抽選",
-   "expected": "例年4月（10月募集は10/9〜10/23だった）",
+   "expected": "例年4月（前回の10月募集は10/9〜10/23）",
    "url": "https://www.yokohama-kousya.or.jp/municipal/regular.php",
-   "note": "年2回（4月・10月）。公式発表待ち",
-   "manual": true
+   "note": "年2回（4月・10月）。公式発表待ち"
   },
   {
-   "id": "kanagawa-next",
+   "id": "kanagawa-2026-11",
    "operator": "kanagawa",
-   "label": "神奈川県営住宅 次回募集",
-   "kind": "",
-   "expected": "公式発表待ち",
-   "url": "https://www.kanagawa-jk.or.jp/kenei/",
-   "note": "募集ページを確認中（公社サイトに見当たらず）",
-   "manual": true
+   "label": "神奈川県営住宅 2026年11月定期募集",
+   "kind": "抽選・郵送申込",
+   "expected": "2026年11月（公式：年2回 5月・11月。配布期間等は県のたより11月号で発表）",
+   "url": "https://www.pref.kanagawa.jp/docs/h5z/cnt/f6022/p28450.html",
+   "note": "公式発表待ち"
   },
   {
    "id": "toei-2027-02",

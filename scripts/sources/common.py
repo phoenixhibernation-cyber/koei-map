@@ -90,9 +90,28 @@ def _gsi(q: str):
     return {"lat": lat, "lon": lon, "title": f["properties"].get("title", "")}
 
 
+KANJI_NUM = {"一": "1", "二": "2", "三": "3", "四": "4", "五": "5", "六": "6", "七": "7", "八": "8", "九": "9", "十": "10"}
+
+
+def _cmp_form(s: str) -> str:
+    """照合用：『二丁目』→『2-』、末尾の『ほか・他』や『、』以降（2つ目の住所）を落とし、末尾の『-』を取る。"""
+    s = norm_addr(s or "")
+    s = s.split("、")[0]
+    s = re.sub(r"(ほか|他|外|先|地内|以下|番地)$", "", s)
+    s = re.sub(r"([一二三四五六七八九十]+)丁目", lambda m: str(sum(KANJI_NUM[ch] == "10" and 10 or int(KANJI_NUM[ch]) for ch in m.group(1)) if len(m.group(1)) == 1 or "十" not in m.group(1) else _kanji_to_int(m.group(1))) + "-", s)
+    return s.rstrip("-")
+
+
+def _kanji_to_int(k: str) -> int:
+    if k == "十": return 10
+    if k.startswith("十"): return 10 + int(KANJI_NUM[k[1]])
+    if k.endswith("十"): return int(KANJI_NUM[k[0]]) * 10
+    a, b = k.split("十"); return int(KANJI_NUM[a]) * 10 + int(KANJI_NUM[b])
+
+
 def _match_level(query: str, title: str) -> str:
     """返ってきた地名が、問い合わせた住所のどこまで合っているか：exact（番地まで）/ town（町名まで）/ city（市区町村だけ）。"""
-    q, t = norm_addr(query), norm_addr(title)
+    q, t = _cmp_form(query), _cmp_form(title)
     q_city = re.match(r"^(.*?(?:市.*?区|区|市|郡.*?[町村]|町|村))", q)
     q_town = re.sub(r"[-\d]+$", "", q)
     if t and q and (t.startswith(q) or q.startswith(t)) and re.search(r"\d", t):
