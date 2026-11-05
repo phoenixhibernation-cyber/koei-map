@@ -22,7 +22,9 @@
     builtFrom: null, areaMin: null, ratioMax: null, walkMax: null, noBus: false, bf: false, priority: false, unitsMin: null, vacant: false, cats: new Set() };
   const RESET = () => Object.assign(F, { prefs: new Set(), cities: new Set(), rentMax: null, layouts: new Set(), ops: new Set(), single: false, ev: false, q: "", round: null, now: true, builtFrom: null, areaMin: null, ratioMax: null, walkMax: null, noBus: false, bf: false, priority: false, unitsMin: null, vacant: false, cats: new Set() });
   const LAYOUTS = ["1DK", "1LDK", "2K", "2DK", "2LDK", "3DK", "3LDK", "4DK"];
-  const isInfo = (r) => r.units == null && /団地情報/.test(r.subtype || "");   // 募集期間外に出す「団地の情報だけ」の項目
+  const isInfo = (r) => r.units == null && /団地情報/.test(r.subtype || "");
+  const KINDS = ["都営", "県営", "市営", "UR"];                                   // 運営元の種別（operators.json の label）
+  const shortOp = (op) => op.long.replace(/住宅.*$/, "").replace("UR賃貸", "UR");  // 都営／神奈川県営／横浜市営／UR   // 募集期間外に出す「団地の情報だけ」の項目
 
   /* ---------------- 地図 ---------------- */
   const map = L.map("map", { zoomControl: false, zoomSnap: 0.5, maxZoom: 17, tap: true, attributionControl: true });
@@ -104,6 +106,15 @@
     return "upcoming";
   }
 
+  // 選んだ条件はこの端末に残す（次に開いたとき、同じ条件で始まる）
+  const SAVE_KEYS = ["now", "prefs", "cities", "rentMax", "layouts", "ops", "single", "ev", "builtFrom", "areaMin", "ratioMax", "walkMax", "noBus", "bf", "priority", "unitsMin", "vacant", "cats"];
+  function saveCond() { const o = {}; for (const k of SAVE_KEYS) o[k] = F[k] instanceof Set ? [...F[k]] : F[k]; o.sort = $("sort").value; store.set("cond", o); }
+  function restoreCond() {
+    const o = store.get("cond"); if (!o || typeof o !== "object") return false;
+    for (const k of SAVE_KEYS) { if (!(k in o)) continue; F[k] = F[k] instanceof Set ? new Set(Array.isArray(o[k]) ? o[k] : []) : o[k]; }
+    if (o.sort && [...$("sort").options].some((x) => x.value === o.sort)) $("sort").value = o.sort;
+    return SAVE_KEYS.some((k) => k !== "now" && (F[k] instanceof Set ? F[k].size : F[k])) || !F.now;
+  }
   function init(rd, ld) {
     OPS = rd.operators; ROUNDS = rd.rounds; ITEMS = ld.items;
     const roundById = new Map(ROUNDS.map((r) => [r.id, r]));
@@ -118,6 +129,7 @@
     buildAbout(); setupLine();
     const params = new URLSearchParams(location.search);
     if (params.get("round") && roundById.has(params.get("round"))) { F.round = params.get("round"); F.now = false; }
+    else if (!params.has("e2e") && restoreCond()) setTimeout(() => toast("前回の条件で表示しています（「条件をクリア」で戻せます）"), 600);
     bindUI();
     apply();
   }
@@ -161,7 +173,7 @@
 
   function apply() {
     filtered = ITEMS.filter(matches).sort(SORTS[$("sort").value] || SORTS.rent);
-    renderMarkers(); shown = 0; $("list").innerHTML = ""; renderMore(); renderCount(); renderChips();
+    renderMarkers(); shown = 0; $("list").innerHTML = ""; renderMore(); renderCount(); renderChips(); saveCond();
   }
   function renderCount() {
     const n = filtered.length;
@@ -210,7 +222,8 @@
     set("area", area);
     set("rent", F.rentMax != null ? `〜${(F.rentMax / 10000)}万円` : "");
     set("layout", F.layouts.size ? [...F.layouts].join("・") : "");
-    set("op", F.ops.size ? [...F.ops].map((o) => OPS[o].long.replace(/住宅.*$/, "")).join("・") : "");
+    { const c = document.querySelector('.chip[data-chip="op"]'); const ops = [...F.ops]; c.classList.toggle("set", ops.length > 0);
+      c.querySelector(".v").innerHTML = ops.length ? ops.map((o) => `<i class="dot" style="--op:${OPS[o].color}"></i>`).join("") + esc(ops.length <= 2 ? ops.map((o) => shortOp(OPS[o])).join("・") : `${ops.length}つ`) : ""; }
     set("built", F.builtFrom != null ? `${F.builtFrom}年〜` : "");
     const moreN = [F.areaMin != null, F.ratioMax != null, F.walkMax != null, F.noBus, F.bf, F.priority, F.unitsMin != null, F.vacant, F.cats.size > 0].filter(Boolean).length;
     set("more", moreN ? `${moreN}` : "");
@@ -255,8 +268,11 @@
     } else if (k === "layout") {
       b.appendChild(group("いくつでも", LAYOUTS.map((l) => opt(l, F.layouts.has(l), () => { F.layouts.has(l) ? F.layouts.delete(l) : F.layouts.add(l); }))));
     } else if (k === "op") {
-      const ops = Object.keys(OPS);
-      b.appendChild(group("いくつでも", ops.map((o) => opt(OPS[o].long, F.ops.has(o), () => { F.ops.has(o) ? F.ops.delete(o) : F.ops.add(o); }))));
+      for (const kind of KINDS) {
+        const ops = Object.keys(OPS).filter((o) => OPS[o].label === kind); if (!ops.length) continue;
+        b.appendChild(group(kind === "UR" ? "UR（いつでも・先着順）" : kind, ops.map((o) => { const el = opt(OPS[o].long, F.ops.has(o), () => { F.ops.has(o) ? F.ops.delete(o) : F.ops.add(o); }); el.insertAdjacentHTML("afterbegin", `<i class="dot" style="--op:${OPS[o].color}"></i>`); return el; })));
+      }
+      const h = document.createElement("p"); h.className = "hint"; h.textContent = "いくつでも。何も選ばなければ全部です。"; b.appendChild(h);
     } else if (k === "built") {
       const y = new Date().getFullYear();
       b.appendChild(selectRow("この年より新しい建物", [["", "指定なし"], ...[2015, 2010, 2005, 2000, 1995, 1990, 1985, 1980, 1975, 1970].map((v) => [v, `${v}年以降（築${y - v}年以内）`])], F.builtFrom, (v) => { F.builtFrom = v; }));
@@ -420,35 +436,115 @@
   $("btnMenu").addEventListener("click", () => { $("menu").hidden = !$("menu").hidden; });
   $("menu").addEventListener("click", (e) => { const b = e.target.closest("[data-open]"); if (b) openPage(b.dataset.open); });
 
+  /* ---------------- 募集の予定：1年の早見表（都県 → 種別で絞る。横スクロールなし） ---------------- */
+  const CAL = { pref: null, kinds: new Set(), open: new Set() };
+  const md = (d) => `${d.getMonth() + 1}/${d.getDate()}`;
+  const monthEnd = (y, m) => new Date(y, m, 0), monthStart = (y, m) => new Date(y, m - 1, 1);
+  // 日付のある募集と、例年の月からの見込み（例年）を1つの並びにする
+  function calEvents() {
+    const ev = [];
+    for (const r of ROUNDS) {
+      if (r.anytime) ev.push({ op: r.operator, kind: "any", r });
+      else if (r.apply_from && r.apply_to) ev.push({ op: r.operator, kind: "fix", from: dayOf(r.apply_from), to: dayOf(r.apply_to), r, anyRange: /随時|常時/.test(r.label) });
+      else ev.push({ op: r.operator, kind: "unk", r });
+    }
+    const parseDays = (t) => { const m = /(\d+)日〜(\d+)日/.exec(t || ""); if (m) return [+m[1], +m[2]]; if (/中旬/.test(t) && !/上旬/.test(t)) return [10, 24]; return [1, 15]; };
+    for (const [k, op] of Object.entries(OPS)) {
+      const sc = op.schedule || {}; if (!sc.months || !sc.months.length) continue;
+      const [d1, d2] = parseDays(sc.days);
+      for (let i = 0; i < 13; i++) {
+        const y = TODAY.getFullYear() + Math.floor((TODAY.getMonth() + i) / 12), m = (TODAY.getMonth() + i) % 12 + 1;
+        if (!sc.months.includes(m)) continue;
+        if (ev.some((e) => e.op === k && e.kind === "fix" && !e.anyRange && e.from.getFullYear() === y && e.from.getMonth() + 1 === m)) continue;
+        const to = new Date(y, m - 1, Math.min(d2, 28)); if (to < TODAY) continue;
+        const unk = ev.find((e) => e.op === k && e.kind === "unk" && (!e.r.expected || e.r.expected.includes(`${m}月`)));
+        ev.push({ op: k, kind: "exp", from: new Date(y, m - 1, d1), to, r: unk ? unk.r : null, how: sc.how, label: `${y}年${m}月の募集（例年の時期）` });
+      }
+    }
+    return ev.filter((e) => !(e.kind === "unk" && (OPS[e.op].schedule?.months || []).length));
+  }
+  const dl = (d) => Math.round((d - TODAY) / 86400000);
+  const evStatus = (e) => e.kind === "any" ? "any" : e.kind === "unk" ? "unk" : TODAY < e.from ? "up" : TODAY <= e.to ? "open" : "closed";
   function renderCal() {
-    const open = ROUNDS.filter((r) => roundStatus(r) === "open");
-    const anytime = ROUNDS.filter((r) => roundStatus(r) === "anytime");
-    const up = ROUNDS.filter((r) => roundStatus(r) === "upcoming");
-    const ev = (r) => {
-      const st = roundStatus(r); const op = OPS[r.operator];
-      let sub = "", bar = "", badge = "";
-      if (st === "open") {
-        const total = (dayOf(r.apply_to) - dayOf(r.apply_from)) / 86400000 + 1, done = (TODAY - dayOf(r.apply_from)) / 86400000 + 1;
-        sub = `申込 ${fmtMD(r.apply_from)} 〜 ${fmtMD(r.apply_to)}${r.lottery ? `・抽せん ${fmtMD(r.lottery)}` : ""}${r.units ? `・${r.units.toLocaleString("ja-JP")}戸` : ""}`;
-        bar = `<div class="bar"><i style="width:${Math.min(100, Math.round((done / total) * 100))}%"></i></div>`;
-        badge = `<span class="badge">あと${daysLeft(r.apply_to)}日</span>`;
-      } else if (st === "anytime") { sub = r.kind || "いつでも"; badge = `<span class="badge ok">いつでも</span>`; }
-      else { sub = `${esc(r.expected || "")}${r.kind ? `・${esc(r.kind)}` : ""}`; }
-      const n = ITEMS.filter((x) => x.round_id === r.id).length;
-      const acts = st === "open" || (st === "anytime" && n)
-        ? `<button type="button" class="primary" data-round="${esc(r.id)}">地図で見る${n ? `（${n.toLocaleString("ja-JP")}件）` : ""}</button><a href="${esc(r.url)}" target="_blank" rel="noopener">公式ページ ↗</a>`
-        : `<a href="${esc(r.url)}" target="_blank" rel="noopener">公式ページ ↗</a>`;
-      return `<div class="ev" style="--op:${op.color}"><div class="row"><b>${esc(r.label)}</b>${badge}</div><div class="sub">${sub}${r.note ? `<br>${esc(r.note)}` : ""}</div>${bar}<div class="acts">${acts}</div></div>`;
-    };
-    $("calBody").innerHTML = `
-      <p class="tl-h">今募集中</p><div class="tl">${open.map(ev).join("") || '<div class="ev"><div class="sub">今は募集中のものがありません</div></div>'}</div>
-      <p class="tl-h">いつでも申し込めるもの</p><div class="tl">${anytime.map(ev).join("")}</div>
-      <p class="tl-h">これから</p><div class="tl">${up.map(ev).join("")}</div>
-      <div class="line-cta"><span><b>LINE</b>で「募集が始まった」「締切3日前」を受け取る</span><a class="line-btn" data-line href="#">友だち追加</a></div>
+    const stored = store.get("cal") || {};
+    if (!CAL.pref) CAL.pref = (F.prefs.size === 1 ? [...F.prefs][0] : null) || stored.pref || "東京都";
+    if (!CAL.kinds.size && Array.isArray(stored.kinds)) stored.kinds.forEach((k) => CAL.kinds.add(k));
+    store.set("cal", { pref: CAL.pref, kinds: [...CAL.kinds] });
+    const EV = calEvents();
+    const months = [...Array(12)].map((_, i) => ({ m: (TODAY.getMonth() + i) % 12 + 1, y: TODAY.getFullYear() + Math.floor((TODAY.getMonth() + i) / 12) }));
+    const inPref = Object.keys(OPS).filter((k) => CAL.pref === "all" || !OPS[k].pref || OPS[k].pref === CAL.pref);
+    const kindsHere = KINDS.filter((k) => inPref.some((o) => OPS[o].label === k));
+    const ops = inPref.filter((k) => !CAL.kinds.size || CAL.kinds.has(OPS[k].label)).sort((a, z) => KINDS.indexOf(OPS[a].label) - KINDS.indexOf(OPS[z].label));
+    const nameOf = (k) => (CAL.pref !== "all" && OPS[k].label === "県営") ? "県営" : shortOp(OPS[k]);
+    const countOf = (rid) => ITEMS.filter((x) => x.round_id === rid).length;
+
+    let h = `<div class="cal-ctl"><label class="cal-pref">地域 <select id="calPref">${["all", ...PREFS].map((p) => `<option value="${p}"${CAL.pref === p ? " selected" : ""}>${p === "all" ? "1都3県すべて" : esc(p)}</option>`).join("")}</select></label>
+      <div class="cal-kinds">${kindsHere.map((k) => `<button type="button" class="opt" data-kind="${k}" aria-pressed="${!CAL.kinds.size || CAL.kinds.has(k)}">${k}</button>`).join("")}</div></div>
+      <div class="legend"><span><i class="fix"></i>申込期間（確定）</span><span><i class="exp"></i>例年の時期（見込み）</span><span><i class="any"></i>いつでも（先着順）</span><span><i class="now"></i>今月</span></div>
+      <div class="cal-months">${months.map(({ m }, i) => `<div class="h${i === 0 ? " now" : ""}${m === 1 ? " jan" : ""}">${m}<small>月</small></div>`).join("")}</div>`;
+    if (!ops.length) h += `<p class="hint">この条件に合う運営元がありません</p>`;
+    for (const k of ops) {
+      const op = OPS[k], es = EV.filter((e) => e.op === k), col = op.color;
+      const openE = es.filter((e) => evStatus(e) === "open" && !e.anyRange).sort((a, z) => a.to - z.to);
+      const upE = es.filter((e) => evStatus(e) === "up" && !e.anyRange).sort((a, z) => a.from - z.from);
+      const anyE = es.find((e) => e.kind === "any" || (e.anyRange && evStatus(e) !== "closed"));
+      const anyOpen = anyE && (anyE.kind === "any" || evStatus(anyE) === "open");
+      // 1行目：いま／次がひと目で分かる
+      let stat = "";
+      if (openE.length) stat = `<span class="badge">受付中 あと${daysLeft(openE[0].r.apply_to)}日</span><span class="when">${md(openE[0].from)}〜${md(openE[0].to)}</span>`;
+      else if (upE.length) { const e = upE[0]; stat = `<span class="badge ${dl(e.from) <= 30 ? "soon" : "gray"}">${e.kind === "exp" ? "次は" : "確定"} ${e.from.getMonth() + 1}月${e.kind === "exp" ? "ごろ" : ""}</span><span class="when">${e.kind === "exp" ? `例年 ${md(e.from)}〜${md(e.to)}` : `${md(e.from)}〜${md(e.to)}`}</span>`; }
+      else if (!anyE) stat = `<span class="badge gray">時期は未発表</span>`;
+      if (anyOpen) stat += `<span class="badge ok">いつでも</span>`;
+      else if (anyE) stat += `<span class="badge gray">先着順は${anyE.from.getMonth() + 1}月から</span>`;
+      const opened = CAL.open.has(k) || (!CAL.open.has("!" + k) && openE.length > 0);
+      h += `<div class="cal-op${opened ? " opened" : ""}" style="--op:${col}" data-op="${k}"><button type="button" class="cal-head"><i class="dot"></i><b>${esc(nameOf(k))}</b>${stat}<span class="caret">${opened ? "▴" : "▾"}</span></button><div class="cal-cells">`;
+      for (const [i, { m, y }] of months.entries()) {
+        const inM = es.filter((e) => (e.kind === "fix" || e.kind === "exp") && !e.anyRange && e.from <= monthEnd(y, m) && e.to >= monthStart(y, m));
+        let cls = "c";
+        if (inM.some((e) => evStatus(e) === "open")) cls += " open";
+        else if (inM.some((e) => e.kind === "fix")) cls += " fix";
+        else if (inM.length) cls += " exp";
+        else if (anyE && (anyE.kind === "any" || (anyE.from <= monthEnd(y, m) && anyE.to >= monthStart(y, m)))) cls += " any";
+        if (i === 0) cls += " now";
+        h += `<div class="${cls}" title="${esc(inM.map((e) => `${md(e.from)}〜${md(e.to)}`).join(" / "))}"></div>`;
+      }
+      const sc = op.schedule || {};
+      const subtxt = sc.months?.length ? `例年 ${sc.months.join("・")}月${sc.days ? "（" + sc.days + "）" : ""}・${sc.how || ""}${sc.anytime_note ? "／" + sc.anytime_note : ""}` : (sc.anytime_note || sc.note || "");
+      h += `</div><div class="cal-sub">${esc(subtxt)}</div><div class="cal-detail">${[...openE, ...upE.slice(0, 2), ...(anyE ? [anyE] : [])].map((e) => evHtml(e, countOf)).join("")}</div></div>`;
+    }
+    h += `<div class="line-cta"><span><b>LINE</b>で「募集が始まった」「締切3日前」を受け取る。見逃しゼロに</span><a class="line-btn" data-line href="#">友だち追加</a></div>
       <button type="button" class="btn ghost" id="calNotify" style="width:100%;margin-top:10px">お知らせの受け取り方を見る</button>`;
+    $("calBody").innerHTML = h;
     setupLine();
+    $("calPref").addEventListener("change", (e) => { CAL.pref = e.target.value; CAL.open.clear(); renderCal(); });
+    $("calBody").querySelectorAll("[data-kind]").forEach((b) => b.addEventListener("click", () => {
+      const k = b.dataset.kind; if (!CAL.kinds.size) kindsHere.forEach((x) => CAL.kinds.add(x));
+      CAL.kinds.has(k) ? CAL.kinds.delete(k) : CAL.kinds.add(k); if (CAL.kinds.size === kindsHere.length) CAL.kinds.clear(); renderCal();
+    }));
+    $("calBody").querySelectorAll(".cal-head").forEach((b) => b.addEventListener("click", () => {
+      const box = b.closest(".cal-op"), k = box.dataset.op, now = box.classList.toggle("opened");
+      b.querySelector(".caret").textContent = now ? "▴" : "▾"; CAL.open.delete(k); CAL.open.delete("!" + k); CAL.open.add(now ? k : "!" + k);
+    }));
     $("calBody").querySelectorAll("[data-round]").forEach((b) => b.addEventListener("click", () => { F.round = b.dataset.round; F.now = false; closePages(); apply(); if (!DESKTOP.matches) drawer.classList.add("open"); }));
     $("calNotify").addEventListener("click", () => openPage("pageNotify"));
+  }
+  // 1つの募集（確定・例年・いつでも）の説明と、地図で見る／公式ページ
+  function evHtml(e, countOf) {
+    const st = evStatus(e), r = e.r, url = r?.url || OPS[e.op].url;
+    let title = "", sub = "", bar = "", badge = "";
+    if (st === "open") {
+      const total = (e.to - e.from) / 86400000 + 1, done = (TODAY - e.from) / 86400000 + 1;
+      title = r.label; badge = `<span class="badge">あと${daysLeft(r.apply_to)}日</span>`;
+      sub = `申込 ${fmtMD(r.apply_from)} 〜 ${fmtMD(r.apply_to)}${r.lottery ? `・抽せん ${fmtMD(r.lottery)}` : ""}${r.units ? `・${r.units.toLocaleString("ja-JP")}戸` : ""}${r.kind ? `・${r.kind}` : ""}`;
+      bar = `<div class="bar"><i style="width:${Math.min(100, Math.round((done / total) * 100))}%"></i></div>`;
+    } else if (st === "any") { title = r.label; sub = r.kind || "いつでも（先着順）"; badge = `<span class="badge ok">いつでも</span>`; }
+    else if (e.kind === "exp") { title = e.label; sub = `${r?.expected ? r.expected : `例年 ${md(e.from)}〜${md(e.to)}ごろ`}${e.how ? `・${e.how}` : ""}。日付は公式発表待ち`; badge = `<span class="badge gray">例年</span>`; }
+    else { title = r.label; sub = `申込 ${fmtMD(r.apply_from)} 〜 ${fmtMD(r.apply_to)}${r.lottery ? `・抽せん ${fmtMD(r.lottery)}` : ""}${r.kind ? `・${r.kind}` : ""}`; badge = `<span class="badge soon">${e.anyRange ? "先着順" : "確定"} ${daysLeft(r.apply_from)}日後から</span>`; }
+    const n = r ? countOf(r.id) : 0;
+    const acts = (st === "open" || st === "any") && n
+      ? `<button type="button" class="primary" data-round="${esc(r.id)}">地図で見る（${n.toLocaleString("ja-JP")}件）</button><a href="${esc(url)}" target="_blank" rel="noopener">公式ページ ↗</a>`
+      : `<a href="${esc(url)}" target="_blank" rel="noopener">公式ページ ↗</a>`;
+    return `<div class="ev"><div class="row"><b>${esc(title)}</b>${badge}</div><div class="sub">${esc(sub)}${r?.note && e.kind !== "exp" ? `<br>${esc(r.note)}` : ""}</div>${bar}<div class="acts">${acts}</div></div>`;
   }
 
   // S6 通知登録（試作：まだ送信しない。登録内容は端末に保存するだけ）

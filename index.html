@@ -34,11 +34,11 @@
 
   <!-- S1: チップ -->
   <div class="chips" id="chips" role="toolbar" aria-label="絞り込み">
-    <button type="button" class="chip on" data-chip="now" aria-pressed="true">今募集中</button>
+    <button type="button" class="chip on sw-chip" data-chip="now" aria-pressed="true"><span class="sw"><i></i></span>募集中</button>
     <button type="button" class="chip" data-chip="area">地域 <span class="v"></span><span class="caret">▾</span></button>
+    <button type="button" class="chip" data-chip="op">運営元 <span class="v"></span><span class="caret">▾</span></button>
     <button type="button" class="chip" data-chip="rent">家賃 <span class="v"></span><span class="caret">▾</span></button>
     <button type="button" class="chip" data-chip="layout">間取り <span class="v"></span><span class="caret">▾</span></button>
-    <button type="button" class="chip" data-chip="op">運営 <span class="v"></span><span class="caret">▾</span></button>
     <button type="button" class="chip" data-chip="built">築年 <span class="v"></span><span class="caret">▾</span></button>
     <button type="button" class="chip" data-chip="single" aria-pressed="false">単身可</button>
     <button type="button" class="chip" data-chip="ev" aria-pressed="false">EVあり</button>
@@ -91,7 +91,7 @@
 
   <!-- S5: 募集カレンダー（タイムライン） -->
   <section class="page" id="pageCal" hidden aria-label="募集カレンダー">
-    <header><button type="button" class="back" data-close aria-label="戻る">←</button><h2>募集の予定</h2></header>
+    <header><button type="button" class="back" data-close aria-label="戻る">←</button><h2>募集の予定（1年の早見表）</h2></header>
     <div class="page-body" id="calBody"></div>
   </section>
 

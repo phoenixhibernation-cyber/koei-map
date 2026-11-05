@@ -42,6 +42,17 @@ button { cursor: pointer; }
 .chip.on, .chip.set { background: var(--accent-soft); border-color: #c6dafc; color: var(--accent-soft-ink); font-weight: 600; }
 .chip.on .caret, .chip.set .caret { color: var(--accent-soft-ink); }
 .chip.reset { background: #fff; border-color: var(--line); color: var(--ink-2); }
+/* 「募集中」はスイッチの形 */
+.sw-chip { gap: 6px; }
+.sw-chip .sw { width: 28px; height: 16px; border-radius: 8px; background: #bdc1c6; position: relative; display: inline-block; transition: background .15s; }
+.sw-chip .sw i { position: absolute; top: 2px; left: 2px; width: 12px; height: 12px; border-radius: 50%; background: #fff; transition: left .15s; }
+.sw-chip.on .sw { background: var(--accent); }
+.sw-chip.on .sw i { left: 14px; }
+.sw-chip.on { background: #fff; border-color: var(--line); color: var(--ink); }
+.dot { display: inline-block; width: 9px; height: 9px; border-radius: 50%; background: var(--op, var(--accent)); margin-right: 3px; vertical-align: 0; }
+.chip .v .dot { margin-right: 2px; }
+.chip .v .dot + .dot { margin-left: -2px; }
+.opt .dot { margin-right: 6px; }
 
 /* ---- 現在地 ---- */
 .fab { position: absolute; right: 12px; bottom: calc(var(--drawer-peek) + 14px + var(--safe-b)); width: 46px; height: 46px; border-radius: 50%; border: 0; background: #fff; box-shadow: var(--shadow); z-index: 590; display: flex; align-items: center; justify-content: center; transition: bottom .25s; }
@@ -172,6 +183,47 @@ button { cursor: pointer; }
 .ev .acts .primary { background: var(--accent); border-color: var(--accent); color: #fff; border-radius: 16px; }
 .badge { display: inline-block; font-size: 11px; font-weight: 700; padding: 2px 7px; border-radius: 6px; background: #fce8e6; color: var(--danger); white-space: nowrap; }
 .badge.ok { background: #e6f4ea; color: #188038; }
+.badge.soon { background: #fef7e0; color: #b06000; }
+.badge.gray { background: var(--bg-2); color: var(--ink-3); }
+/* 募集の予定：1年の早見表 */
+.cal-ctl { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; margin: 0 0 10px; }
+.cal-pref { font-size: 13px; color: var(--ink-3); display: inline-flex; align-items: center; gap: 6px; }
+.cal-pref select { font-size: 15px; font-weight: 600; color: var(--ink); border: 1px solid var(--line); border-radius: 8px; padding: 7px 10px; background: #fff; }
+.cal-kinds { display: flex; gap: 6px; flex-wrap: wrap; }
+.cal-kinds .opt { padding: 5px 11px; font-size: 13px; }
+.legend { display: flex; gap: 8px 12px; flex-wrap: wrap; font-size: 11px; color: var(--ink-2); margin: 0 0 8px; }
+.legend i { display: inline-block; width: 14px; height: 9px; border-radius: 2px; vertical-align: -1px; margin-right: 3px; --op: #1a73e8; }
+.legend i.fix { background: var(--op); }
+.legend i.exp { background: repeating-linear-gradient(135deg, var(--op) 0 3px, #fff 3px 6px); opacity: .7; }
+.legend i.any { background: var(--op); opacity: .2; }
+.legend i.now { background: #fff; box-shadow: inset 0 0 0 1.5px #f9ab00; }
+.cal-months { display: grid; grid-template-columns: repeat(12, 1fr); gap: 2px; position: sticky; top: 0; background: #fff; z-index: 1; padding: 4px 0 3px; font-size: 11px; color: var(--ink-3); text-align: center; }
+.cal-months .h { white-space: nowrap; line-height: 1.2; letter-spacing: -.3px; }
+.cal-months .h small { font-size: 7.5px; }
+.cal-months .h.now { color: var(--ink); font-weight: 700; }
+.cal-months .h.jan { border-left: 1px solid var(--line); }
+.cal-op { --op: var(--accent); margin: 8px 0 0; padding: 6px 0 0; border-top: 1px solid var(--line); }
+.cal-head { display: flex; align-items: center; flex-wrap: wrap; gap: 5px 6px; width: 100%; background: none; border: 0; padding: 4px 22px 4px 0; text-align: left; font-size: 14px; color: var(--ink); position: relative; }
+.cal-head b { white-space: nowrap; }
+.cal-head .dot { width: 10px; height: 10px; margin: 0; }
+.cal-head b { font-size: 14.5px; margin-right: 2px; }
+.cal-head .when { font-size: 12px; color: var(--ink-2); }
+.cal-head .caret { position: absolute; right: 4px; top: 50%; transform: translateY(-50%); color: var(--ink-3); font-size: 12px; }
+.cal-cells { display: grid; grid-template-columns: repeat(12, 1fr); gap: 2px; margin: 4px 0 0; }
+.cal-cells .c { height: 22px; border-radius: 4px; background: var(--bg-2); position: relative; }
+.cal-cells .c.now { box-shadow: inset 0 0 0 1.5px #f9ab00; }
+.cal-cells .c.open { background: var(--op); }
+.cal-cells .c.open::after { content: ""; position: absolute; left: 50%; top: 50%; width: 6px; height: 6px; margin: -3px 0 0 -3px; border-radius: 50%; background: #fff; }
+.cal-cells .c.fix { background: var(--op); opacity: .85; }
+.cal-cells .c.exp { background: repeating-linear-gradient(135deg, var(--op) 0 3px, #fff 3px 6px); opacity: .6; }
+.cal-cells .c.any { background: var(--op); opacity: .18; }
+.cal-sub { font-size: 11px; color: var(--ink-3); margin: 4px 0 0; }
+.cal-detail { display: none; margin: 2px 0 4px; }
+.cal-op.opened .cal-detail { display: block; }
+.cal-detail .ev { padding: 8px 0 6px; border-top: 1px dashed var(--line); margin-top: 6px; }
+.cal-detail .ev::before { display: none; }
+.cal-detail .ev b { font-size: 14px; }
+.cal-detail .ev .bar i { background: var(--op); }
 .h { margin: 4px 0 10px; font-size: 18px; }
 .three { list-style: none; margin: 0; padding: 0; }
 .three li { border-top: 1px solid var(--line); padding: 10px 0; display: grid; }
