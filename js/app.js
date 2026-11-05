@@ -15,6 +15,8 @@
   const store = { get: (k) => { try { return JSON.parse(localStorage.getItem("smiley:" + k)); } catch { return null; } }, set: (k, v) => { try { localStorage.setItem("smiley:" + k, JSON.stringify(v)); } catch {} } };
 
   let OPS = {}, ROUNDS = [], ITEMS = [], byId = new Map(), markers = new Map();
+  const CITY_PREF = new Map();   // 市区町村名 → 都県
+  const PREFS = ["東京都", "神奈川県", "埼玉県", "千葉県"];
   let filtered = [], shown = 0, activeId = null;
   const F = { now: true, prefs: new Set(), cities: new Set(), rentMax: null, layouts: new Set(), ops: new Set(), single: false, ev: false, q: "", round: null,
     builtFrom: null, areaMin: null, ratioMax: null, walkMax: null, noBus: false, bf: false, priority: false, unitsMin: null, vacant: false, cats: new Set() };
@@ -70,8 +72,10 @@
   map.on("locationerror", () => { $("btnLocate").classList.remove("busy"); toast("現在地を取得できませんでした。位置情報の利用を許可してください。"); });
 
   /* ---------------- データ ---------------- */
-  Promise.all([fetch("data/rounds.json", { cache: "no-cache" }).then((r) => r.json()), fetch("data/listings.json", { cache: "no-cache" }).then((r) => r.json())])
-    .then(([rd, ld]) => init(rd, ld))
+  let SITE = { line_url: "" };
+  Promise.all([fetch("data/rounds.json", { cache: "no-cache" }).then((r) => r.json()), fetch("data/listings.json", { cache: "no-cache" }).then((r) => r.json()),
+    fetch("data/site.json", { cache: "no-cache" }).then((r) => r.json()).catch(() => ({}))])
+    .then(([rd, ld, st]) => { SITE = Object.assign(SITE, st || {}); init(rd, ld); })
     .catch((e) => { console.error(e); $("count").textContent = "データを読み込めませんでした"; });
 
   function roundStatus(r) {
@@ -93,8 +97,9 @@
       r._status = r._round ? roundStatus(r._round) : "open";
       r._search = norm([r.name, r.address, r.access, r.city, r.stations.join(" ")].join(" "));
       r._opLabel = OPS[r.operator]?.label || r.operator;
+      if (r.city) CITY_PREF.set(r.city, r.pref);
     });
-    buildAbout();
+    buildAbout(); setupLine();
     const params = new URLSearchParams(location.search);
     if (params.get("round") && roundById.has(params.get("round"))) { F.round = params.get("round"); F.now = false; }
     bindUI();
@@ -105,8 +110,10 @@
   function matches(r) {
     if (F.round) { if (r.round_id !== F.round) return false; }
     else if (F.now && !(r._status === "open" || r._status === "anytime")) return false;
-    if (F.prefs.size && !F.prefs.has(r.pref)) return false;
-    if (F.cities.size && !F.cities.has(r.city)) return false;
+    if (F.prefs.size) {
+      if (!F.prefs.has(r.pref)) return false;
+      if (F.cities.size && !F.cities.has(r.city) && [...F.cities].some((c) => CITY_PREF.get(c) === r.pref)) return false;
+    }
     if (F.rentMax != null && (r.rent_min == null || r.rent_min > F.rentMax)) return false;
     if (F.layouts.size && !r.layouts.some((l) => F.layouts.has(l))) return false;
     if (F.ops.size && !F.ops.has(r.operator)) return false;
@@ -158,7 +165,7 @@
     const walk = r.walk_min != null ? `${r.bus ? "バス" : ""}${r.stations[0] || ""}${r.walk_min}分` : (r.stations[0] || "");
     const ratio = r.ratio_prev != null ? `・前回${r.ratio_prev}倍` : "";
     li.innerHTML = `<b>${esc(r.name)}</b><span class="rent">¥${yen(r.rent_min)}〜</span>
-      <span class="sub"><span class="tag" style="--op:${OPS[r.operator].color}">${esc(r._opLabel)}</span>${esc(r.layout)} ${esc(r.area_text)}㎡・${esc(walk)}${ratio}${r.single_ok ? "・単身可" : ""}</span>`;
+      <span class="sub"><span class="tag" style="--op:${OPS[r.operator].color}">${esc(r._opLabel)}</span>${esc([r.layout, r.area_text ? r.area_text + "㎡" : ""].filter(Boolean).join(" "))}${r.layout || r.area_text ? "・" : ""}${esc(walk)}${ratio}${r.single_ok ? "・単身可" : ""}</span>`;
     li.addEventListener("click", () => openDetail(r.id, true));
     li.addEventListener("keydown", (e) => { if (e.key === "Enter") openDetail(r.id, true); });
     return li;
@@ -180,7 +187,9 @@
     const set = (k, txt) => { const c = document.querySelector(`.chip[data-chip="${k}"]`); c.classList.toggle("set", !!txt); c.querySelector(".v").textContent = txt || ""; };
     document.querySelector('.chip[data-chip="now"]').classList.toggle("on", F.now && !F.round);
     document.querySelector('.chip[data-chip="now"]').setAttribute("aria-pressed", F.now && !F.round);
-    const area = F.cities.size ? (F.cities.size <= 2 ? [...F.cities].join("・") : `${F.cities.size}か所`) : F.prefs.size ? [...F.prefs].map((p) => p.replace(/[都県]$/, "")).join("・") : "";
+    const areaParts = [];
+    for (const p of PREFS) { if (!F.prefs.has(p)) continue; const cs = [...F.cities].filter((c) => CITY_PREF.get(c) === p); areaParts.push(cs.length ? (cs.length <= 2 ? cs.join("・") : `${p.replace(/[都県]$/, "")}${cs.length}か所`) : p.replace(/[都県]$/, "")); }
+    const area = areaParts.join("・");
     set("area", area);
     set("rent", F.rentMax != null ? `〜${(F.rentMax / 10000)}万円` : "");
     set("layout", F.layouts.size ? [...F.layouts].join("・") : "");
@@ -218,11 +227,7 @@
   function openPopover(k) {
     popKey = k; $("popTitle").textContent = TITLES[k]; const b = $("popBody"); b.innerHTML = "";
     if (k === "area") {
-      const prefs = ["東京都", "神奈川県", "埼玉県", "千葉県"];
-      b.appendChild(group("都県（いくつでも）", prefs.map((p) => opt(p.replace(/[都県]$/, ""), F.prefs.has(p), () => { F.prefs.has(p) ? F.prefs.delete(p) : F.prefs.add(p); }))));
-      const counts = new Map(); ITEMS.forEach((r) => { if (r._status === "open" || r._status === "anytime") counts.set(r.city, (counts.get(r.city) || 0) + 1); });
-      const cities = [...counts.keys()].sort((a, b) => (b.endsWith("区") - a.endsWith("区")) || counts.get(b) - counts.get(a));
-      b.appendChild(group("区市町村（いくつでも）", cities.map((c) => opt(`${c} ${counts.get(c)}`, F.cities.has(c), () => { F.cities.has(c) ? F.cities.delete(c) : F.cities.add(c); }))));
+      renderAreaBody(b);
     } else if (k === "rent") {
       const row = document.createElement("div"); row.className = "rent-row";
       const sel = document.createElement("select");
@@ -249,6 +254,38 @@
       b.appendChild(toggleRow("そのほか", [["noBus", "バス便は除く"], ["bf", "バリアフリー"], ["priority", "優遇抽せんあり"], ["vacant", "いま空きあり"]]));
     }
     $("popover").hidden = false; $("scrim").hidden = false;
+  }
+  function renderAreaBody(b) {
+    b.innerHTML = "";
+    const counts = new Map(), pc = new Map();
+    ITEMS.forEach((r) => { if (!F.now || r._status === "open" || r._status === "anytime") { counts.set(r.city, (counts.get(r.city) || 0) + 1); pc.set(r.pref, (pc.get(r.pref) || 0) + 1); } });
+    const wrap = document.createElement("div"); wrap.className = "area-tree";
+    for (const p of PREFS) {
+      const on = F.prefs.has(p);
+      const row = document.createElement("div"); row.className = "pref-row" + (on ? " open" : "");
+      const head = document.createElement("label"); head.className = "ck pref";
+      head.innerHTML = `<input type="checkbox"${on ? " checked" : ""}><span>${esc(p)}</span><small>${(pc.get(p) || 0).toLocaleString("ja-JP")}件</small>`;
+      head.querySelector("input").addEventListener("change", (e) => {
+        if (e.target.checked) F.prefs.add(p); else { F.prefs.delete(p); [...F.cities].forEach((c) => { if (CITY_PREF.get(c) === p) F.cities.delete(c); }); }
+        renderAreaBody(b);
+      });
+      row.appendChild(head);
+      if (on) {
+        const cities = [...counts.keys()].filter((c) => CITY_PREF.get(c) === p).sort((a, z) => (z.endsWith("区") - a.endsWith("区")) || counts.get(z) - counts.get(a));
+        const grid = document.createElement("div"); grid.className = "city-grid";
+        if (!cities.length) grid.innerHTML = `<p class="hint">いま出せる市区町村がありません</p>`;
+        for (const c of cities) {
+          const l = document.createElement("label"); l.className = "ck";
+          l.innerHTML = `<input type="checkbox"${F.cities.has(c) ? " checked" : ""}><span>${esc(c)}</span><small>${counts.get(c)}</small>`;
+          l.querySelector("input").addEventListener("change", (e) => { if (e.target.checked) F.cities.add(c); else F.cities.delete(c); });
+          grid.appendChild(l);
+        }
+        row.appendChild(grid);
+      }
+      wrap.appendChild(row);
+    }
+    const h = document.createElement("p"); h.className = "hint"; h.textContent = "都県にチェックを入れると、その中の市区町村を選べます。何も選ばなければ全部です。";
+    b.appendChild(wrap); b.appendChild(h);
   }
   function group(title, opts) { const g = document.createElement("div"); g.className = "opt-group"; g.innerHTML = `<h4>${esc(title)}</h4>`; const grid = document.createElement("div"); grid.className = "opt-grid"; opts.forEach((o) => grid.appendChild(o)); g.appendChild(grid); return g; }
   function opt(label, on, toggle) { const btn = document.createElement("button"); btn.type = "button"; btn.className = "opt"; btn.textContent = label; btn.setAttribute("aria-pressed", on); btn.addEventListener("click", () => { toggle(); btn.setAttribute("aria-pressed", btn.getAttribute("aria-pressed") !== "true"); }); return btn; }
@@ -292,6 +329,7 @@
     const gq = encodeURIComponent(`${r.pref}${r.address}`);
     const rows = [
       ["締切", deadline],
+      ...(r.geo_level === "city" ? [["地図の位置", "おおよそ（市区町村の中心）。正確な場所は公式ページで"]] : []),
       ["抽せん日", rd && rd.lottery ? fmtMD(rd.lottery) : "—"],
       ["最寄駅", esc(r.access)],
       ["入居できる人", esc(r.persons || "—")],
@@ -322,6 +360,8 @@
         <a class="card" href="#" data-aff="rent"><b>家賃の安い賃貸</b><span>${esc(r.city)}の近くで探す</span></a>
       </div>
       <p class="hint">提携先のリンクは準備中です。いまは各サービスの入口に飛びます。</p>`;
+    if (rd && (rd.apply_to || rd.anytime)) $("detailBody").querySelector("table").insertAdjacentHTML("afterend", `<div class="line-cta slim"><span>締切や次の募集を<b>LINE</b>で受け取る</span><a class="line-btn" data-line href="#">友だち追加</a></div>`);
+    setupLine();
     $("detailFoot").innerHTML = `
       <div class="btn-row">
         <a class="btn ghost gmap" href="https://www.google.com/maps/search/?api=1&query=${gq}" target="_blank" rel="noopener"><svg viewBox="0 0 24 24" aria-hidden="true" width="18" height="18"><path d="M12 2a7 7 0 0 0-7 7c0 5 7 13 7 13s7-8 7-13a7 7 0 0 0-7-7zm0 9.5A2.5 2.5 0 1 1 12 6a2.5 2.5 0 0 1 0 5.5z" fill="currentColor"/></svg>Googleマップ</a>
@@ -380,7 +420,9 @@
       <p class="tl-h">今募集中</p><div class="tl">${open.map(ev).join("") || '<div class="ev"><div class="sub">今は募集中のものがありません</div></div>'}</div>
       <p class="tl-h">いつでも申し込めるもの</p><div class="tl">${anytime.map(ev).join("")}</div>
       <p class="tl-h">これから</p><div class="tl">${up.map(ev).join("")}</div>
-      <button type="button" class="btn ghost" id="calNotify" style="width:100%;margin-top:16px">募集が始まったら知らせる</button>`;
+      <div class="line-cta"><span><b>LINE</b>で「募集が始まった」「締切3日前」を受け取る</span><a class="line-btn" data-line href="#">友だち追加</a></div>
+      <button type="button" class="btn ghost" id="calNotify" style="width:100%;margin-top:10px">お知らせの受け取り方を見る</button>`;
+    setupLine();
     $("calBody").querySelectorAll("[data-round]").forEach((b) => b.addEventListener("click", () => { F.round = b.dataset.round; F.now = false; closePages(); apply(); if (!DESKTOP.matches) drawer.classList.add("open"); }));
     $("calNotify").addEventListener("click", () => openPage("pageNotify"));
   }
@@ -388,7 +430,14 @@
   // S6 通知登録（試作：まだ送信しない。登録内容は端末に保存するだけ）
   $("areaChips").addEventListener("click", (e) => { const c = e.target.closest(".chip"); if (!c) return; c.classList.toggle("on"); c.setAttribute("aria-pressed", c.classList.contains("on")); });
   const chosenPrefs = () => [...document.querySelectorAll("#areaChips .chip.on")].map((c) => c.dataset.pref);
-  $("btnLine").addEventListener("click", (e) => { e.preventDefault(); toast("LINE公式アカウントは準備中です（試作版）"); });
+  function setupLine() {
+    const url = SITE.line_url || "";
+    document.querySelectorAll("[data-line]").forEach((a) => {
+      if (url) { a.href = url; a.target = "_blank"; a.rel = "noopener"; a.addEventListener("click", () => { store.set("subscribed", true); }); }
+      else a.addEventListener("click", (e) => { e.preventDefault(); toast(SITE.line_note || "LINE公式アカウントは準備中です"); });
+    });
+    $("lineNote").textContent = url ? "友だち追加すると、選んだ地域の「募集が始まった」「締切3日前」が届きます。" : (SITE.line_note || "");
+  }
   $("mailForm").addEventListener("submit", (e) => {
     e.preventDefault();
     const list = store.get("subs") || []; list.push({ mail: $("mail").value, prefs: chosenPrefs(), at: new Date().toISOString() }); store.set("subs", list); store.set("subscribed", true);

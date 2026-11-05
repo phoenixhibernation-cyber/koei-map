@@ -30,7 +30,7 @@ with sync_playwright() as p:
     # チップ → 絞り込み
     pg.click('.chip[data-chip="area"]'); pg.wait_for_timeout(300)
     pg.screenshot(path=OUT / "02_filter_area.png")
-    pg.click('.opt:has-text("板橋区")'); pg.click("#popDone"); pg.wait_for_timeout(500)
+    pg.click('.ck.pref:has-text("東京都") input'); pg.wait_for_timeout(200); pg.click('.city-grid .ck:has-text("板橋区") input'); pg.click("#popDone"); pg.wait_for_timeout(500)
     c2 = pg.inner_text("#count"); check("板橋区で絞れる: " + c2.split("\n")[0], "90件" in c2)
 
     # もっと条件（倍率3倍以下）→ 築年の並び替え
@@ -39,7 +39,7 @@ with sync_playwright() as p:
     c3 = pg.inner_text("#count"); check("倍率3倍以下で絞れる: " + c3.split("\n")[0], "件" in c3 and "90件" not in c3)
     pg.select_option("#sort", "old"); pg.wait_for_timeout(400)
     check("築年が古い順に並ぶ", pg.evaluate("document.querySelector('#list .item .sub').textContent") is not None)
-    pg.click("#chipReset"); pg.wait_for_timeout(300); pg.click('.chip[data-chip="area"]'); pg.click('.opt:has-text("板橋区")'); pg.click("#popDone"); pg.wait_for_timeout(400)
+    pg.click("#chipReset"); pg.wait_for_timeout(300); pg.click('.chip[data-chip="area"]'); pg.click('.ck.pref:has-text("東京都") input'); pg.wait_for_timeout(200); pg.click('.city-grid .ck:has-text("板橋区") input'); pg.click("#popDone"); pg.wait_for_timeout(400)
 
     # 一覧 → 詳細
     pg.click("#handle"); pg.wait_for_timeout(400)
@@ -59,8 +59,9 @@ with sync_playwright() as p:
     pg.screenshot(path=OUT / "05_nudge.png")
     pg.click("#nudgeYes"); pg.wait_for_timeout(300)
     check("通知登録ページが開く", pg.is_visible("#pageNotify"))
-    pg.fill("#mail", "test@example.com"); pg.click('#mailForm button[type="submit"]'); pg.wait_for_timeout(300)
-    check("メール登録できる（端末内）", "登録しました" in pg.inner_text("#toast"))
+    check("LINEの友だち追加ボタンがある", pg.is_visible("#btnLine"))
+    pg.click("#btnLine"); pg.wait_for_timeout(300)
+    check("LINE未設定のときは準備中と出る", "準備中" in pg.inner_text("#toast"))
     pg.screenshot(path=OUT / "06_notify.png")
     pg.click("#pageNotify [data-close]")
 
@@ -68,6 +69,7 @@ with sync_playwright() as p:
     pg.click("#btnCal"); pg.wait_for_timeout(300)
     check("カレンダーに今募集中がある", "あと" in pg.inner_text("#calBody"))
     check("カレンダーに「終わった」がない", "終わった" not in pg.inner_text("#calBody"))
+    check("カレンダーにLINEの導線がある", pg.is_visible("#calBody .line-cta"))
     pg.screenshot(path=OUT / "07_calendar.png")
     rid = pg.get_attribute("#calBody [data-round] >> nth=0", "data-round")
     pg.click("#calBody [data-round] >> nth=0"); pg.wait_for_timeout(500)

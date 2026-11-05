@@ -93,6 +93,27 @@ button { cursor: pointer; }
 .rent-row { display: flex; align-items: center; gap: 10px; margin: 8px 0; }
 .rent-row select { flex: 1; padding: 10px; border: 1.5px solid var(--line); border-radius: 10px; background: #fff; }
 .hint { font-size: 12px; color: var(--ink-3); margin: 6px 0 0; }
+/* 地域：都県 → 市区町村のチェック */
+.area-tree { margin: 4px 0 0; }
+.pref-row { border-top: 1px solid var(--line); }
+.pref-row:first-child { border-top: 0; }
+.ck { display: flex; align-items: center; gap: 8px; font-size: 14px; padding: 6px 0; cursor: pointer; }
+.ck input { width: 20px; height: 20px; margin: 0; accent-color: var(--accent); flex: none; }
+.ck small { margin-left: auto; color: var(--ink-3); font-size: 12px; }
+.ck.pref { font-weight: 700; font-size: 15px; padding: 11px 0; }
+.city-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 0 14px; padding: 0 0 8px 28px; }
+.city-grid .ck { padding: 5px 0; font-size: 13.5px; }
+.city-grid .ck small { font-size: 11px; }
+/* LINE 導線 */
+.line-strip { display: flex; align-items: center; gap: 6px; margin: 0 16px 6px; padding: 7px 12px; border-radius: 10px; background: #e9f9ef; color: #1b5e34; font-size: 12.5px; font-weight: 600; text-decoration: none; }
+.line-strip b { color: #06c755; }
+.line-strip span { margin-left: auto; font-size: 16px; }
+.drawer:not(.open) .line-strip { display: none; }
+.line-cta { margin: 14px 0 0; background: #e9f9ef; border: 1.5px solid #9edbb5; border-radius: 12px; padding: 10px 12px; font-size: 13px; display: flex; align-items: center; gap: 10px; }
+.line-cta.slim { margin: 10px 0 0; padding: 8px 10px; font-size: 12.5px; }
+.line-cta b { color: #06c755; }
+.line-cta span { flex: 1; }
+.line-btn { background: #06c755; color: #fff; font-weight: 700; padding: 8px 12px; border-radius: 9px; font-size: 13px; white-space: nowrap; text-decoration: none; }
 
 /* ---- 物件の詳細 ---- */
 .detail { position: absolute; left: 0; right: 0; bottom: 0; top: 22%; background: #fff; border-radius: 18px 18px 0 0; z-index: 650; display: flex; flex-direction: column; box-shadow: var(--shadow); padding-bottom: var(--safe-b); }
@@ -101,8 +122,8 @@ button { cursor: pointer; }
 .detail-foot { padding: 10px 16px 10px; border-top: 1px solid var(--line); flex: none; }
 .detail-foot .btn { width: 100%; }
 .btn-row { display: flex; gap: 8px; }
-.btn-row .gmap { flex: 0 0 auto; width: auto; padding: 13px 14px; }
-.btn-row .official { flex: 1; }
+.btn-row .gmap { flex: 0 0 auto; width: auto; padding: 13px 12px; font-size: 14px; }
+.btn-row .official { flex: 1; font-size: 14.5px; white-space: nowrap; }
 .detail-foot .links { display: flex; justify-content: space-between; margin-top: 8px; font-size: 13px; }
 .detail-foot .links a { color: var(--ink-2); }
 .detail h2 { margin: 2px 40px 2px 0; font-size: 20px; }

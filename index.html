@@ -67,6 +67,7 @@
         </select>
       </label>
     </div>
+    <a class="line-strip" data-line href="#"><b>LINE</b>で「募集が始まった」を受け取る<span>›</span></a>
     <ol class="list" id="list"></ol>
     <button type="button" class="more" id="more" hidden>さらに表示</button>
     <p class="empty" id="empty" hidden>条件に合う住まいがありません。条件をゆるめてみてください。</p>
@@ -111,13 +112,14 @@
         <button type="button" class="chip" data-pref="埼玉県" aria-pressed="false">埼玉</button>
         <button type="button" class="chip" data-pref="千葉県" aria-pressed="false">千葉</button>
       </div>
-      <a class="btn line" id="btnLine" href="#" rel="noopener">LINEで受け取る</a>
-      <form class="mail" id="mailForm">
-        <input type="email" id="mail" placeholder="メールアドレス" required autocomplete="email" inputmode="email">
+      <a class="btn line" id="btnLine" data-line href="#" rel="noopener">LINEで受け取る（友だち追加）</a>
+      <p class="note" id="lineNote"></p>
+      <p class="note">名前や住所は聞きません。いつでもブロックで解除できます。メールでのお知らせは準備中です。</p>
+      <form class="mail" id="mailForm" hidden>
+        <input type="email" id="mail" placeholder="メールアドレス" autocomplete="email" inputmode="email">
         <button type="submit" class="btn ghost">メールで受け取る</button>
       </form>
-      <p class="note">名前や住所は聞きません。いつでも解除できます。</p>
-      <p class="proto" id="notifyProto"></p>
+      <p class="proto" id="notifyProto" hidden></p>
     </div>
   </section>
 

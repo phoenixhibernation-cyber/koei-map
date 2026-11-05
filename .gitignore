@@ -2,3 +2,4 @@ docs
 .DS_Store
 data/raw/*
 !data/raw/toei/
+__pycache__/
