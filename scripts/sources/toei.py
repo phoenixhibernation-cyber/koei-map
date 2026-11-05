@@ -11,9 +11,9 @@ INDEX = "https://www.to-kousya.or.jp/kouei/toeibosyu/index_teiki.html"
 CAT = {"世帯向（一般募集住宅）": "世帯向", "若年夫婦・子育て世帯向（定期使用住宅）": "若年夫婦・子育て", "居室内で病死等があった住宅": "病死等があった住宅"}
 
 
-def run(today: datetime.date) -> tuple[list[dict], list[dict]]:
+def run(today: datetime.date):
     if not SRC.exists():
-        return [], []
+        return [], [], {"expect_listings": False, "notes": ["都営: data/raw/toei/housing.json が無い"]}
     d = json.loads(SRC.read_text(encoding="utf-8"))
     meta, items = d["meta"], d["items"]
     m = re.search(r"(\d{4})年(\d{1,2})月", meta.get("round", ""))
@@ -38,4 +38,7 @@ def run(today: datetime.date) -> tuple[list[dict], list[dict]]:
             priority_lottery=bool(r.get("priority_lottery")), official_url=meta.get("source_page"),
             pdf_url=f"{r['pdf_url']}#page={r['pdf_page_index']}" if r.get("pdf_url") else "", pdf_page=r.get("page", ""),
         ))
-    return out, rounds
+    notes = []
+    if rounds[0]["apply_to"] and rounds[0]["apply_to"] < today.isoformat():
+        notes.append(f"都営: {rounds[0]['label']} は終了。次の募集まで静的データ（{meta.get('generated_at')} 作成）")
+    return out, rounds, {"expect_listings": True, "notes": notes}

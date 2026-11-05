@@ -2,13 +2,9 @@
 
 | 運営元 | 件数 | 募集の予定 | エラー |
 |---|---|---|---|
-| toei | 1647 | 1 |  |
-| saitama | 43 | 2 |  |
-| kawasaki | 4 | 1 |  |
-| sagamihara | 26 | 2 |  |
-| chibacity | 0 | 3 |  |
+| sagamihara | 45 | 2 |  |
 
-合計 1720 件（前回の値を残した運営元: なし）
+合計 1739 件（前回の値を残した運営元: chibacity, kawasaki, saitama, toei）
 
 ## 位置情報に変換できなかった住所（0件）
 

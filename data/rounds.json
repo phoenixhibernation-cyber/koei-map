@@ -91,7 +91,19 @@
    "apply_from": "2026-08-27",
    "apply_to": "2026-12-28",
    "url": "https://www.yokohama-kousya.or.jp/municipal/regular.php",
-   "note": "定期募集で応募がなかった住宅。年2回の定期募集（4月・10月）は10月分が終了、抽選は2027/1/6"
+   "note": "定期募集で応募がなかった住宅。年2回の定期募集（4月・10月）は10月分が終了、抽選は2027/1/6",
+   "manual": true
+  },
+  {
+   "id": "saitama-anytime",
+   "operator": "saitama",
+   "label": "埼玉県営住宅 随時募集（先着順）",
+   "kind": "先着順・支所窓口で申込",
+   "apply_from": "2026-10-01",
+   "apply_to": "2026-12-28",
+   "anytime": false,
+   "url": "https://www.saijk.or.jp/lookingfor/kenei/zuiji/",
+   "note": "空き住戸を先着順で受付。一覧は10月23日更新"
   },
   {
    "id": "sagamihara-2026-11",
@@ -122,7 +134,8 @@
    "kind": "先着順・いつでも",
    "anytime": true,
    "url": "https://www.ur-net.go.jp/chintai/kanto/",
-   "note": "礼金・仲介手数料・更新料・保証人が不要"
+   "note": "礼金・仲介手数料・更新料・保証人が不要",
+   "manual": true
   },
   {
    "id": "chibacity-anytime",
@@ -140,18 +153,8 @@
    "kind": "先着順",
    "anytime": true,
    "url": "http://www.chiba-kousya.or.jp/jutak/jojitop.html",
-   "note": "団地ごとのページで公開"
-  },
-  {
-   "id": "saitama-anytime",
-   "operator": "saitama",
-   "label": "埼玉県営住宅 随時募集（先着順）",
-   "kind": "先着順・支所窓口で申込",
-   "apply_from": null,
-   "apply_to": null,
-   "anytime": true,
-   "url": "https://www.saijk.or.jp/lookingfor/kenei/zuiji/",
-   "note": "空き住戸を先着順で受付。一覧は10月23日更新"
+   "note": "団地ごとのページで公開",
+   "manual": true
   },
   {
    "id": "kawasaki-anytime",
@@ -167,20 +170,20 @@
    "operator": "chibacity",
    "label": "千葉市営住宅 11月再募集（第3期再）",
    "kind": "抽選",
-   "apply_from": "2026-11-15",
-   "apply_to": "2026-11-24",
    "url": "https://www.cjkk.or.jp/shiei/shiei/result/",
-   "note": "年4回の定期（1〜10日）と再募集（15〜24日）。公式の予定表より"
+   "note": "年4回の定期（1〜10日）と再募集（15〜24日）。公式の予定表より",
+   "apply_from": "2026-11-15",
+   "apply_to": "2026-11-24"
   },
   {
    "id": "chibacity-2027-01",
    "operator": "chibacity",
    "label": "千葉市営住宅 1月定期募集（第4期）",
    "kind": "抽選",
-   "apply_from": "2027-01-01",
-   "apply_to": "2027-01-10",
    "url": "https://www.cjkk.or.jp/shiei/shiei/result/",
-   "note": "年4回の定期（1〜10日）と再募集（15〜24日）。公式の予定表より"
+   "note": "年4回の定期（1〜10日）と再募集（15〜24日）。公式の予定表より",
+   "apply_from": "2027-01-01",
+   "apply_to": "2027-01-10"
   },
   {
    "id": "chiba-2027-01",
@@ -191,7 +194,8 @@
    "apply_to": "2027-01-15",
    "lottery": "2027-01-29",
    "url": "http://www.chiba-kousya.or.jp/jutak/akitop.html",
-   "note": "案内配布 12/22から。年4回（4・7・10・1月、各1日〜15日）"
+   "note": "案内配布 12/22から。年4回（4・7・10・1月、各1日〜15日）",
+   "manual": true
   },
   {
    "id": "yokohama-2027-04",
@@ -200,7 +204,8 @@
    "kind": "抽選",
    "expected": "例年4月（10月募集は10/9〜10/23だった）",
    "url": "https://www.yokohama-kousya.or.jp/municipal/regular.php",
-   "note": "年2回（4月・10月）。公式発表待ち"
+   "note": "年2回（4月・10月）。公式発表待ち",
+   "manual": true
   },
   {
    "id": "kanagawa-next",
@@ -209,7 +214,8 @@
    "kind": "",
    "expected": "公式発表待ち",
    "url": "https://www.kanagawa-jk.or.jp/kenei/",
-   "note": "募集ページを確認中（公社サイトに見当たらず）"
+   "note": "募集ページを確認中（公社サイトに見当たらず）",
+   "manual": true
   },
   {
    "id": "toei-2027-02",
@@ -218,7 +224,8 @@
    "kind": "家族向（ポイント方式）・単身者向（抽せん）",
    "expected": "2027年2月上旬",
    "url": "https://www.to-kousya.or.jp/kouei/toeibosyu/index_teiki.html",
-   "note": "例年の時期から。公式発表待ち"
+   "note": "例年の時期から。公式発表待ち",
+   "manual": true
   },
   {
    "id": "toei-2027-05",
@@ -227,17 +234,8 @@
    "kind": "抽せん方式（家族向・単身者向等）",
    "expected": "2027年5月上旬",
    "url": "https://www.to-kousya.or.jp/kouei/toeibosyu/index_teiki.html",
-   "note": "例年の時期から。公式発表待ち"
-  },
-  {
-   "id": "saitama-2026-10",
-   "operator": "saitama",
-   "label": "埼玉県営住宅 10月定期募集",
-   "kind": "抽せん方式",
-   "apply_from": "2026-10-01",
-   "apply_to": "2026-10-21",
-   "url": "https://www.saijk.or.jp/lookingfor/kenei/apply/",
-   "note": "年4回（4・7・10・1月）"
+   "note": "例年の時期から。公式発表待ち",
+   "manual": true
   }
  ]
 }
