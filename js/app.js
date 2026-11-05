@@ -36,9 +36,9 @@
   const PALETTE = ["#c9dbf3", "#cfe9d4", "#f7dfc0", "#e8d3eb", "#cde9ec"];
   ["bmask", "bfill", "bline", "blabel"].forEach((n, i) => { const p = map.createPane(n); p.style.zIndex = [210, 220, 380, 390][i]; p.style.pointerEvents = "none"; });
   fetch("data/boundaries.json").then((r) => r.json()).then((B) => {
-    L.geoJSON(B.wards, { pane: "bfill", interactive: false, stroke: false, style: (f) => ({ fillColor: PALETTE[f.properties.c % 5], fillOpacity: 0.45 }) }).addTo(map);
+    L.geoJSON(B.wards, { pane: "bfill", interactive: false, stroke: false, style: (f) => ({ fillColor: PALETTE[f.properties.c % 5], fillOpacity: 0.16 }) }).addTo(map);
     L.geoJSON(B.wards, { pane: "bline", interactive: false, fill: false, style: { color: "#fff", weight: 1.6, opacity: 1 } }).addTo(map);
-    L.geoJSON(B.outline, { pane: "bline", interactive: false, fill: false, style: { color: "#34475f", weight: 2, opacity: 0.8 } }).addTo(map);
+    L.geoJSON(B.outline, { pane: "bline", interactive: false, fill: false, style: { color: "#5f6368", weight: 1.5, opacity: 0.7 } }).addTo(map);
     const labels = L.layerGroup(B.wards.features.map((f) => L.marker(f.properties.label, {
       pane: "blabel", interactive: false, keyboard: false,
       icon: L.divIcon({ className: "ward-label" + (f.properties.name.endsWith("区") ? " ku" : ""), html: `<span>${esc(f.properties.name)}</span>`, iconSize: [0, 0] }),
@@ -57,6 +57,21 @@
   });
   map.addLayer(cluster);
   const pinIcon = (r, active) => L.divIcon({ className: "pin-icon", html: `<div class="pin${active ? " active" : ""}${isInfo(r) ? " info" : ""}" style="--op:${OPS[r.operator].color}"></div>`, iconSize: [24, 24], iconAnchor: [12, 30] });
+  // 選んだ物件の赤いピン（クラスタに飲まれないよう、地図に直接置く）
+  const activeIcon = L.divIcon({ className: "pin-icon", html: '<div class="pin-red"><svg viewBox="0 0 24 36" width="36" height="54"><path d="M12 0C5.4 0 0 5.4 0 12c0 9 12 24 12 24s12-15 12-24C24 5.4 18.6 0 12 0z" fill="#ea4335"/><circle cx="12" cy="12" r="5" fill="#fff"/></svg></div>', iconSize: [36, 54], iconAnchor: [18, 54] });
+  let activeMarker = null;
+  function showActivePin(r) { if (activeMarker) activeMarker.remove(); activeMarker = null; if (r && r.lat != null) activeMarker = L.marker([r.lat, r.lon], { icon: activeIcon, zIndexOffset: 5000, keyboard: false, interactive: false }).addTo(map); }
+  // 詳細パネル・シートに隠れない位置へ地図をずらす（パソコン：左のパネル2枚の右側の中央／スマホ：上の見えている帯の中央）
+  function focusOn(r, zoomIn) {
+    if (r.lat == null) return;
+    const z = zoomIn ? Math.max(map.getZoom(), 15) : map.getZoom();
+    const W = map.getSize().x, H = map.getSize().y;
+    // 地図の中心をピンからずらす：パソコンはピンがパネル（400+16+420px）の右側の中央に、スマホは上 22% の帯の中に来るように
+    const dx = DESKTOP.matches ? -Math.round(836 / 2) : 0;
+    const dy = DESKTOP.matches ? 0 : Math.round(H * 0.5 - H * 0.29);   // 上 40% の帯のうち、検索バーとチップの下あたり
+    const target = map.project([r.lat, r.lon], z).add([dx, dy]);
+    map.setView(map.unproject(target, z), z, { animate: true });
+  }
 
   // 現在地
   let meMarker = null;
@@ -324,8 +339,8 @@
     if (markers.get(id)) markers.get(id).setIcon(pinIcon(r, true));
     document.querySelectorAll(".item.active").forEach((el) => el.classList.remove("active"));
     document.querySelector(`.item[data-id="${CSS.escape(id)}"]`)?.classList.add("active");
-    if (fromList && r.lat != null) { map.setView([r.lat, r.lon], Math.max(map.getZoom(), 15), { animate: true }); }
-    else if (r.lat != null && !DESKTOP.matches) { map.panTo([r.lat, r.lon - 0], { animate: true }); }
+    showActivePin(r);
+    focusOn(r, fromList);
     const rd = r._round;
     let deadline = rd && rd.apply_to ? `${fmtMD(rd.apply_to)}まで${daysLeft(rd.apply_to) >= 0 ? `<span class="deadline">あと${daysLeft(rd.apply_to)}日</span>` : ""}` : rd && rd.anytime ? "いつでも（先着順）" : "—";
     if (isInfo(r)) deadline = rd && rd.apply_from ? `次回の募集 ${fmtMD(rd.apply_from)}〜${rd.apply_to ? fmtMD(rd.apply_to) : ""}。この団地が募集されるかは募集時に公式で` : rd && rd.expected ? `次回の募集 ${esc(rd.expected)}` : "次回の募集は公式で";
@@ -378,7 +393,7 @@
   }
   const UR_PREF = { "東京都": "tokyo", "神奈川県": "kanagawa", "埼玉県": "saitama", "千葉県": "chiba" };
   const urUrl = (r) => `https://www.ur-net.go.jp/chintai/kanto/${UR_PREF[r.pref] || ""}/`;
-  function closeDetail() { $("detail").hidden = true; $("detail").classList.remove("full"); drawer.classList.remove("hidden-by-detail"); }
+  function closeDetail() { $("detail").hidden = true; $("detail").classList.remove("full"); drawer.classList.remove("hidden-by-detail"); showActivePin(null); }
   // 詳細シートのつまみ：タップで全画面に広げる／戻す。上下のスワイプでも
   const dh = $("detail").querySelector(".handle");
   dh.addEventListener("click", () => $("detail").classList.toggle("full"));

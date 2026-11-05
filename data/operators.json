@@ -2,7 +2,7 @@
  "toei": {
   "label": "都営",
   "long": "都営住宅（東京都）",
-  "color": "#2d5fa8",
+  "color": "#1a73e8",
   "pref": "東京都",
   "url": "https://www.to-kousya.or.jp/kouei/toeibosyu/index_teiki.html",
   "schedule": {
@@ -21,7 +21,7 @@
  "kanagawa": {
   "label": "県営",
   "long": "神奈川県営住宅",
-  "color": "#17806a",
+  "color": "#188038",
   "pref": "神奈川県",
   "url": "https://www.pref.kanagawa.jp/docs/h5z/cnt/f6022/index.html",
   "schedule": {
@@ -38,7 +38,7 @@
  "saitama": {
   "label": "県営",
   "long": "埼玉県営住宅",
-  "color": "#17806a",
+  "color": "#188038",
   "pref": "埼玉県",
   "url": "https://www.saijk.or.jp/lookingfor/kenei/",
   "schedule": {
@@ -57,7 +57,7 @@
  "chiba": {
   "label": "県営",
   "long": "千葉県営住宅",
-  "color": "#17806a",
+  "color": "#188038",
   "pref": "千葉県",
   "url": "http://www.chiba-kousya.or.jp/jutak/akitop.html",
   "schedule": {
@@ -76,7 +76,7 @@
  "yokohama": {
   "label": "市営",
   "long": "横浜市営住宅",
-  "color": "#c96a1b",
+  "color": "#e37400",
   "pref": "神奈川県",
   "url": "https://www.yokohama-kousya.or.jp/municipal/regular.php",
   "schedule": {
@@ -93,7 +93,7 @@
  "kawasaki": {
   "label": "市営",
   "long": "川崎市営住宅",
-  "color": "#c96a1b",
+  "color": "#e37400",
   "pref": "神奈川県",
   "url": "https://www.city.kawasaki.jp/500/page/0000191065.html",
   "schedule": {
@@ -112,7 +112,7 @@
  "sagamihara": {
   "label": "市営",
   "long": "相模原市営住宅",
-  "color": "#c96a1b",
+  "color": "#e37400",
   "pref": "神奈川県",
   "url": "https://www.city.sagamihara.kanagawa.jp/kurashi/1026489/sumai/1026509/1007952.html",
   "schedule": {
@@ -129,7 +129,7 @@
  "saitamacity": {
   "label": "市営",
   "long": "さいたま市営住宅",
-  "color": "#c96a1b",
+  "color": "#e37400",
   "pref": "埼玉県",
   "url": "https://www.saijk.or.jp/lookingfor/shiei/saitama/",
   "schedule": {
@@ -146,7 +146,7 @@
  "chibacity": {
   "label": "市営",
   "long": "千葉市営住宅",
-  "color": "#c96a1b",
+  "color": "#e37400",
   "pref": "千葉県",
   "url": "https://www.cjkk.or.jp/shiei/shiei/result/",
   "schedule": {
@@ -165,7 +165,7 @@
  "ur": {
   "label": "UR",
   "long": "UR賃貸住宅（1都3県）",
-  "color": "#1a8a9e",
+  "color": "#9334e6",
   "pref": "",
   "url": "https://www.ur-net.go.jp/chintai/kanto/",
   "schedule": {
