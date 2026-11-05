@@ -1,0 +1,96 @@
+<!DOCTYPE html>
+<!--
+  使い捨ての「選ぶページ」の雛形（V-75 V-76）。
+  使い方：このファイルを作業フォルダの decisions/<日付>_<テーマ>.html にコピーし、
+  下の DATA だけを書き換えてブラウザで開く。オーナーはチェックを入れて「決定をコピー」を押し、
+  チャットに貼る。AI は貼られた内容の案だけを実装する。
+  案の中身は文字・画像・HTML（ワイヤーフレームやデザイン案）のどれでもよい。
+-->
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>工程03 画面を選ぶ</title>
+<style>
+  :root { --bg:#f6f7fb; --card:#fff; --ink:#1d2433; --sub:#6b7385; --line:#e3e6ee; --accent:#4f6bed; }
+  * { box-sizing:border-box; }
+  body { margin:0; font-family:-apple-system,"Hiragino Sans","Noto Sans JP",sans-serif; background:var(--bg); color:var(--ink); }
+  header { padding:32px 24px 8px; max-width:1100px; margin:0 auto; }
+  h1 { font-size:22px; margin:0 0 6px; }
+  .lead { color:var(--sub); margin:0; line-height:1.7; }
+  section { max-width:1100px; margin:24px auto; padding:0 24px; }
+  h2 { font-size:16px; margin:0 0 4px; }
+  .q-note { color:var(--sub); font-size:13px; margin:0 0 12px; }
+  .grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(260px,1fr)); gap:14px; }
+  label.card { display:block; background:var(--card); border:2px solid var(--line); border-radius:16px; padding:16px; cursor:pointer; transition:border-color .15s, box-shadow .15s; }
+  label.card:hover { box-shadow:0 4px 16px rgba(29,36,51,.06); }
+  label.card:has(input:checked) { border-color:var(--accent); box-shadow:0 0 0 4px rgba(79,107,237,.12); }
+  .card input { margin-right:8px; accent-color:var(--accent); }
+  .tag { font-weight:600; }
+  .why { color:var(--sub); font-size:13px; margin:6px 0 10px; }
+  .body { font-size:15px; line-height:1.7; }
+  .body iframe { width:100%; height:420px; border:1px solid var(--line); border-radius:10px; background:#fff; }
+  .body img { width:100%; border-radius:10px; }
+  textarea { width:100%; min-height:60px; border:1px solid var(--line); border-radius:10px; padding:10px; font:inherit; margin-top:10px; }
+  footer { position:sticky; bottom:0; background:rgba(246,247,251,.92); backdrop-filter:blur(6px); border-top:1px solid var(--line); padding:14px 24px; text-align:center; }
+  button { background:var(--accent); color:#fff; border:0; border-radius:999px; padding:12px 28px; font-size:15px; cursor:pointer; }
+  #done { color:var(--sub); font-size:13px; margin-left:10px; }
+</style>
+</head>
+<body>
+<header>
+  <h1 id="title"></h1>
+  <p class="lead" id="lead"></p>
+</header>
+<main id="questions"></main>
+<footer>
+  <button id="copy">決定をコピー</button><span id="done"></span>
+</footer>
+
+<script>
+// ===== ここだけ書き換える =====
+const DATA = {
+  title: "工程03：主な画面の骨組み（白黒・配置だけ）",
+  lead: "色や飾りはまだ入れていません。「配置と情報の順番」だけを見て、いいと思う案にチェックを入れてください。組み合わせたい点は下の欄へ。最後に「決定をコピー」を押して、チャットに貼ってください。",
+  questions: [
+    { id:"S1", title:"S1 地図ホーム（最初に開く画面）", note:"1つ選ぶ", multiple:false, options:[
+      { id:"A", label:"案A 地図最優先", why:"地図を一番広く。絞り込みはメニューの中。説明は一切なし", html:'<iframe src="../wireframes/s1a.html" style="height:720px;max-width:390px;display:block;margin:0 auto"></iframe>' }, { id:"B", label:"案B チップで即絞り込み", why:"地図の上に「地域・家賃・間取り」のチップ。一覧の先頭2件がのぞく", html:'<iframe src="../wireframes/s1b.html" style="height:720px;max-width:390px;display:block;margin:0 auto"></iframe>' }, { id:"C", label:"案C 地図と一覧が半々", why:"スクロールせずに一覧も見える。一覧とカレンダーをタブで切り替え", html:'<iframe src="../wireframes/s1c.html" style="height:720px;max-width:390px;display:block;margin:0 auto"></iframe>' } ] },
+    { id:"S4", title:"S4 物件の詳細", note:"1つ選ぶ", multiple:false, options:[ { id:"A", label:"案A 地図の上のシート＋固定ボタン", why:"地図を離れない。「公式で申し込む」が常に下にある。当選したらの送客が中に入る", html:'<iframe src="../wireframes/s4a.html" style="height:720px;max-width:390px;display:block;margin:0 auto"></iframe>' }, { id:"B", label:"案B 縦に読むページ", why:"家賃を一番大きく。ボタンは中ほど。落選したらの送客は最後", html:'<iframe src="../wireframes/s4b.html" style="height:720px;max-width:390px;display:block;margin:0 auto"></iframe>' } ] },
+    { id:"S5", title:"S5 募集カレンダー", note:"1つ選ぶ", multiple:false, options:[ { id:"A", label:"案A 月のカレンダー", why:"申込期間を棒で。「今募集中／これから／終わった」を切り替え", html:'<iframe src="../wireframes/s5a.html" style="height:720px;max-width:390px;display:block;margin:0 auto"></iframe>' }, { id:"B", label:"案B タイムライン", why:"日付順に縦に並べる。「あと5日」が分かりやすい。カレンダーの枠はなし", html:'<iframe src="../wireframes/s5b.html" style="height:720px;max-width:390px;display:block;margin:0 auto"></iframe>' } ] },
+    { id:"S6", title:"S6 通知登録（公式ページから戻ったときに1回出す）", note:"1つ選ぶ", multiple:false, options:[ { id:"A", label:"案A シート1枚", why:"地図の上に小さく。LINEボタン1つとメール欄。「あとで」で閉じる", html:'<iframe src="../wireframes/s6a.html" style="height:720px;max-width:390px;display:block;margin:0 auto"></iframe>' }, { id:"B", label:"案B 説明ページ", why:"届くもの3つを先に見せ、地域を選んでから登録。安心感を優先", html:'<iframe src="../wireframes/s6b.html" style="height:720px;max-width:390px;display:block;margin:0 auto"></iframe>' } ] },
+  ],
+};
+// ===== ここまで =====
+
+document.getElementById("title").textContent = DATA.title;
+document.getElementById("lead").textContent = DATA.lead;
+const main = document.getElementById("questions");
+for (const q of DATA.questions) {
+  const s = document.createElement("section");
+  s.innerHTML = `<h2>${q.title}</h2><p class="q-note">${q.note || ""}</p><div class="grid"></div>
+    <textarea data-q="${q.id}" placeholder="気になる点・組み合わせたい点（任意）"></textarea>`;
+  const grid = s.querySelector(".grid");
+  for (const o of q.options) {
+    const el = document.createElement("label");
+    el.className = "card";
+    el.innerHTML = `<input type="${q.multiple ? "checkbox" : "radio"}" name="${q.id}" value="${o.id}">
+      <span class="tag">${o.label}</span><div class="why">${o.why || ""}</div><div class="body">${o.html}</div>`;
+    grid.appendChild(el);
+  }
+  main.appendChild(s);
+}
+
+document.getElementById("copy").addEventListener("click", async () => {
+  const lines = [`【決定】${DATA.title}`];
+  for (const q of DATA.questions) {
+    const picked = [...document.querySelectorAll(`input[name="${q.id}"]:checked`)].map(i => i.value);
+    const memo = document.querySelector(`textarea[data-q="${q.id}"]`).value.trim();
+    lines.push(`- ${q.title}：${picked.length ? picked.join("、") : "（未選択）"}${memo ? ` ／メモ：${memo}` : ""}`);
+  }
+  const text = lines.join("\n");
+  try { await navigator.clipboard.writeText(text); document.getElementById("done").textContent = "コピーしました。チャットに貼ってください"; }
+  catch { prompt("この文をコピーしてチャットに貼ってください", text); }
+});
+</script>
+</body>
+</html>

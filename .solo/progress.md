@@ -3,7 +3,7 @@ app: 公営住宅マップ（仮）
 work_dir: ~/Projects/koei-map
 obsidian_note: ~/Brain/07_Projects/都営住宅マップ（サービス化）.md
 current_step: "03"
-status: 進行中
+status: オーナー確認待ち
 ---
 
 ## 工程
@@ -47,10 +47,11 @@ status: 進行中
 - 2026-11-05 工程02：02-3 構造 OK。通知登録は公式へ飛んで戻ったときに1回、通知からはその募集に絞った地図
 
 ## オーナー待ちのこと
-- 
+- 工程03：選ぶページ（decisions/2026-11-05_画面.html）で S1・S4・S5・S6 の案を選んで「決定をコピー」を貼る
 
 - 
 
 ## 作業メモ（技術の細かいこと）
+- 骨組みは wireframes/*.html（白黒・wf.css）。選ぶページは `python3 -m http.server 8777` で http://127.0.0.1:8777/decisions/2026-11-05_%E7%94%BB%E9%9D%A2.html （8765は別プロジェクトの古いサーバーが使用中）
 - 土台の試作：~/Projects/toei-housing-map（静的サイト・Leaflet・国土地理院API・PDF読み取り build.py・e2eテストあり）。04 でここから持ってくる
 - docs は Obsidian の設計フォルダへのシンボリックリンク（git には入れない）
