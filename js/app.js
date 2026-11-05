@@ -349,7 +349,7 @@
   $("nudgeNo").addEventListener("click", () => { $("nudge").hidden = true; });
 
   /* ---------------- ページ（S5・S6・S7） ---------------- */
-  function openPage(id) { closePopover(); $("menu").hidden = true; if (id === "pageCal") renderCal(); $(id).hidden = false; $(id).querySelector(".page-body").scrollTop = 0; }
+  function openPage(id) { closePopover(); $("menu").hidden = true; if (id === "pageCal") renderCal(); if (id === "pageAbout") renderUseLog(); $(id).hidden = false; $(id).querySelector(".page-body").scrollTop = 0; }
   function closePages() { document.querySelectorAll(".page").forEach((p) => (p.hidden = true)); }
   document.querySelectorAll("[data-close]").forEach((b) => b.addEventListener("click", closePages));
   $("btnCal").addEventListener("click", () => openPage("pageCal"));
@@ -397,7 +397,17 @@
   });
   $("notifyProto").textContent = "試作版：登録の仕組みを確かめる段階です。まだお知らせは届きません。";
 
+  // 05 価値検証：使った日と一言メモを端末に残す（送信はしない）
+  const todayKey = () => { const d = new Date(); return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`; };
+  (function logUse() { const log = store.get("useLog") || {}; if (!log[todayKey()]) { log[todayKey()] = { memo: "" }; store.set("useLog", log); } })();
+  function renderUseLog() {
+    const log = store.get("useLog") || {}; const days = Object.keys(log).sort();
+    $("useLog").innerHTML = `使った日：${days.length}日` + (days.length ? "<br>" + days.map((d) => `${esc(d)}${log[d].memo ? `：${esc(log[d].memo)}` : ""}`).join("<br>") : "");
+  }
+  $("memoForm").addEventListener("submit", (e) => { e.preventDefault(); const log = store.get("useLog") || {}; log[todayKey()] = { memo: $("memo").value.trim() }; store.set("useLog", log); $("memo").value = ""; renderUseLog(); toast("メモを残しました"); });
+
   function buildAbout() {
+    renderUseLog();
     $("aboutSources").innerHTML = Object.values(OPS).map((o) => `<li><a href="${esc(o.url)}" target="_blank" rel="noopener">${esc(o.long)}</a></li>`).join("");
   }
 
