@@ -1,0 +1,28 @@
+{
+  "operators": {
+    "toei":     {"label": "都営",   "long": "都営住宅（東京都）",        "color": "#2d5fa8", "pref": "東京都",  "url": "https://www.to-kousya.or.jp/kouei/toeibosyu/index_teiki.html"},
+    "kanagawa": {"label": "県営",   "long": "神奈川県営住宅",            "color": "#17806a", "pref": "神奈川県","url": "https://www.kanagawa-jk.or.jp/kenei/"},
+    "saitama":  {"label": "県営",   "long": "埼玉県営住宅",              "color": "#17806a", "pref": "埼玉県",  "url": "https://www.saijk.or.jp/"},
+    "chiba":    {"label": "県営",   "long": "千葉県営住宅",              "color": "#17806a", "pref": "千葉県",  "url": "https://www.chiba-kousha.or.jp/"},
+    "yokohama": {"label": "市営",   "long": "横浜市営住宅",              "color": "#c96a1b", "pref": "神奈川県","url": "https://www.yokohama-jk.or.jp/"},
+    "kawasaki": {"label": "市営",   "long": "川崎市営住宅",              "color": "#c96a1b", "pref": "神奈川県","url": "https://www.kawasaki-jk.or.jp/"},
+    "sagamihara":{"label": "市営",  "long": "相模原市営住宅",            "color": "#c96a1b", "pref": "神奈川県","url": "https://www.city.sagamihara.kanagawa.jp/"},
+    "saitamacity":{"label": "市営", "long": "さいたま市営住宅",          "color": "#c96a1b", "pref": "埼玉県",  "url": "https://www.city.saitama.lg.jp/"},
+    "chibacity":{"label": "市営",   "long": "千葉市営住宅",              "color": "#c96a1b", "pref": "千葉県",  "url": "https://www.city.chiba.jp/"},
+    "ur":       {"label": "UR",     "long": "UR賃貸住宅（1都3県）",      "color": "#1a8a9e", "pref": "",        "url": "https://www.ur-net.go.jp/chintai/kanto/"}
+  },
+  "rounds": [
+    {"id": "toei-2026-11", "operator": "toei", "label": "都営住宅 2026年11月 定期募集", "kind": "抽せん方式（家族向・単身者向等）", "apply_from": "2026-11-02", "apply_to": "2026-11-17", "lottery": "2026-12-24", "units": 3802, "url": "https://www.to-kousya.or.jp/kouei/toeibosyu/teiki_2026_11.html", "note": "オンライン申込は11/17 23:59まで。郵送は11/17必着"},
+    {"id": "toei-2027-02", "operator": "toei", "label": "都営住宅 2027年2月 定期募集", "kind": "家族向（ポイント方式）・単身者向（抽せん）", "expected": "2027年2月上旬", "url": "https://www.to-kousya.or.jp/kouei/toeibosyu/index_teiki.html", "note": "例年の時期から。公式発表待ち"},
+    {"id": "toei-2027-05", "operator": "toei", "label": "都営住宅 2027年5月 定期募集", "kind": "抽せん方式（家族向・単身者向等）", "expected": "2027年5月上旬", "url": "https://www.to-kousya.or.jp/kouei/toeibosyu/index_teiki.html", "note": "例年の時期から。公式発表待ち"},
+    {"id": "saitama-anytime", "operator": "saitama", "label": "埼玉県営住宅 随時募集（先着順）", "kind": "先着順", "anytime": true, "url": "https://www.saijk.or.jp/", "note": "空き住戸を先着順で受付。10月の定期募集は終了（抽せん結果が公開中）"},
+    {"id": "ur-anytime", "operator": "ur", "label": "UR賃貸住宅 空き部屋（1都3県）", "kind": "先着順・いつでも", "anytime": true, "url": "https://www.ur-net.go.jp/chintai/kanto/", "note": "礼金・仲介手数料・更新料・保証人が不要"},
+    {"id": "kanagawa-next", "operator": "kanagawa", "label": "神奈川県営住宅 次回募集", "kind": "", "expected": "公式発表待ち", "url": "https://www.kanagawa-jk.or.jp/kenei/"},
+    {"id": "chiba-next", "operator": "chiba", "label": "千葉県営住宅 次回募集", "kind": "", "expected": "公式発表待ち", "url": "https://www.chiba-kousha.or.jp/"},
+    {"id": "yokohama-next", "operator": "yokohama", "label": "横浜市営住宅 次回募集", "kind": "", "expected": "公式発表待ち", "url": "https://www.yokohama-jk.or.jp/"},
+    {"id": "kawasaki-next", "operator": "kawasaki", "label": "川崎市営住宅 次回募集", "kind": "", "expected": "公式発表待ち", "url": "https://www.kawasaki-jk.or.jp/"},
+    {"id": "sagamihara-next", "operator": "sagamihara", "label": "相模原市営住宅 次回募集", "kind": "", "expected": "公式発表待ち", "url": "https://www.city.sagamihara.kanagawa.jp/"},
+    {"id": "saitamacity-next", "operator": "saitamacity", "label": "さいたま市営住宅 次回募集", "kind": "", "expected": "公式発表待ち", "url": "https://www.city.saitama.lg.jp/"},
+    {"id": "chibacity-next", "operator": "chibacity", "label": "千葉市営住宅 次回募集", "kind": "", "expected": "公式発表待ち", "url": "https://www.city.chiba.jp/"}
+  ]
+}
