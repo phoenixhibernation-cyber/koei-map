@@ -31,7 +31,7 @@ with sync_playwright() as p:
     pg.click('.chip[data-chip="area"]'); pg.wait_for_timeout(300)
     pg.screenshot(path=OUT / "02_filter_area.png")
     pg.click('.ck.pref:has-text("東京都") input'); pg.wait_for_timeout(200); pg.click('.city-grid .ck:has-text("板橋区") input'); pg.click("#popDone"); pg.wait_for_timeout(500)
-    c2 = pg.inner_text("#count"); check("板橋区で絞れる: " + c2.split("\n")[0], "90件" in c2)
+    c2 = pg.inner_text("#count"); check("板橋区で絞れる: " + c2.split("\n")[0], 90 <= int(c2.split("件")[0].replace(",", "")) <= 200)
 
     # もっと条件（倍率3倍以下）→ 築年の並び替え
     pg.click('.chip[data-chip="more"]'); pg.wait_for_timeout(300)

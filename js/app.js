@@ -56,7 +56,7 @@
     },
   });
   map.addLayer(cluster);
-  const pinIcon = (r, active) => L.divIcon({ className: "pin-icon", html: `<div class="pin${active ? " active" : ""}" style="--op:${OPS[r.operator].color}"></div>`, iconSize: [24, 24], iconAnchor: [12, 30] });
+  const pinIcon = (r, active) => L.divIcon({ className: "pin-icon", html: `<div class="pin${active ? " active" : ""}${isInfo(r) ? " info" : ""}" style="--op:${OPS[r.operator].color}"></div>`, iconSize: [24, 24], iconAnchor: [12, 30] });
 
   // 現在地
   let meMarker = null;
@@ -165,8 +165,9 @@
     const li = document.createElement("li"); li.className = "item" + (r.id === activeId ? " active" : ""); li.dataset.id = r.id; li.tabIndex = 0;
     const walk = r.walk_min != null ? `${r.bus ? "バス" : ""}${r.stations[0] || ""}${r.walk_min}分` : (r.stations[0] || "");
     const ratio = r.ratio_prev != null ? `・前回${r.ratio_prev}倍` : "";
+    const cat = isInfo(r) || /^(一般|世帯向|先着順|UR|一般世帯向け?住宅?)$/.test(r.category || "") ? "" : `・${r.category.replace(/住宅$/, "")}`;
     li.innerHTML = `<b>${esc(r.name)}</b><span class="rent">${isInfo(r) ? '<small class="info">団地情報</small>' : r.rent_min != null ? `¥${yen(r.rent_min)}〜` : "家賃は募集時に"}</span>
-      <span class="sub"><span class="tag" style="--op:${OPS[r.operator].color}">${esc(r._opLabel)}</span>${esc([r.layout, r.area_text ? r.area_text + "㎡" : ""].filter(Boolean).join(" "))}${r.layout || r.area_text ? "・" : ""}${esc(walk)}${ratio}${r.single_ok ? "・単身可" : ""}</span>`;
+      <span class="sub"><span class="tag" style="--op:${OPS[r.operator].color}">${esc(r._opLabel)}</span>${esc([r.layout, r.area_text ? r.area_text + "㎡" : ""].filter(Boolean).join(" "))}${r.layout || r.area_text ? "・" : ""}${esc(walk)}${ratio}${r.single_ok ? "・単身可" : ""}${esc(cat)}</span>`;
     li.addEventListener("click", () => openDetail(r.id, true));
     li.addEventListener("keydown", (e) => { if (e.key === "Enter") openDetail(r.id, true); });
     return li;
@@ -345,7 +346,7 @@
       <p class="addr"><span class="tag" style="--op:${OPS[r.operator].color}">${esc(r._opLabel)}</span><span class="tag cat">${esc(isInfo(r) ? "団地情報（いまは募集期間外）" : r.category)}</span>${esc(r.pref)}${esc(r.address)}</p>
       <div class="kv-grid">
         <div class="kv"><div class="k">家賃（月）</div><div class="v">${r.rent_min != null ? `¥${yen(r.rent_min)}〜${yen(r.rent_max)}` : '<small>募集時に発表</small>'}</div></div>
-        <div class="kv"><div class="k">間取り・広さ</div><div class="v">${esc(r.layout)} <small>${esc(r.area_text)}㎡</small></div></div>
+        <div class="kv"><div class="k">間取り・広さ</div><div class="v wrap">${esc(r.layout.length > 22 ? r.layout.slice(0, 22) + "…" : r.layout) || "—"} ${r.area_text ? `<small>${esc(r.area_text)}㎡</small>` : ""}</div></div>
         <div class="kv"><div class="k">募集戸数</div><div class="v">${r.units != null ? `${r.units}戸` : '<small>募集時に発表</small>'}${typeof r.vacant_now === "number" ? `<small> いま空き${r.vacant_now}</small>` : ""}</div></div>
         <div class="kv"><div class="k">前回倍率</div><div class="v">${r.ratio_prev != null ? `${r.ratio_prev}倍` : "—"}</div></div>
       </div>
@@ -377,7 +378,13 @@
   }
   const UR_PREF = { "東京都": "tokyo", "神奈川県": "kanagawa", "埼玉県": "saitama", "千葉県": "chiba" };
   const urUrl = (r) => `https://www.ur-net.go.jp/chintai/kanto/${UR_PREF[r.pref] || ""}/`;
-  function closeDetail() { $("detail").hidden = true; drawer.classList.remove("hidden-by-detail"); }
+  function closeDetail() { $("detail").hidden = true; $("detail").classList.remove("full"); drawer.classList.remove("hidden-by-detail"); }
+  // 詳細シートのつまみ：タップで全画面に広げる／戻す。上下のスワイプでも
+  const dh = $("detail").querySelector(".handle");
+  dh.addEventListener("click", () => $("detail").classList.toggle("full"));
+  let dy0 = null;
+  dh.addEventListener("pointerdown", (e) => { dy0 = e.clientY; });
+  dh.addEventListener("pointerup", (e) => { if (dy0 == null) return; const dy = e.clientY - dy0; if (dy < -30) $("detail").classList.add("full"); else if (dy > 30) ($("detail").classList.contains("full") ? $("detail").classList.remove("full") : closeDetail()); dy0 = null; });
   $("detailClose").addEventListener("click", closeDetail);
   map.on("click", () => { if (!$("detail").hidden) closeDetail(); $("menu").hidden = true; });
 
