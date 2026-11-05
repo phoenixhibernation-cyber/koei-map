@@ -1,0 +1,77 @@
+[
+ {
+  "id": "yokohama-anytime",
+  "operator": "yokohama",
+  "label": "横浜市営住宅 常時募集（先着順）",
+  "kind": "先着順・公社窓口で申込",
+  "apply_from": "2026-08-27",
+  "apply_to": "2026-12-28",
+  "url": "https://www.yokohama-kousya.or.jp/municipal/regular.php",
+  "note": "定期募集で応募がなかった住宅。年2回の定期募集（4月・10月）は10月分が終了、抽選は2027/1/6"
+ },
+ {
+  "id": "chiba-anytime",
+  "operator": "chiba",
+  "label": "千葉県営住宅 常時募集",
+  "kind": "先着順",
+  "anytime": true,
+  "url": "http://www.chiba-kousya.or.jp/jutak/jojitop.html",
+  "note": "団地ごとのページで公開"
+ },
+ {
+  "id": "ur-anytime",
+  "operator": "ur",
+  "label": "UR賃貸住宅 空き部屋（1都3県）",
+  "kind": "先着順・いつでも",
+  "anytime": true,
+  "url": "https://www.ur-net.go.jp/chintai/kanto/",
+  "note": "礼金・仲介手数料・更新料・保証人が不要"
+ },
+ {
+  "id": "toei-2027-02",
+  "operator": "toei",
+  "label": "都営住宅 2027年2月 定期募集",
+  "kind": "家族向（ポイント方式）・単身者向（抽せん）",
+  "expected": "2027年2月上旬",
+  "url": "https://www.to-kousya.or.jp/kouei/toeibosyu/index_teiki.html",
+  "note": "例年の時期から。公式発表待ち"
+ },
+ {
+  "id": "chiba-2027-01",
+  "operator": "chiba",
+  "label": "千葉県営住宅 1月期 空家募集",
+  "kind": "抽選",
+  "apply_from": "2027-01-01",
+  "apply_to": "2027-01-15",
+  "lottery": "2027-01-29",
+  "url": "http://www.chiba-kousya.or.jp/jutak/akitop.html",
+  "note": "案内配布 12/22から。年4回（4・7・10・1月、各1日〜15日）"
+ },
+ {
+  "id": "yokohama-2027-04",
+  "operator": "yokohama",
+  "label": "横浜市営住宅 4月定期募集",
+  "kind": "抽選",
+  "expected": "例年4月（10月募集は10/9〜10/23だった）",
+  "url": "https://www.yokohama-kousya.or.jp/municipal/regular.php",
+  "note": "年2回（4月・10月）。公式発表待ち"
+ },
+ {
+  "id": "toei-2027-05",
+  "operator": "toei",
+  "label": "都営住宅 2027年5月 定期募集",
+  "kind": "抽せん方式（家族向・単身者向等）",
+  "expected": "2027年5月上旬",
+  "url": "https://www.to-kousya.or.jp/kouei/toeibosyu/index_teiki.html",
+  "note": "例年の時期から。公式発表待ち"
+ },
+ {
+  "id": "kanagawa-next",
+  "operator": "kanagawa",
+  "label": "神奈川県営住宅 次回募集",
+  "kind": "",
+  "expected": "公式発表待ち",
+  "url": "https://www.kanagawa-jk.or.jp/kenei/",
+  "note": "募集ページを確認中（公社サイトに見当たらず）"
+ }
+]

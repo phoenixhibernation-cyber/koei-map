@@ -1,0 +1,45 @@
+name: 毎日の自動取得（データを作り直して公開）
+
+on:
+  schedule:
+    - cron: "0 21 * * *"   # 毎日 06:00 JST
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - run: pip install pdfplumber
+      - name: データを作り直す
+        id: build
+        run: |
+          python scripts/build_all.py || echo "exit=$?" >> "$GITHUB_OUTPUT"
+          cat data/build_report.md
+      - name: 新しい募集があれば LINE で知らせる（トークンがあるときだけ）
+        if: ${{ env.LINE_CHANNEL_ACCESS_TOKEN != '' }}
+        env:
+          LINE_CHANNEL_ACCESS_TOKEN: ${{ secrets.LINE_CHANNEL_ACCESS_TOKEN }}
+        run: python scripts/notify_line.py
+      - name: 変わっていれば push（読み取りが0件の運営元があるときは前回の値を残している）
+        run: |
+          git config user.name "koei-map bot"
+          git config user.email "bot@users.noreply.github.com"
+          git add data/listings.json data/rounds.json data/build_report.md data/geocode_cache.json data/notified.json 2>/dev/null || true
+          git diff --cached --quiet || git commit -m "自動更新 $(date -u +%Y-%m-%d)"
+          git push
+      - name: 読み取りに失敗した運営元があれば知らせる（Issue）
+        if: ${{ steps.build.outputs.exit == '2' }}
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const fs = require('fs');
+            const body = fs.readFileSync('data/build_report.md', 'utf8');
+            await github.rest.issues.create({ owner: context.repo.owner, repo: context.repo.repo,
+              title: `読み取りに失敗した運営元があります（${new Date().toISOString().slice(0,10)}）`, body });
