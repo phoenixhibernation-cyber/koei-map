@@ -39,8 +39,10 @@
     <button type="button" class="chip" data-chip="rent">家賃 <span class="v"></span><span class="caret">▾</span></button>
     <button type="button" class="chip" data-chip="layout">間取り <span class="v"></span><span class="caret">▾</span></button>
     <button type="button" class="chip" data-chip="op">運営 <span class="v"></span><span class="caret">▾</span></button>
+    <button type="button" class="chip" data-chip="built">築年 <span class="v"></span><span class="caret">▾</span></button>
     <button type="button" class="chip" data-chip="single" aria-pressed="false">単身可</button>
     <button type="button" class="chip" data-chip="ev" aria-pressed="false">EVあり</button>
+    <button type="button" class="chip" data-chip="more">もっと条件 <span class="v"></span><span class="caret">▾</span></button>
     <button type="button" class="chip reset" id="chipReset" hidden>条件をクリア</button>
   </div>
 
@@ -57,10 +59,11 @@
         <select id="sort" aria-label="並び替え">
           <option value="rent">家賃が安い順</option>
           <option value="ratio">倍率が低い順</option>
-          <option value="units">戸数が多い順</option>
+          <option value="new">築年が新しい順</option>
+          <option value="old">築年が古い順</option>
           <option value="walk">駅から近い順</option>
-          <option value="new">建物が新しい順</option>
           <option value="area">広い順</option>
+          <option value="units">戸数が多い順</option>
         </select>
       </label>
     </div>

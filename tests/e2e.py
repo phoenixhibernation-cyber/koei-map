@@ -33,6 +33,14 @@ with sync_playwright() as p:
     pg.click('.opt:has-text("板橋区")'); pg.click("#popDone"); pg.wait_for_timeout(500)
     c2 = pg.inner_text("#count"); check("板橋区で絞れる: " + c2.split("\n")[0], "90件" in c2)
 
+    # もっと条件（倍率3倍以下）→ 築年の並び替え
+    pg.click('.chip[data-chip="more"]'); pg.wait_for_timeout(300)
+    pg.select_option('#popBody select >> nth=1', "3"); pg.click("#popDone"); pg.wait_for_timeout(400)
+    c3 = pg.inner_text("#count"); check("倍率3倍以下で絞れる: " + c3.split("\n")[0], "件" in c3 and "90件" not in c3)
+    pg.select_option("#sort", "old"); pg.wait_for_timeout(400)
+    check("築年が古い順に並ぶ", pg.evaluate("document.querySelector('#list .item .sub').textContent") is not None)
+    pg.click("#chipReset"); pg.wait_for_timeout(300); pg.click('.chip[data-chip="area"]'); pg.click('.opt:has-text("板橋区")'); pg.click("#popDone"); pg.wait_for_timeout(400)
+
     # 一覧 → 詳細
     pg.click("#handle"); pg.wait_for_timeout(400)
     pg.screenshot(path=OUT / "03_list_open.png")

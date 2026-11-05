@@ -16,7 +16,9 @@
 
   let OPS = {}, ROUNDS = [], ITEMS = [], byId = new Map(), markers = new Map();
   let filtered = [], shown = 0, activeId = null;
-  const F = { now: true, prefs: new Set(), cities: new Set(), rentMax: null, layouts: new Set(), ops: new Set(), single: false, ev: false, q: "", round: null };
+  const F = { now: true, prefs: new Set(), cities: new Set(), rentMax: null, layouts: new Set(), ops: new Set(), single: false, ev: false, q: "", round: null,
+    builtFrom: null, areaMin: null, ratioMax: null, walkMax: null, noBus: false, bf: false, priority: false, unitsMin: null, vacant: false, cats: new Set() };
+  const RESET = () => Object.assign(F, { prefs: new Set(), cities: new Set(), rentMax: null, layouts: new Set(), ops: new Set(), single: false, ev: false, q: "", round: null, now: true, builtFrom: null, areaMin: null, ratioMax: null, walkMax: null, noBus: false, bf: false, priority: false, unitsMin: null, vacant: false, cats: new Set() });
   const LAYOUTS = ["1DK", "1LDK", "2K", "2DK", "2LDK", "3DK", "3LDK", "4DK"];
 
   /* ---------------- 地図 ---------------- */
@@ -111,6 +113,16 @@
     if (F.single && !r.single_ok) return false;
     if (F.ev && !r.elevator) return false;
     if (F.q && !r._search.includes(F.q)) return false;
+    if (F.builtFrom != null && (r.built_from == null || r.built_from < F.builtFrom)) return false;
+    if (F.areaMin != null && (r.area_max == null || r.area_max < F.areaMin)) return false;
+    if (F.ratioMax != null && (r.ratio_prev == null || r.ratio_prev > F.ratioMax)) return false;
+    if (F.walkMax != null && (r.walk_min == null || r.walk_min > F.walkMax)) return false;
+    if (F.noBus && r.bus) return false;
+    if (F.bf && !r.barrier_free) return false;
+    if (F.priority && !r.priority_lottery) return false;
+    if (F.unitsMin != null && (r.units == null || r.units < F.unitsMin)) return false;
+    if (F.vacant && !(r.vacant_now > 0)) return false;
+    if (F.cats.size && !F.cats.has(r.category)) return false;
     return true;
   }
   const nz = (v, big) => (v == null || Number.isNaN(v) ? (big ? 1e12 : -1) : v);
@@ -120,6 +132,7 @@
     units: (a, b) => nz(b.units) - nz(a.units),
     walk: (a, b) => (a.bus - b.bus) || nz(a.walk_min, 1) - nz(b.walk_min, 1),
     new: (a, b) => nz(b.built_from) - nz(a.built_from),
+    old: (a, b) => nz(a.built_from, 1) - nz(b.built_from, 1),
     area: (a, b) => nz(b.area_max) - nz(a.area_max),
   };
 
@@ -172,23 +185,36 @@
     set("rent", F.rentMax != null ? `〜${(F.rentMax / 10000)}万円` : "");
     set("layout", F.layouts.size ? [...F.layouts].join("・") : "");
     set("op", F.ops.size ? [...F.ops].map((o) => OPS[o].long.replace(/住宅.*$/, "")).join("・") : "");
+    set("built", F.builtFrom != null ? `${F.builtFrom}年〜` : "");
+    const moreN = [F.areaMin != null, F.ratioMax != null, F.walkMax != null, F.noBus, F.bf, F.priority, F.unitsMin != null, F.vacant, F.cats.size > 0].filter(Boolean).length;
+    set("more", moreN ? `${moreN}` : "");
     for (const k of ["single", "ev"]) { const c = document.querySelector(`.chip[data-chip="${k}"]`); c.classList.toggle("on", F[k]); c.setAttribute("aria-pressed", F[k]); }
-    const any = F.prefs.size || F.cities.size || F.rentMax != null || F.layouts.size || F.ops.size || F.single || F.ev || F.round || F.q;
+    const any = F.prefs.size || F.cities.size || F.rentMax != null || F.layouts.size || F.ops.size || F.single || F.ev || F.round || F.q || F.builtFrom != null || moreN;
     $("chipReset").hidden = !any;
+    document.documentElement.style.setProperty("--chips-h", $("chips").offsetHeight + "px");
   }
+  window.addEventListener("resize", () => document.documentElement.style.setProperty("--chips-h", $("chips").offsetHeight + "px"));
   $("chips").addEventListener("click", (e) => {
     const c = e.target.closest(".chip"); if (!c) return;
     const k = c.dataset.chip;
     if (k === "now") { F.now = !F.now; F.round = null; apply(); return; }
     if (k === "single" || k === "ev") { F[k] = !F[k]; apply(); return; }
-    if (c.id === "chipReset") { Object.assign(F, { prefs: new Set(), cities: new Set(), rentMax: null, layouts: new Set(), ops: new Set(), single: false, ev: false, q: "", round: null, now: true }); $("q").value = ""; $("qClear").hidden = true; apply(); return; }
+    if (c.id === "chipReset") { RESET(); $("q").value = ""; $("qClear").hidden = true; apply(); return; }
     openPopover(k);
   });
   $("chipReset").addEventListener("click", () => {});
 
   /* ---------------- 絞り込みのシート ---------------- */
   let popKey = null;
-  const TITLES = { area: "地域", rent: "家賃の上限", layout: "間取り", op: "運営元" };
+  const TITLES = { area: "地域", rent: "家賃の上限", layout: "間取り", op: "運営元", built: "築年", more: "もっと条件" };
+  const selectRow = (label, options, cur, onChange) => {
+    const g = document.createElement("div"); g.className = "opt-group"; g.innerHTML = `<h4>${esc(label)}</h4>`;
+    const row = document.createElement("div"); row.className = "rent-row"; const sel = document.createElement("select");
+    sel.innerHTML = options.map(([v, l]) => `<option value="${v}"${String(cur ?? "") === String(v) ? " selected" : ""}>${esc(l)}</option>`).join("");
+    sel.addEventListener("change", () => onChange(sel.value === "" ? null : Number(sel.value)));
+    row.appendChild(sel); g.appendChild(row); return g;
+  };
+  const toggleRow = (label, opts) => group(label, opts.map(([k, l]) => opt(l, F[k], () => { F[k] = !F[k]; })));
   function openPopover(k) {
     popKey = k; $("popTitle").textContent = TITLES[k]; const b = $("popBody"); b.innerHTML = "";
     if (k === "area") {
@@ -209,6 +235,18 @@
     } else if (k === "op") {
       const ops = Object.keys(OPS);
       b.appendChild(group("いくつでも", ops.map((o) => opt(OPS[o].long, F.ops.has(o), () => { F.ops.has(o) ? F.ops.delete(o) : F.ops.add(o); }))));
+    } else if (k === "built") {
+      const y = new Date().getFullYear();
+      b.appendChild(selectRow("この年より新しい建物", [["", "指定なし"], ...[2015, 2010, 2005, 2000, 1995, 1990, 1985, 1980, 1975, 1970].map((v) => [v, `${v}年以降（築${y - v}年以内）`])], F.builtFrom, (v) => { F.builtFrom = v; }));
+      const h = document.createElement("p"); h.className = "hint"; h.textContent = "並び替えで「築年が新しい順／古い順」も選べます。"; b.appendChild(h);
+    } else if (k === "more") {
+      const cats = [...new Set(ITEMS.map((r) => r.category))];
+      b.appendChild(group("募集の種類", cats.map((c) => opt(c, F.cats.has(c), () => { F.cats.has(c) ? F.cats.delete(c) : F.cats.add(c); }))));
+      b.appendChild(selectRow("広さ", [["", "指定なし"], [30, "30㎡以上"], [35, "35㎡以上"], [40, "40㎡以上"], [50, "50㎡以上"], [60, "60㎡以上"]], F.areaMin, (v) => { F.areaMin = v; }));
+      b.appendChild(selectRow("前回の倍率", [["", "指定なし"], [1, "1倍以下（ほぼ当たる）"], [3, "3倍以下"], [5, "5倍以下"], [10, "10倍以下"]], F.ratioMax, (v) => { F.ratioMax = v; }));
+      b.appendChild(selectRow("駅から", [["", "指定なし"], [5, "徒歩5分以内"], [10, "徒歩10分以内"], [15, "徒歩15分以内"]], F.walkMax, (v) => { F.walkMax = v; }));
+      b.appendChild(selectRow("募集戸数", [["", "指定なし"], [2, "2戸以上"], [5, "5戸以上"], [10, "10戸以上"]], F.unitsMin, (v) => { F.unitsMin = v; }));
+      b.appendChild(toggleRow("そのほか", [["noBus", "バス便は除く"], ["bf", "バリアフリー"], ["priority", "優遇抽せんあり"], ["vacant", "いま空きあり"]]));
     }
     $("popover").hidden = false; $("scrim").hidden = false;
   }
@@ -220,6 +258,8 @@
   $("scrim").addEventListener("click", () => { closePopover(); apply(); });
   $("popClear").addEventListener("click", () => {
     if (popKey === "area") { F.prefs.clear(); F.cities.clear(); } if (popKey === "rent") F.rentMax = null; if (popKey === "layout") F.layouts.clear(); if (popKey === "op") F.ops.clear();
+    if (popKey === "built") F.builtFrom = null;
+    if (popKey === "more") Object.assign(F, { areaMin: null, ratioMax: null, walkMax: null, noBus: false, bf: false, priority: false, unitsMin: null, vacant: false, cats: new Set() });
     closePopover(); apply();
   });
 
@@ -278,17 +318,23 @@
       </div>
       <p class="cards-h">落選したら、今すぐ入れる家</p>
       <div class="cards">
-        <a class="card" href="${esc(OPS.ur.url)}" target="_blank" rel="noopener"><b>UR賃貸</b><span>礼金・仲介手数料なし</span></a>
-        <a class="card" href="#" data-aff="rent"><b>家賃の安い賃貸</b><span>この近くで探す</span></a>
-      </div>`;
+        <a class="card" href="${esc(urUrl(r))}" target="_blank" rel="noopener"><b>UR賃貸（${esc(r.pref.replace(/[都県]$/, ""))}）</b><span>礼金・仲介手数料なし。空き部屋を探す</span></a>
+        <a class="card" href="#" data-aff="rent"><b>家賃の安い賃貸</b><span>${esc(r.city)}の近くで探す</span></a>
+      </div>
+      <p class="hint">提携先のリンクは準備中です。いまは各サービスの入口に飛びます。</p>`;
     $("detailFoot").innerHTML = `
-      <a class="btn official" href="${esc(r.official_url)}" target="_blank" rel="noopener">公式ページで申し込む ↗</a>
-      <div class="links"><a href="https://www.google.com/maps/search/?api=1&query=${gq}" target="_blank" rel="noopener">Googleマップで見る</a>${r.pdf_url ? `<a href="${esc(r.pdf_url)}" target="_blank" rel="noopener">募集案内PDF p.${esc(r.pdf_page)}</a>` : ""}</div>`;
+      <div class="btn-row">
+        <a class="btn ghost gmap" href="https://www.google.com/maps/search/?api=1&query=${gq}" target="_blank" rel="noopener"><svg viewBox="0 0 24 24" aria-hidden="true" width="18" height="18"><path d="M12 2a7 7 0 0 0-7 7c0 5 7 13 7 13s7-8 7-13a7 7 0 0 0-7-7zm0 9.5A2.5 2.5 0 1 1 12 6a2.5 2.5 0 0 1 0 5.5z" fill="currentColor"/></svg>Googleマップ</a>
+        <a class="btn official" href="${esc(r.official_url)}" target="_blank" rel="noopener">公式ページで申し込む ↗</a>
+      </div>
+      ${r.pdf_url ? `<div class="links"><span></span><a href="${esc(r.pdf_url)}" target="_blank" rel="noopener">募集案内PDF p.${esc(r.pdf_page)}</a></div>` : ""}`;
     $("detail").hidden = false; $("detailBody").scrollTop = 0;
     drawer.classList.add("hidden-by-detail");
     $("detailFoot").querySelector(".official").addEventListener("click", () => { store.set("visitedOfficial", Date.now()); });
     $("detailBody").querySelectorAll("[data-aff]").forEach((a) => a.addEventListener("click", (e) => { e.preventDefault(); toast("提携先のリンクは準備中です（試作版）"); }));
   }
+  const UR_PREF = { "東京都": "tokyo", "神奈川県": "kanagawa", "埼玉県": "saitama", "千葉県": "chiba" };
+  const urUrl = (r) => `https://www.ur-net.go.jp/chintai/kanto/${UR_PREF[r.pref] || ""}/`;
   function closeDetail() { $("detail").hidden = true; drawer.classList.remove("hidden-by-detail"); }
   $("detailClose").addEventListener("click", closeDetail);
   map.on("click", () => { if (!$("detail").hidden) closeDetail(); $("menu").hidden = true; });
