@@ -1,0 +1,23 @@
+<!DOCTYPE html><html lang="ja"><head><meta charset="utf-8"><meta name="viewport" content="width=390"><link rel="stylesheet" href="mock.css">
+<style>
+.chip.set { background:#eaf0fa; border-color:#c9d8f0; color:var(--accent); }
+.sw { display:inline-flex; align-items:center; gap:6px; }
+.sw i { width:30px; height:18px; border-radius:9px; background:#17806a; position:relative; display:inline-block; }
+.sw i::after { content:""; position:absolute; top:2px; right:2px; width:14px; height:14px; border-radius:50%; background:#fff; }
+</style></head><body><div class="phone"><div class="map"></div>
+<div class="topbar"><div class="search"><i></i>団地名・駅・住所</div><div class="rbtn">📅</div><div class="rbtn">⋯</div></div>
+<div class="chips">
+  <span class="chip set"><span class="sw"><i></i>募集中</span></span>
+  <span class="chip set">📍 東京・神奈川 <span class="c">▾</span></span>
+  <span class="chip set"><span class="dot" style="--d:var(--toei)"></span><span class="dot" style="--d:var(--ken)"></span> 都営・県営 <span class="c">▾</span></span>
+  <span class="chip">家賃 <span class="c">▾</span></span>
+  <span class="chip">間取り <span class="c">▾</span></span>
+  <span class="chip">築年 <span class="c">▾</span></span>
+  <span class="chip">単身可</span>
+</div>
+<div class="note-tip" style="left:14px;top:108px">今の形を整えた案。地域と運営元を先頭に置き、選んだ中身（東京・神奈川／都営・県営）がチップに出る。運営元は色の点で見分ける</div>
+<div class="fab">◎</div>
+<div class="drawer"><div class="handle"></div><div class="count">1,739件<small>募集中</small><span class="sort">家賃が安い順 ▾</span></div>
+<div class="item"><b>高島平二丁目</b><span class="rent">¥12,300〜</span><span class="sub"><span class="tag" style="--d:var(--toei)">都営</span>2DK 45㎡・高島平駅8分・前回3.2倍</span></div>
+<div class="item"><b>上大岡</b><span class="rent">¥14,800〜</span><span class="sub"><span class="tag" style="--d:var(--shi)">市営</span>3DK 52㎡・上大岡駅12分</span></div></div>
+</div></body></html>

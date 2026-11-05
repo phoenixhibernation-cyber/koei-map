@@ -1,0 +1,23 @@
+<!DOCTYPE html><html lang="ja"><head><meta charset="utf-8"><meta name="viewport" content="width=390"><link rel="stylesheet" href="mock.css">
+<style>
+.legend { position:absolute; right:12px; top:112px; background:#fff; border-radius:12px; box-shadow:var(--shadow); padding:6px 8px; display:flex; flex-direction:column; gap:2px; }
+.legend div { display:flex; align-items:center; gap:7px; font-size:12.5px; font-weight:600; padding:4px 4px; border-radius:8px; }
+.legend .dot { width:12px; height:12px; border-radius:50%; background:var(--d); border:2px solid #fff; box-shadow:0 0 0 1.5px var(--d); }
+.legend small { color:var(--ink-3); font-weight:500; margin-left:auto; padding-left:8px; }
+.legend div.off { opacity:.4; }
+.legend div.off .dot { background:#fff; }
+</style></head><body><div class="phone"><div class="map"></div>
+<div class="topbar"><div class="search"><i></i>団地名・駅・住所</div><div class="rbtn">📅</div><div class="rbtn">⋯</div></div>
+<div class="chips"><span class="chip on">募集中</span><span class="chip" style="background:#eaf0fa;border-color:#c9d8f0;color:var(--accent)">📍 東京・神奈川 ▾</span><span class="chip">家賃 ▾</span><span class="chip">間取り ▾</span><span class="chip">築年 ▾</span><span class="chip">単身可</span></div>
+<div class="legend">
+  <div><i class="dot" style="--d:var(--toei)"></i>都営<small>1,647</small></div>
+  <div><i class="dot" style="--d:var(--ken)"></i>県営<small>43</small></div>
+  <div class="off"><i class="dot" style="--d:var(--shi)"></i>市営<small>49</small></div>
+  <div class="off"><i class="dot" style="--d:var(--ur)"></i>UR<small>—</small></div>
+</div>
+<div class="note-tip" style="left:14px;top:118px;max-width:200px">運営元は「地図の凡例」そのものにする案。ピンの色と同じ丸を押すと、その運営元が出たり消えたりする。件数も見える。チップからは「運営」が消えて短くなる</div>
+<div class="fab">◎</div>
+<div class="drawer"><div class="handle"></div><div class="count">1,690件<small>募集中</small><span class="sort">家賃が安い順 ▾</span></div>
+<div class="item"><b>高島平二丁目</b><span class="rent">¥12,300〜</span><span class="sub"><span class="tag" style="--d:var(--toei)">都営</span>2DK 45㎡・高島平駅8分・前回3.2倍</span></div>
+<div class="item"><b>川崎河原町</b><span class="rent">¥16,100〜</span><span class="sub"><span class="tag" style="--d:var(--ken)">県営</span>3DK 50㎡・川崎駅バス10分</span></div></div>
+</div></body></html>

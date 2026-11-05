@@ -1,0 +1,38 @@
+<!DOCTYPE html><html lang="ja"><head><meta charset="utf-8"><meta name="viewport" content="width=390"><link rel="stylesheet" href="mock.css">
+<style>
+.scrim { position:absolute; inset:0; background:rgba(10,16,28,.35); }
+.sheet { position:absolute; left:0; right:0; bottom:0; background:#fff; border-radius:18px 18px 0 0; padding:14px 16px 16px; max-height:80%; }
+.sheet h2 { margin:0 0 8px; font-size:17px; display:flex; justify-content:space-between; }
+.pref { border-top:1px solid var(--line); }
+.pref > label { display:flex; align-items:center; gap:10px; padding:11px 0; font-weight:700; font-size:15px; }
+.pref > label small { margin-left:auto; color:var(--ink-3); font-weight:500; }
+.cities { display:none; padding:0 0 10px 30px; flex-wrap:wrap; gap:6px 14px; }
+.pref.open .cities { display:flex; }
+.cities label { display:inline-flex; align-items:center; gap:6px; font-size:13.5px; width:calc(50% - 7px); }
+.cities label small { color:var(--ink-3); }
+input[type=checkbox] { width:18px; height:18px; accent-color:var(--accent); margin:0; }
+.foot { display:flex; gap:10px; margin-top:10px; }
+.foot div { flex:1; text-align:center; padding:12px; border-radius:12px; border:1.5px solid var(--line); font-weight:700; }
+.foot .ok { background:var(--accent); color:#fff; border-color:var(--accent); }
+</style></head><body><div class="phone"><div class="map"></div>
+<div class="topbar"><div class="search"><i></i>団地名・駅・住所</div><div class="rbtn">📅</div><div class="rbtn">⋯</div></div>
+<div class="scrim"></div>
+<div class="sheet">
+  <h2>地域 <span style="font-weight:400;color:var(--ink-3);font-size:13px">いくつでも</span></h2>
+  <div class="pref open"><label><input type="checkbox" checked>東京都<small>1,647件</small></label>
+    <div class="cities">
+      <label><input type="checkbox" checked>板橋区 <small>90</small></label><label><input type="checkbox">足立区 <small>188</small></label>
+      <label><input type="checkbox" checked>練馬区 <small>121</small></label><label><input type="checkbox">江戸川区 <small>163</small></label>
+      <label><input type="checkbox">葛飾区 <small>97</small></label><label><input type="checkbox">八王子市 <small>74</small></label>
+      <label style="color:var(--accent)">＋ ほか36の区市町村</label>
+    </div></div>
+  <div class="pref open"><label><input type="checkbox" checked>神奈川県<small>92件</small></label>
+    <div class="cities">
+      <label><input type="checkbox">横浜市南区 <small>12</small></label><label><input type="checkbox">川崎市川崎区 <small>4</small></label>
+      <label><input type="checkbox">相模原市中央区 <small>21</small></label><label><input type="checkbox">相模原市南区 <small>18</small></label>
+    </div></div>
+  <div class="pref"><label><input type="checkbox">埼玉県<small>43件</small></label></div>
+  <div class="pref"><label><input type="checkbox">千葉県<small>—</small></label></div>
+  <div class="foot"><div>クリア</div><div class="ok">この条件で見る</div></div>
+</div>
+</div></body></html>

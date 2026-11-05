@@ -1,8 +1,8 @@
-name: 毎日の自動取得（データを作り直して公開）
+name: 自動取得（週2回、データを作り直して公開）
 
 on:
   schedule:
-    - cron: "0 21 * * *"   # 毎日 06:00 JST
+    - cron: "0 21 * * 0,3"   # 月・木 06:00 JST（オーナー指示：3日〜週1で十分）
   workflow_dispatch:
 
 permissions:

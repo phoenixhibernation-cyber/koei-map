@@ -1,0 +1,22 @@
+<!DOCTYPE html><html lang="ja"><head><meta charset="utf-8"><meta name="viewport" content="width=390"><link rel="stylesheet" href="mock.css">
+<style>
+.filterbtn { height:44px; padding:0 14px; border-radius:22px; background:var(--accent); color:#fff; font-weight:700; font-size:14px; display:flex; align-items:center; gap:6px; box-shadow:var(--shadow); white-space:nowrap; }
+.tags { position:absolute; left:12px; right:12px; top:64px; display:flex; gap:6px; flex-wrap:wrap; }
+.tagx { background:#fff; border-radius:16px; padding:5px 10px; font-size:12.5px; font-weight:600; box-shadow:0 2px 8px rgba(20,30,50,.12); display:inline-flex; gap:6px; align-items:center; }
+.tagx .x { color:var(--ink-3); }
+.tagx.all { background:var(--bg-2); color:var(--ink-2); box-shadow:none; }
+</style></head><body><div class="phone"><div class="map"></div>
+<div class="topbar"><div class="search"><i></i>団地名・駅・住所</div><div class="filterbtn">絞り込み <span style="background:#fff;color:var(--accent);border-radius:9px;padding:0 6px;font-size:12px">3</span></div></div>
+<div class="tags">
+  <span class="tagx">募集中 <span class="x">×</span></span>
+  <span class="tagx">東京・神奈川 <span class="x">×</span></span>
+  <span class="tagx">都営・県営 <span class="x">×</span></span>
+  <span class="tagx">〜5万円 <span class="x">×</span></span>
+  <span class="tagx all">すべて外す</span>
+</div>
+<div class="note-tip" style="left:14px;top:140px">チップ列をやめ、「絞り込み」ボタン1つにまとめる案。押すと地域・運営元・家賃…を1画面で全部選べる。選んだ条件だけが地図の上に小さく残り、×で外せる。地図が一番広い</div>
+<div class="fab">◎</div>
+<div class="drawer"><div class="handle"></div><div class="count">612件<small>条件に合う</small><span class="sort">家賃が安い順 ▾</span></div>
+<div class="item"><b>高島平二丁目</b><span class="rent">¥12,300〜</span><span class="sub"><span class="tag" style="--d:var(--toei)">都営</span>2DK 45㎡・高島平駅8分・前回3.2倍</span></div>
+<div class="item"><b>川崎河原町</b><span class="rent">¥16,100〜</span><span class="sub"><span class="tag" style="--d:var(--ken)">県営</span>3DK 50㎡・川崎駅バス10分</span></div></div>
+</div></body></html>

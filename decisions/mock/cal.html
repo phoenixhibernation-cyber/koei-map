@@ -1,0 +1,270 @@
+<!DOCTYPE html><html lang="ja"><head><meta charset="utf-8"><meta name="viewport" content="width=390"><link rel="stylesheet" href="mock.css">
+<style>
+body { background:#fff; }
+.phone { background:#fff; }
+.page { position:absolute; inset:0; display:flex; flex-direction:column; }
+.page header { display:flex; align-items:center; gap:8px; padding:8px 10px; border-bottom:1px solid var(--line); }
+.page header h2 { margin:0; font-size:17px; }
+.back { font-size:22px; width:40px; height:40px; display:flex; align-items:center; justify-content:center; }
+.body { padding:12px 14px 20px; overflow-y:auto; flex:1; }
+.legend { display:flex; gap:10px; flex-wrap:wrap; font-size:11px; color:var(--ink-2); margin:0 0 10px; }
+.legend i { display:inline-block; width:14px; height:9px; border-radius:2px; vertical-align:-1px; margin-right:3px; }
+.badge { display:inline-block; font-size:11px; font-weight:700; padding:2px 7px; border-radius:6px; background:#fdecec; color:var(--danger); white-space:nowrap; }
+.badge.ok { background:#e7f3ee; color:#17806a; }
+.badge.soon { background:#fff4e0; color:#a35d00; }
+.badge.gray { background:var(--bg-2); color:var(--ink-3); }
+.opn { font-weight:700; }
+.line-cta { margin:16px 0 0; background:#e9f9ef; border:1.5px solid #9edbb5; border-radius:12px; padding:10px 12px; font-size:13px; display:flex; align-items:center; gap:10px; }
+.line-cta b { color:#06c755; }
+.line-cta span { flex:1; }
+.line-cta .btn { background:#06c755; color:#fff; font-weight:700; padding:8px 12px; border-radius:9px; font-size:13px; white-space:nowrap; }
+/* A 早見表 */
+.grid { display:grid; grid-template-columns:92px repeat(12,1fr); gap:2px 1px; align-items:center; font-size:11px; }
+.grid .h { text-align:center; color:var(--ink-3); font-size:9.5px; padding-bottom:3px; white-space:nowrap; letter-spacing:-.5px; }
+.grid .h.now { color:var(--ink); font-weight:700; }
+.grid .lab { font-size:12px; font-weight:600; padding-right:6px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; display:flex; align-items:center; gap:5px; }
+.grid .lab i { width:8px; height:8px; border-radius:50%; background:var(--d); flex:none; }
+.grid .c { height:26px; border-radius:4px; background:var(--bg-2); position:relative; }
+.grid .c.now { box-shadow:inset 0 0 0 1.5px #ffb300; }
+.grid .c.open { background:var(--d); }
+.grid .c.open::after { content:"受付中"; position:absolute; inset:0; color:#fff; font-size:9px; font-weight:700; display:flex; align-items:center; justify-content:center; letter-spacing:-.5px; }
+.grid .c.fix { background:var(--d); opacity:.85; }
+.grid .c.exp { background:repeating-linear-gradient(135deg,var(--d) 0 3px,#fff 3px 6px); opacity:.55; }
+.grid .c.any { background:var(--d); opacity:.18; }
+.grid .c.any.open { opacity:1; }
+.grid .c.any.open::after { content:""; }
+.grid .c.unk { background:var(--bg-2); }
+.grid .sub { grid-column:1/-1; font-size:11px; color:var(--ink-3); margin:-2px 0 4px; }
+/* B カード */
+.card { border:1.5px solid var(--line); border-left:5px solid var(--d); border-radius:12px; padding:10px 12px; margin:0 0 10px; }
+.card .t { display:flex; justify-content:space-between; align-items:center; gap:8px; }
+.card .t b { font-size:15px; }
+.card .d { font-size:20px; font-weight:800; margin:4px 0 0; letter-spacing:-.3px; }
+.card .d small { font-size:12px; font-weight:500; color:var(--ink-3); margin-left:6px; }
+.card .m { font-size:12.5px; color:var(--ink-2); margin:2px 0 0; }
+.card .bar { height:6px; background:var(--bg-2); border-radius:3px; margin-top:8px; overflow:hidden; }
+.card .bar i { display:block; height:100%; background:var(--d); }
+.card.dim { opacity:.75; border-left-style:dashed; }
+.sec { font-size:12px; color:var(--ink-3); font-weight:700; margin:14px 0 6px; }
+.anyrow { display:flex; flex-wrap:wrap; gap:6px; }
+.anyrow span { font-size:12px; border:1.5px solid var(--line); border-radius:16px; padding:4px 10px; display:inline-flex; align-items:center; gap:5px; }
+.anyrow i { width:8px; height:8px; border-radius:50%; background:var(--d); }
+/* C 月ごと */
+.mon { margin:0 0 14px; }
+.mon h3 { margin:0 0 6px; font-size:15px; display:flex; align-items:baseline; gap:8px; position:sticky; top:0; background:#fff; padding:4px 0; }
+.mon h3 small { color:var(--ink-3); font-weight:500; font-size:11px; }
+.mon .e { display:grid; grid-template-columns:52px 1fr; gap:6px; padding:6px 0; border-top:1px solid var(--line); align-items:start; }
+.mon .e .dd { font-size:13px; font-weight:800; line-height:1.2; }
+.mon .e .dd small { display:block; font-size:10px; color:var(--ink-3); font-weight:500; }
+.mon .e .nm { font-size:13.5px; font-weight:600; display:flex; align-items:center; gap:6px; flex-wrap:wrap; }
+.mon .e .nm i { width:9px; height:9px; border-radius:50%; background:var(--d); flex:none; }
+.mon .e .ex { font-size:11.5px; color:var(--ink-3); }
+.mon .e.exp .dd, .mon .e.exp .nm { color:var(--ink-3); }
+.mon .none { font-size:12px; color:var(--ink-3); padding:4px 0; }
+/* D ガント */
+.gantt { position:relative; overflow-x:auto; }
+.gt { display:grid; grid-template-columns:84px 1fr; row-gap:6px; align-items:center; min-width:0; }
+.gt .lab { font-size:12px; font-weight:600; display:flex; align-items:center; gap:5px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+.gt .lab i { width:8px; height:8px; border-radius:50%; background:var(--d); flex:none; }
+.gt .tr { position:relative; height:22px; background:linear-gradient(90deg,var(--line) 1px,transparent 1px) 0 0/calc(100%/var(--n)) 100%; border-radius:3px; }
+.gt .bar { position:absolute; top:3px; height:16px; border-radius:4px; background:var(--d); font-size:9.5px; color:#fff; font-weight:700; display:flex; align-items:center; padding:0 5px; white-space:nowrap; overflow:hidden; }
+.gt .bar.exp { background:repeating-linear-gradient(135deg,var(--d) 0 3px,#fff 3px 6px); color:transparent; opacity:.6; }
+.gt .bar.any { opacity:.22; }
+.gt .lot { position:absolute; top:5px; width:12px; height:12px; border-radius:50%; background:#fff; border:3px solid var(--d); }
+.gt .axis { display:flex; font-size:10px; color:var(--ink-3); }
+.gt .axis span { flex:1; text-align:left; border-left:1px solid var(--line); padding-left:3px; }
+.gt .axis span.now { color:var(--ink); font-weight:700; }
+.today { position:absolute; top:0; bottom:0; width:2px; background:#ffb300; }
+/* E 月めくり */
+.mnav { display:flex; align-items:center; justify-content:space-between; margin:0 0 8px; }
+.mnav b { font-size:17px; }
+.mnav span { width:34px; height:34px; border-radius:50%; background:var(--bg-2); display:flex; align-items:center; justify-content:center; }
+.cal { display:grid; grid-template-columns:repeat(7,1fr); gap:1px; background:var(--line); border:1px solid var(--line); border-radius:8px; overflow:hidden; }
+.cal .wd { background:#fafbfc; text-align:center; font-size:10px; color:var(--ink-3); padding:3px 0; }
+.cal .day { background:#fff; min-height:52px; font-size:11px; padding:2px 3px; position:relative; }
+.cal .day.out { background:#fafbfc; color:#c0c6d0; }
+.cal .day.today > span { background:#ffb300; color:#fff; border-radius:50%; padding:0 4px; font-weight:700; }
+.cal .day .b { height:5px; border-radius:2px; background:var(--d); margin:2px -3px 0; }
+.cal .day .b.exp { background:repeating-linear-gradient(90deg,var(--d) 0 3px,#fff 3px 5px); opacity:.6; }
+.cal .day .b.s { margin-left:1px; border-radius:3px 2px 2px 3px; }
+.cal .day .b.e { margin-right:1px; border-radius:2px 3px 3px 2px; }
+.mlist { margin-top:10px; }
+.mlist .e { display:flex; gap:8px; padding:7px 0; border-top:1px solid var(--line); font-size:13px; align-items:center; }
+.mlist .e i { width:10px; height:10px; border-radius:3px; background:var(--d); flex:none; }
+.mlist .e b { flex:1; font-weight:600; }
+.mlist .e small { color:var(--ink-3); white-space:nowrap; }
+</style></head><body><div class="phone"><div class="page"><header><span class="back">←</span><h2 id="ttl">募集の予定</h2></header><div class="body" id="body"></div></div></div>
+<script>
+const V = new URLSearchParams(location.search).get("v") || "a";
+const TODAY = new Date(); TODAY.setHours(0,0,0,0);
+const D = (s) => new Date(s + "T00:00:00");
+const ISO = (d) => `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,"0")}-${String(d.getDate()).padStart(2,"0")}`;
+const days = (a, b) => Math.round((b - a) / 864e5);
+const md = (d) => `${d.getMonth()+1}/${d.getDate()}`;
+const mdw = (d) => `${d.getMonth()+1}/${d.getDate()}(${"日月火水木金土"[d.getDay()]})`;
+const ORDER = ["toei","kanagawa","yokohama","kawasaki","sagamihara","saitama","saitamacity","chiba","chibacity","ur"];
+const short = (op) => op.long.replace(/住宅.*$/, "").replace("UR賃貸", "UR");
+const esc = (s) => String(s ?? "").replace(/[&<>"]/g, (c) => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
+
+Promise.all([fetch("../../data/operators.json").then(r => r.json()), fetch("../../data/rounds.json").then(r => r.json())]).then(([OPS, {rounds: ROUNDS}]) => {
+  // 具体的な募集（日付あり）と、例年の月からの見込み（projected）を1つの配列にする
+  const ev = [];
+  for (const r of ROUNDS) {
+    const op = OPS[r.operator];
+    if (r.anytime) ev.push({ op: r.operator, kind: "any", label: r.label, note: r.note, url: r.url });
+    else if (r.apply_from && r.apply_to) ev.push({ op: r.operator, kind: "fix", from: D(r.apply_from), to: D(r.apply_to), lottery: r.lottery ? D(r.lottery) : null, label: r.label, how: r.kind, note: r.note, id: r.id, anyRange: /随時|常時/.test(r.label) });
+    else ev.push({ op: r.operator, kind: "unk", label: r.label, expected: r.expected, note: r.note });
+  }
+  const parseDays = (s) => { const m = /(\d+)日〜(\d+)日/.exec(s || ""); if (m) return [+m[1], +m[2]]; if (/中旬/.test(s) && !/上旬/.test(s)) return [10, 24]; return [1, 15]; };
+  for (const [k, op] of Object.entries(OPS)) {
+    const sc = op.schedule || {}; if (!sc.months || !sc.months.length) continue;
+    const [d1, d2] = parseDays(sc.days);
+    for (let i = 0; i < 13; i++) {
+      const y = TODAY.getFullYear() + Math.floor((TODAY.getMonth() + i) / 12), m = (TODAY.getMonth() + i) % 12 + 1;
+      if (!sc.months.includes(m)) continue;
+      const has = ev.some(e => e.op === k && e.kind === "fix" && !e.anyRange && (e.from.getFullYear() === y && e.from.getMonth() + 1 === m));
+      if (has) continue;
+      const from = new Date(y, m - 1, d1), to = new Date(y, m - 1, Math.min(d2, 28));
+      if (to < TODAY) continue;
+      ev.push({ op: k, kind: "exp", from, to, label: `${short(op)}住宅 ${m}月募集（例年）`, how: sc.how, note: sc.note || "" , exp: true });
+    }
+  }
+  // 「公式発表待ち」の unk は、例年の月があるなら見込みで置き換わるので外す
+  const EV = ev.filter(e => !(e.kind === "unk" && (OPS[e.op].schedule?.months || []).length));
+  const status = (e) => e.kind === "any" ? "any" : e.kind === "unk" ? "unk" : TODAY < e.from ? "up" : TODAY <= e.to ? "open" : "closed";
+  const col = (op) => OPS[op].color;
+  const nameOf = (e) => short(OPS[e.op]) + "住宅";
+  const body = document.getElementById("body");
+  const lineCta = `<div class="line-cta"><span><b>LINE</b>で「募集が始まった」を受け取る。見逃しゼロに</span><span class="btn">友だち追加</span></div>`;
+  const legend = `<div class="legend"><span><i style="background:#2d5fa8"></i>申込期間（確定）</span><span><i style="background:repeating-linear-gradient(135deg,#2d5fa8 0 3px,#fff 3px 6px)"></i>例年の時期（見込み）</span><span><i style="background:#2d5fa8;opacity:.2"></i>いつでも（先着順）</span><span><i style="border:1.5px solid #ffb300;background:#fff"></i>今月</span></div>`;
+
+  if (V === "a") {
+    // ===== A：年間の早見表（運営元 × 月） =====
+    document.getElementById("ttl").textContent = "募集の予定（1年の早見表）";
+    const months = [...Array(12)].map((_, i) => { const m = (TODAY.getMonth() + i) % 12 + 1; const y = TODAY.getFullYear() + Math.floor((TODAY.getMonth() + i) / 12); return { m, y }; });
+    let h = `<p style="margin:0 0 8px;font-size:12.5px;color:var(--ink-2)">横に1年。色がある月に申し込める。タップで詳しく。</p>${legend}<div class="grid"><div></div>` +
+      months.map(({m}, i) => `<div class="h${i === 0 ? " now" : ""}">${m}月</div>`).join("");
+    for (const k of ORDER) {
+      const op = OPS[k]; if (!op) continue;
+      h += `<div class="lab" style="--d:${col(k)}"><i></i>${esc(short(op))}</div>`;
+      for (const [i, {m, y}] of months.entries()) {
+        const inMonth = EV.filter(e => e.op === k && (e.kind === "fix" || e.kind === "exp") && !e.anyRange && e.from <= new Date(y, m, 0) && e.to >= new Date(y, m - 1, 1));
+        const anyE = EV.find(e => e.op === k && (e.kind === "any" || e.anyRange));
+        let cls = "c";
+        if (inMonth.some(e => status(e) === "open")) cls += " open";
+        else if (inMonth.some(e => e.kind === "fix")) cls += " fix";
+        else if (inMonth.length) cls += " exp";
+        else if (anyE) cls += " any" + (anyE.kind === "any" || (anyE.from <= new Date(y, m, 0) && anyE.to >= new Date(y, m - 1, 1)) ? "" : " unk");
+        else cls += " unk";
+        if (i === 0) cls += " now";
+        const tip = inMonth.map(e => `${md(e.from)}〜${md(e.to)}`).join(" / ");
+        h += `<div class="${cls}" style="--d:${col(k)}" title="${esc(tip)}">${cls.includes(" fix") && !cls.includes("open") ? `<span style="position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font-size:9px;color:#fff;font-weight:700">${md(inMonth[0].from).replace(/^\d+\//, "")}日〜</span>` : ""}</div>`;
+      }
+      const sc = op.schedule || {};
+      const subtxt = sc.months?.length ? `例年 ${sc.months.join("・")}月${sc.days ? "（" + sc.days + "）" : ""}・${sc.how || ""}${sc.anytime_note ? "／" + sc.anytime_note : ""}` : (sc.anytime_note || sc.note || "");
+      h += `<div class="sub">${esc(subtxt)}</div>`;
+    }
+    h += `</div>${lineCta}`;
+    body.innerHTML = h;
+  }
+
+  if (V === "b") {
+    // ===== B：次に始まる順のカード =====
+    document.getElementById("ttl").textContent = "募集の予定（次に始まる順）";
+    const open = EV.filter(e => status(e) === "open" && !e.anyRange).sort((a, b) => a.to - b.to);
+    const up = EV.filter(e => status(e) === "up").sort((a, b) => a.from - b.from);
+    const anyE = EV.filter(e => e.kind === "any" || (e.anyRange && status(e) === "open"));
+    const unk = EV.filter(e => e.kind === "unk");
+    const card = (e) => {
+      const st = status(e); const nm = nameOf(e);
+      if (st === "open") {
+        const total = days(e.from, e.to) + 1, done = days(e.from, TODAY) + 1;
+        return `<div class="card" style="--d:${col(e.op)}"><div class="t"><b>${esc(nm)}</b><span class="badge">あと${days(TODAY, e.to)}日</span></div><div class="d">${mdw(e.from)} → ${mdw(e.to)}</div><div class="m">${esc(e.how || "")}${e.lottery ? "・抽せん " + md(e.lottery) : ""}</div><div class="bar"><i style="width:${Math.round(done / total * 100)}%"></i></div></div>`;
+      }
+      const n = days(TODAY, e.from);
+      return `<div class="card${e.exp ? " dim" : ""}" style="--d:${col(e.op)}"><div class="t"><b>${esc(nm)}</b><span class="badge ${n <= 14 ? "soon" : "gray"}">${n}日後に開始</span></div><div class="d">${mdw(e.from)} 〜 ${md(e.to)}<small>${e.exp ? "例年" : "確定"}</small></div><div class="m">${e.exp ? "例年の時期。日付は公式発表待ち・" : ""}${esc(e.how || "")}${e.lottery ? "・抽せん " + md(e.lottery) : ""}</div></div>`;
+    };
+    body.innerHTML = `<div class="sec">今、申し込める</div>${open.map(card).join("") || '<div class="mon"><div class="none">今は募集中のものがありません</div></div>'}
+      <div class="sec">これから始まる（早い順）</div>${up.map(card).join("")}
+      <div class="sec">いつでも申し込める（先着順）</div><div class="anyrow">${anyE.map(e => `<span style="--d:${col(e.op)}"><i></i>${esc(nameOf(e))}</span>`).join("")}</div>
+      ${unk.length ? `<div class="sec">時期が未発表</div><div class="anyrow">${unk.map(e => `<span style="--d:${col(e.op)}"><i></i>${esc(nameOf(e))}</span>`).join("")}</div>` : ""}${lineCta}`;
+  }
+
+  if (V === "c") {
+    // ===== C：月ごとの予定表 =====
+    document.getElementById("ttl").textContent = "募集の予定（月ごと）";
+    const anyE = EV.filter(e => e.kind === "any" || (e.anyRange && status(e) === "open"));
+    let h = `<div class="sec" style="margin-top:0">いつでも申し込める（先着順）</div><div class="anyrow" style="margin-bottom:6px">${anyE.map(e => `<span style="--d:${col(e.op)}"><i></i>${esc(nameOf(e))}</span>`).join("")}</div>`;
+    for (let i = 0; i < 12; i++) {
+      const y = TODAY.getFullYear() + Math.floor((TODAY.getMonth() + i) / 12), m = (TODAY.getMonth() + i) % 12 + 1;
+      const es = EV.filter(e => (e.kind === "fix" || e.kind === "exp") && !e.anyRange && e.from.getFullYear() === y && e.from.getMonth() + 1 === m).sort((a, b) => a.from - b.from);
+      const open = EV.filter(e => e.kind === "fix" && !e.anyRange && status(e) === "open" && !(e.from.getFullYear() === y && e.from.getMonth() + 1 === m) && e.to >= new Date(y, m - 1, 1) && e.from <= new Date(y, m, 0));
+      h += `<div class="mon"><h3>${m}月 <small>${y}年${i === 0 ? "・今月" : ""}</small></h3>`;
+      if (!es.length && !open.length) h += `<div class="none">募集の予定なし</div>`;
+      for (const e of [...open, ...es]) {
+        const st = status(e);
+        const badge = st === "open" ? `<span class="badge">受付中・あと${days(TODAY, e.to)}日</span>` : e.exp ? `<span class="badge gray">例年の時期</span>` : `<span class="badge soon">確定</span>`;
+        h += `<div class="e${e.exp ? " exp" : ""}" style="--d:${col(e.op)}"><div class="dd">${e.from.getDate()}日<small>〜${md(e.to)}</small></div><div><div class="nm"><i></i>${esc(nameOf(e))} ${badge}</div><div class="ex">${esc(e.how || "")}${e.lottery ? "・抽せん " + md(e.lottery) : ""}${e.exp ? "・公式発表待ち" : ""}</div></div></div>`;
+      }
+      h += `</div>`;
+    }
+    body.innerHTML = h + lineCta;
+  }
+
+  if (V === "d") {
+    // ===== D：横の帯（今日から4か月） =====
+    document.getElementById("ttl").textContent = "募集の予定（4か月の帯）";
+    const start = new Date(TODAY.getFullYear(), TODAY.getMonth(), 1); const N = 4;
+    const end = new Date(start.getFullYear(), start.getMonth() + N, 0);
+    const span = days(start, end) + 1;
+    const pct = (d) => Math.max(0, Math.min(100, days(start, d) / span * 100));
+    let h = `<p style="margin:0 0 8px;font-size:12.5px;color:var(--ink-2)">帯の長さ＝申し込める期間。黄色の線が今日。</p>${legend}<div class="gantt"><div class="gt" style="--n:${N}"><div></div><div class="axis">${[...Array(N)].map((_, i) => `<span class="${i === 0 ? "now" : ""}">${(start.getMonth() + i) % 12 + 1}月</span>`).join("")}</div>`;
+    for (const k of ORDER) {
+      const op = OPS[k]; if (!op) continue;
+      const es = EV.filter(e => e.op === k && e.kind !== "unk");
+      let bars = "";
+      for (const e of es) {
+        if (e.kind === "any") { bars += `<div class="bar any" style="--d:${col(k)};left:0;right:0"></div>`; continue; }
+        if (e.to < start || e.from > end) continue;
+        const l = pct(e.from), r = pct(new Date(e.to.getTime() + 864e5));
+        bars += `<div class="bar${e.exp ? " exp" : e.anyRange ? " any" : ""}" style="--d:${col(k)};left:${l}%;width:${Math.max(1.5, r - l)}%">${e.anyRange || (r - l) < 14 ? "" : md(e.from) + "〜" + md(e.to)}</div>`;
+        if (e.lottery && e.lottery <= end) bars += `<div class="lot" style="--d:${col(k)};left:calc(${pct(e.lottery)}% - 6px)" title="抽せん"></div>`;
+      }
+      h += `<div class="lab" style="--d:${col(k)}"><i></i>${esc(short(op))}</div><div class="tr" style="--d:${col(k)}">${bars}</div>`;
+    }
+    h += `</div><div class="today" style="left:calc(84px + (100% - 84px) * ${pct(TODAY) / 100})"></div></div>
+      <div class="sec">印の意味</div><p style="font-size:12px;color:var(--ink-2);margin:0">帯の中の数字＝申込期間。白丸＝抽せん日。薄い帯＝いつでも申し込める（先着順）。</p>${lineCta}`;
+    body.innerHTML = h;
+  }
+
+  if (V === "e") {
+    // ===== E：月めくりカレンダー =====
+    document.getElementById("ttl").textContent = "募集の予定（カレンダー）";
+    let cur = new Date(TODAY.getFullYear(), TODAY.getMonth(), 1);
+    const render = () => {
+      const y = cur.getFullYear(), m = cur.getMonth();
+      const first = new Date(y, m, 1), last = new Date(y, m + 1, 0);
+      const es = EV.filter(e => (e.kind === "fix" || e.kind === "exp") && !e.anyRange && e.from <= last && e.to >= first).sort((a, b) => a.from - b.from);
+      let h = `<div class="mnav"><span>‹</span><b>${y}年${m + 1}月</b><span>›</span></div><div class="cal">${"日月火水木金土".split("").map(w => `<div class="wd">${w}</div>`).join("")}`;
+      const lead = first.getDay();
+      for (let i = 0; i < lead; i++) h += `<div class="day out"></div>`;
+      for (let d = 1; d <= last.getDate(); d++) {
+        const dt = new Date(y, m, d);
+        const bars = es.filter(e => e.from <= dt && e.to >= dt).map(e => `<div class="b${e.exp ? " exp" : ""}${days(e.from, dt) === 0 ? " s" : ""}${days(dt, e.to) === 0 ? " e" : ""}" style="--d:${col(e.op)}"></div>`).join("");
+        h += `<div class="day${days(TODAY, dt) === 0 ? " today" : ""}"><span>${d}</span>${bars}</div>`;
+      }
+      h += `</div><div class="mlist">`;
+      for (const e of es) {
+        const st = status(e);
+        h += `<div class="e" style="--d:${col(e.op)}"><i></i><b>${esc(nameOf(e))}</b><small>${md(e.from)}〜${md(e.to)}${e.exp ? "（例年）" : st === "open" ? "・あと" + days(TODAY, e.to) + "日" : ""}</small></div>`;
+      }
+      if (!es.length) h += `<div class="e"><b style="color:var(--ink-3);font-weight:500">この月に始まる募集はありません</b></div>`;
+      const anyE = EV.filter(e => e.kind === "any" || (e.anyRange && status(e) === "open"));
+      h += `</div><div class="sec">いつでも申し込める（先着順）</div><div class="anyrow">${anyE.map(e => `<span style="--d:${col(e.op)}"><i></i>${esc(nameOf(e))}</span>`).join("")}</div>${lineCta}`;
+      body.innerHTML = h;
+      body.querySelectorAll(".mnav span").forEach((s, i) => s.addEventListener("click", () => { cur = new Date(y, m + (i ? 1 : -1), 1); render(); }));
+    };
+    render();
+  }
+});
+</script></body></html>

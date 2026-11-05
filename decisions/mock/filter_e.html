@@ -1,0 +1,19 @@
+<!DOCTYPE html><html lang="ja"><head><meta charset="utf-8"><meta name="viewport" content="width=390"><link rel="stylesheet" href="mock.css">
+<style>
+.drawer { height:236px; }
+.cond { display:flex; align-items:center; gap:0; background:var(--bg-2); border-radius:12px; margin:0 0 8px; overflow:hidden; }
+.cond div { flex:1; padding:9px 10px; font-size:12.5px; border-left:1px solid #fff; min-width:0; }
+.cond div small { display:block; color:var(--ink-3); font-size:10.5px; }
+.cond div b { display:block; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+.cond div:first-child { border-left:0; }
+.cond .go { flex:0 0 auto; background:var(--accent); color:#fff; font-weight:700; align-self:stretch; display:flex; align-items:center; padding:0 12px; }
+</style></head><body><div class="phone"><div class="map"></div>
+<div class="topbar"><div class="search"><i></i>団地名・駅・住所</div><div class="rbtn">📅</div><div class="rbtn">⋯</div></div>
+<div class="note-tip" style="left:14px;top:66px">地図の上には検索だけ。条件は下の一覧の頭に「いま何で絞っているか」を1行で出し、押すと全部の条件を1画面で変えられる案。地図が最も広く、条件も常に見える</div>
+<div class="fab">◎</div>
+<div class="drawer"><div class="handle"></div>
+<div class="cond"><div><small>地域</small><b>東京・神奈川</b></div><div><small>運営元</small><b>都営・県営</b></div><div><small>家賃</small><b>〜5万円</b></div><div><small>募集</small><b>募集中</b></div><div class="go">変える</div></div>
+<div class="count">612件<span class="sort">家賃が安い順 ▾</span></div>
+<div class="item"><b>高島平二丁目</b><span class="rent">¥12,300〜</span><span class="sub"><span class="tag" style="--d:var(--toei)">都営</span>2DK 45㎡・高島平駅8分・前回3.2倍</span></div>
+<div class="item"><b>川崎河原町</b><span class="rent">¥16,100〜</span><span class="sub"><span class="tag" style="--d:var(--ken)">県営</span>3DK 50㎡・川崎駅バス10分</span></div></div>
+</div></body></html>

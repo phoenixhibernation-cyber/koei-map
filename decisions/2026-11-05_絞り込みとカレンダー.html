@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+<!--
+  使い捨ての「選ぶページ」の雛形（V-75 V-76）。
+  使い方：このファイルを作業フォルダの decisions/<日付>_<テーマ>.html にコピーし、
+  下の DATA だけを書き換えてブラウザで開く。オーナーはチェックを入れて「決定をコピー」を押し、
+  チャットに貼る。AI は貼られた内容の案だけを実装する。
+  案の中身は文字・画像・HTML（ワイヤーフレームやデザイン案）のどれでもよい。
+-->
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>工程06 絞り込みとカレンダーを選ぶ</title>
+<style>
+  :root { --bg:#f6f7fb; --card:#fff; --ink:#1d2433; --sub:#6b7385; --line:#e3e6ee; --accent:#4f6bed; }
+  * { box-sizing:border-box; }
+  body { margin:0; font-family:-apple-system,"Hiragino Sans","Noto Sans JP",sans-serif; background:var(--bg); color:var(--ink); }
+  header { padding:32px 24px 8px; max-width:1100px; margin:0 auto; }
+  h1 { font-size:22px; margin:0 0 6px; }
+  .lead { color:var(--sub); margin:0; line-height:1.7; }
+  section { max-width:1100px; margin:24px auto; padding:0 24px; }
+  h2 { font-size:16px; margin:0 0 4px; }
+  .q-note { color:var(--sub); font-size:13px; margin:0 0 12px; }
+  .grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(260px,1fr)); gap:14px; }
+  label.card { display:block; background:var(--card); border:2px solid var(--line); border-radius:16px; padding:16px; cursor:pointer; transition:border-color .15s, box-shadow .15s; }
+  label.card:hover { box-shadow:0 4px 16px rgba(29,36,51,.06); }
+  label.card:has(input:checked) { border-color:var(--accent); box-shadow:0 0 0 4px rgba(79,107,237,.12); }
+  .card input { margin-right:8px; accent-color:var(--accent); }
+  .tag { font-weight:600; }
+  .why { color:var(--sub); font-size:13px; margin:6px 0 10px; }
+  .body { font-size:15px; line-height:1.7; }
+  .body iframe { width:100%; height:420px; border:1px solid var(--line); border-radius:10px; background:#fff; }
+  .body img { width:100%; border-radius:10px; }
+  textarea { width:100%; min-height:60px; border:1px solid var(--line); border-radius:10px; padding:10px; font:inherit; margin-top:10px; }
+  footer { position:sticky; bottom:0; background:rgba(246,247,251,.92); backdrop-filter:blur(6px); border-top:1px solid var(--line); padding:14px 24px; text-align:center; }
+  button { background:var(--accent); color:#fff; border:0; border-radius:999px; padding:12px 28px; font-size:15px; cursor:pointer; }
+  #done { color:var(--sub); font-size:13px; margin-left:10px; }
+</style>
+</head>
+<body>
+<header>
+  <h1 id="title"></h1>
+  <p class="lead" id="lead"></p>
+</header>
+<main id="questions"></main>
+<footer>
+  <button id="copy">決定をコピー</button><span id="done"></span>
+</footer>
+
+<script>
+// ===== ここだけ書き換える =====
+const DATA = {
+  title: "工程06：絞り込みの見せ方（5案）とカレンダー（5案）を選ぶ",
+  lead: "スマホ1画面の試しの絵です。色や細かい飾りは工程08で整えるので、「どこに何があるか」「読めるか」だけ見てください。カレンダーは今の本物のデータ（募集の予定＋各運営元の例年の募集月）で描いています。いいと思う案にチェックを入れ、組み合わせたい点は下の欄へ。最後に「決定をコピー」を押してチャットに貼ってください。",
+  questions: [
+    { id:"F", title:"1. 絞り込み（地域・運営元など）の見せ方", note:"1つ選ぶ。どの案でも「地域」は都県→市区町村のチェックで絞れます（一番下に決定済みの作りの絵）", multiple:false, options:[
+      { id:"A", label:"案A チップ列を整える", why:"今の形のまま。地域・運営元を先頭に、選んだ中身がチップに出る。運営元は色の点", html:'<iframe src="mock/filter_a.html" style="height:720px;max-width:390px;display:block;margin:0 auto"></iframe>' },
+      { id:"B", label:"案B 「絞り込み」ボタン1つ", why:"チップ列をやめ、ボタン1つで全部の条件を1画面で選ぶ。選んだ条件だけが小さく残る。地図が一番広い", html:'<iframe src="mock/filter_b.html" style="height:720px;max-width:390px;display:block;margin:0 auto"></iframe>' },
+      { id:"C", label:"案C 地域と運営元を1段目に固定", why:"地域はプルダウン、運営元は4つの色付きスイッチ。家賃などは2段目", html:'<iframe src="mock/filter_c.html" style="height:720px;max-width:390px;display:block;margin:0 auto"></iframe>' },
+      { id:"D", label:"案D 運営元＝地図の凡例", why:"ピンの色と同じ丸を押して運営元を出し入れ。件数も見える。チップから「運営」が消える", html:'<iframe src="mock/filter_d.html" style="height:720px;max-width:390px;display:block;margin:0 auto"></iframe>' },
+      { id:"E", label:"案E 一覧の頭に条件バー", why:"地図の上は検索だけ。条件は一覧の頭に1行で出し、押すと全部変えられる", html:'<iframe src="mock/filter_e.html" style="height:720px;max-width:390px;display:block;margin:0 auto"></iframe>' },
+    ] },
+    { id:"C", title:"2. 募集カレンダー（いつ始まるかが一目で分かる形）", note:"1つ選ぶ。斜線＝例年の時期（公式発表待ち）、濃い色＝確定、薄い色＝いつでも（先着順）", multiple:false, options:[
+      { id:"A", label:"案A 1年の早見表", why:"運営元×月の表。色がある月に申し込める。1年を一目で", html:'<iframe src="mock/cal.html?v=a" style="height:720px;max-width:390px;display:block;margin:0 auto"></iframe>' },
+      { id:"B", label:"案B 次に始まる順のカード", why:"「今申し込める」「○日後に開始」の順に大きな日付で並べる。文字は最小限", html:'<iframe src="mock/cal.html?v=b" style="height:720px;max-width:390px;display:block;margin:0 auto"></iframe>' },
+      { id:"C", label:"案C 月ごとの予定表", why:"11月・12月・1月…と月の見出しの下に、始まる募集を並べる", html:'<iframe src="mock/cal.html?v=c" style="height:720px;max-width:390px;display:block;margin:0 auto"></iframe>' },
+      { id:"D", label:"案D 4か月の帯", why:"申込期間を横の帯で。長さと今日の線で「いつまで」が分かる。白丸＝抽せん日", html:'<iframe src="mock/cal.html?v=d" style="height:720px;max-width:390px;display:block;margin:0 auto"></iframe>' },
+      { id:"E", label:"案E 月めくりカレンダー", why:"ふつうのカレンダーに色の帯。‹ ›で月をめくる。下にその月の一覧", html:'<iframe src="mock/cal.html?v=e" style="height:720px;max-width:390px;display:block;margin:0 auto"></iframe>' },
+    ] },
+    { id:"R", title:"3. 地域の選び方（決定済み：プルダウン＋チェックボックス。都県を選ぶとその中の市区町村が出る）", note:"確認だけ。直したい点があれば下の欄へ", multiple:true, options:[
+      { id:"OK", label:"この作りでよい", why:"都県にチェック→その中の区市町村がチェックで出る（選んでいない都県の市区町村は出ない）。件数つき", html:'<iframe src="mock/area_dd.html" style="height:720px;max-width:390px;display:block;margin:0 auto"></iframe>' },
+    ] },
+  ],
+};
+// ===== ここまで =====
+
+document.getElementById("title").textContent = DATA.title;
+document.getElementById("lead").textContent = DATA.lead;
+const main = document.getElementById("questions");
+for (const q of DATA.questions) {
+  const s = document.createElement("section");
+  s.innerHTML = `<h2>${q.title}</h2><p class="q-note">${q.note || ""}</p><div class="grid"></div>
+    <textarea data-q="${q.id}" placeholder="気になる点・組み合わせたい点（任意）"></textarea>`;
+  const grid = s.querySelector(".grid");
+  for (const o of q.options) {
+    const el = document.createElement("label");
+    el.className = "card";
+    el.innerHTML = `<input type="${q.multiple ? "checkbox" : "radio"}" name="${q.id}" value="${o.id}">
+      <span class="tag">${o.label}</span><div class="why">${o.why || ""}</div><div class="body">${o.html}</div>`;
+    grid.appendChild(el);
+  }
+  main.appendChild(s);
+}
+
+document.getElementById("copy").addEventListener("click", async () => {
+  const lines = [`【決定】${DATA.title}`];
+  for (const q of DATA.questions) {
+    const picked = [...document.querySelectorAll(`input[name="${q.id}"]:checked`)].map(i => i.value);
+    const memo = document.querySelector(`textarea[data-q="${q.id}"]`).value.trim();
+    lines.push(`- ${q.title}：${picked.length ? picked.join("、") : "（未選択）"}${memo ? ` ／メモ：${memo}` : ""}`);
+  }
+  const text = lines.join("\n");
+  try { await navigator.clipboard.writeText(text); document.getElementById("done").textContent = "コピーしました。チャットに貼ってください"; }
+  catch { prompt("この文をコピーしてチャットに貼ってください", text); }
+});
+</script>
+</body>
+</html>
