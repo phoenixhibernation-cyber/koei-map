@@ -69,8 +69,9 @@ with sync_playwright() as p:
     check("カレンダーに今募集中がある", "あと" in pg.inner_text("#calBody"))
     check("カレンダーに「終わった」がない", "終わった" not in pg.inner_text("#calBody"))
     pg.screenshot(path=OUT / "07_calendar.png")
+    rid = pg.get_attribute("#calBody [data-round] >> nth=0", "data-round")
     pg.click("#calBody [data-round] >> nth=0"); pg.wait_for_timeout(500)
-    check("募集に絞った地図になる", "定期募集" in pg.inner_text("#count"))
+    check("募集に絞った地図になる: " + rid, "募集" in pg.inner_text("#count") and "今募集中" not in pg.inner_text("#count"))
 
     # 通知のリンクから（?round=）
     pg.goto(a.url + "?round=toei-2026-11"); pg.wait_for_function("document.querySelectorAll('#list .item').length > 0", timeout=20000)

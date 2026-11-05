@@ -54,7 +54,7 @@ status: 進行中
 - 2026-11-05 工程05：やらない（めんどい）。公開後の数字で判断する
 
 ## オーナー待ちのこと
-- 
+- 工程06：LINE公式アカウントを作り、トークンを GitHub Secrets（LINE_CHANNEL_ACCESS_TOKEN）に登録する
 
 - 
 
@@ -62,7 +62,14 @@ status: 進行中
 
 - 2026-11-05 工程04：GitHub Pages に限定公開 https://phoenixhibernation-cyber.github.io/koei-map/ （オーナーがコマンド実行。公開URLでも e2e 20項目OK）
 
+- 2026-11-05 工程06：通知はLINE公式だけで始める。順番は UR→県営→市営 → URは部屋データがボット対策の裏（API は Origin/Referer 必須、ヘッドレスでも値が入らない）なので「団地の場所＋公式へ」に変更
+- 2026-11-05 工程06：埼玉県営（PDF）・川崎市営（PDF）・相模原市営（PDF）の自動取得ができた。千葉市営はPDFが出る募集期間中に読む作り。都営は旧 build.py の出力を変換（移植は次の募集まで）
+
 ## 作業メモ（技術の細かいこと）
+- データの流れ：scripts/sources/<op>.py → scripts/build_all.py → data/listings.json, data/rounds.json（手入力は data/rounds_manual.json、運営元は data/operators.json）。住所→緯度経度は国土地理院API＋ data/geocode_cache.json
+- 毎日 06:00 JST に .github/workflows/build.yml が build_all → notify_line（Secret があるとき）→ push。読み取りが0件になった運営元は前回の値を残し、Issue を立てる
+- 未着手の運営元：神奈川県営（募集ページ未発見）、横浜市営（しおりPDF 19MB）、千葉県営（Shift_JIS のHTML、1月期に団地一覧が出る）、さいたま市営（12/1に案内公開）、UR（団地の静的ページのみ）
+- GitHub Pages は data を10分キャッシュ。fetch は cache:"no-cache" にした
 - 技術の選び方（04）：静的サイト（HTML/CSS/JS＋Leaflet）で続行。Next.js は使っていない。通知・自動検知・送客計測などサーバーが要るものは 06 で Vercel（Next.js か Functions）を足す
 - 共通データ形式：data/listings.json（scripts/import_toei.py で都営から変換）、data/rounds.json（運営元と募集の予定）。ピンの色は運営元ごと
 - LAN公開（--bind 0.0.0.0）は自動モードの権限で止められた。オーナーのスマホで見せるなら、オーナー自身が `! python3 -m http.server 8777 --bind 0.0.0.0` を打つか、GitHub Pages に限定公開

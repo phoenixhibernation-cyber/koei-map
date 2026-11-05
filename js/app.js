@@ -70,7 +70,7 @@
   map.on("locationerror", () => { $("btnLocate").classList.remove("busy"); toast("現在地を取得できませんでした。位置情報の利用を許可してください。"); });
 
   /* ---------------- データ ---------------- */
-  Promise.all([fetch("data/rounds.json").then((r) => r.json()), fetch("data/listings.json").then((r) => r.json())])
+  Promise.all([fetch("data/rounds.json", { cache: "no-cache" }).then((r) => r.json()), fetch("data/listings.json", { cache: "no-cache" }).then((r) => r.json())])
     .then(([rd, ld]) => init(rd, ld))
     .catch((e) => { console.error(e); $("count").textContent = "データを読み込めませんでした"; });
 
