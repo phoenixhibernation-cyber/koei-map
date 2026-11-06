@@ -6,7 +6,7 @@
   const esc = (s) => String(s ?? "").replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
   const yen = (n) => (n == null ? "—" : n.toLocaleString("ja-JP"));
   const norm = (s) => String(s || "").normalize("NFKC").toLowerCase().replace(/\s+/g, "");
-  const VERSION = "2026-11-06e";   // 画面の「このサービスについて」に出す版。index.html の ?v= も同じにする
+  const VERSION = "2026-11-07a";   // 画面の「このサービスについて」に出す版。index.html の ?v= も同じにする
   console.log("住まいのSmiley", VERSION);
   const PAGE = 50;
   const DESKTOP = window.matchMedia("(min-width: 900px)");
@@ -55,20 +55,54 @@
   map.zoomIn = (delta, opt) => map.setZoomAround(visibleCenter(), map.getZoom() + (delta || map.options.zoomDelta || 1), opt);
   map.zoomOut = (delta, opt) => map.setZoomAround(visibleCenter(), map.getZoom() - (delta || map.options.zoomDelta || 1), opt);
 
-  // 境界（都内の色分け。関東全体の境界は工程06で）
-  const PALETTE = ["#c9dbf3", "#cfe9d4", "#f7dfc0", "#e8d3eb", "#cde9ec"];
-  ["bmask", "bfill", "bline", "blabel"].forEach((n, i) => { const p = map.createPane(n); p.style.zIndex = [210, 220, 380, 390][i]; p.style.pointerEvents = "none"; });
-  fetch("data/boundaries.json").then((r) => r.json()).then((B) => {
-    L.geoJSON(B.wards, { pane: "bfill", interactive: false, stroke: false, style: (f) => ({ fillColor: PALETTE[f.properties.c % 5], fillOpacity: 0.16 }) }).addTo(map);
-    L.geoJSON(B.wards, { pane: "bline", interactive: false, fill: false, style: { color: "#fff", weight: 1.6, opacity: 1 } }).addTo(map);
-    L.geoJSON(B.outline, { pane: "bline", interactive: false, fill: false, style: { color: "#5f6368", weight: 1.5, opacity: 0.7 } }).addTo(map);
-    const labels = L.layerGroup(B.wards.features.map((f) => L.marker(f.properties.label, {
-      pane: "blabel", interactive: false, keyboard: false,
-      icon: L.divIcon({ className: "ward-label" + (f.properties.name.endsWith("区") ? " ku" : ""), html: `<span>${esc(f.properties.name)}</span>`, iconSize: [0, 0] }),
-    })));
-    const onZoom = () => { const z = map.getZoom(); z >= 10 ? labels.addTo(map) : labels.remove(); map.getContainer().classList.toggle("hide-ku", z < 10.5); map.getContainer().classList.toggle("labels-small", z < 11); };
+  // 境界：1都3県の市区町村（細い線）と都県（太めの線）。地域を選んだ・地名で検索したときは、その範囲を青い太線で囲む
+  ["bline", "bhi"].forEach((n, i) => { const p = map.createPane(n); p.style.zIndex = [380, 395][i]; p.style.pointerEvents = "none"; });
+  let AREAS = null, hiLayer = null, hiKey = "";
+  const areaNorm = (t) => norm(t).replace(/[ヶケ]/g, "け");
+  fetch("data/areas.json").then((r) => r.json()).then((A) => {
+    AREAS = A.features;
+    const cityNames = AREAS.filter((f) => f.properties.kind === "city").map((f) => f.properties.name);
+    const wholes = new Set(cityNames.filter((n) => cityNames.some((m) => m !== n && m.startsWith(n))));   // 横浜市など政令市そのもの（区の線で描けるので省く）
+    const cityL = L.geoJSON({ type: "FeatureCollection", features: AREAS.filter((f) => f.properties.kind === "city" && !wholes.has(f.properties.name)) },
+      { pane: "bline", interactive: false, fill: false, style: { color: "#5f6b7a", weight: 1, opacity: 0.55 } });
+    const prefL = L.geoJSON({ type: "FeatureCollection", features: AREAS.filter((f) => f.properties.kind === "pref") },
+      { pane: "bline", interactive: false, fill: false, style: { color: "#3c4757", weight: 2.2, opacity: 0.75 } }).addTo(map);
+    const onZoom = () => { map.getZoom() >= 9.5 ? cityL.addTo(map) : cityL.remove(); };
     map.on("zoomend", onZoom); onZoom();
-  }).catch(() => {});
+    highlightAreas(false);
+  }).catch((e) => console.warn("境界を読めません", e));
+  // 今の条件（地域チップ・検索の文字）から囲む範囲を決める
+  function areaTargets() {
+    if (!AREAS) return [];
+    const byName = (n) => AREAS.filter((f) => f.properties.name === n || f.properties.alt.includes(n));
+    if (F.cities.size) return [...F.cities].flatMap(byName);
+    if (F.prefs.size) return [...F.prefs].flatMap((p) => AREAS.filter((f) => f.properties.kind === "pref" && f.properties.name === p));
+    const q = areaNorm($("q").value || ""); if (q.length < 2) return [];
+    const names = (f) => [f.properties.name, ...f.properties.alt].map(areaNorm);
+    let hit = AREAS.filter((f) => names(f).some((n) => n === q || n.replace(/[都県市区町村]$/, "") === q));
+    if (!hit.length) hit = AREAS.filter((f) => f.properties.kind === "city" && names(f).some((n) => n.endsWith(q) || n.replace(/[市区町村]$/, "").endsWith(q)));
+    return hit.slice(0, 6);
+  }
+  function highlightAreas(fit) {
+    const t = areaTargets(), key = t.map((f) => f.properties.name).join("|");
+    if (key === hiKey) return; hiKey = key;
+    if (hiLayer) { hiLayer.remove(); hiLayer = null; }
+    if (!t.length) return;
+    const fc = { type: "FeatureCollection", features: t };
+    hiLayer = L.layerGroup([
+      L.geoJSON(fc, { pane: "bhi", interactive: false, style: { color: "#fff", weight: 7, opacity: 0.9, fill: false } }),
+      L.geoJSON(fc, { pane: "bhi", interactive: false, style: { color: "#1a73e8", weight: 3.5, opacity: 1, fillColor: "#1a73e8", fillOpacity: 0.07 } }),
+    ]).addTo(map);
+    if (fit) fitVisible(L.geoJSON(fc).getBounds());
+  }
+  // パネルやシートに隠れない範囲に収める
+  function fitVisible(b) {
+    if (!b.isValid()) return;
+    const W = map.getSize().x, H = map.getSize().y, c = visibleCenter();
+    const padL = DESKTOP.matches ? (c.x * 2 - W) + 24 : 16, padT = DESKTOP.matches ? 24 : $("chips").getBoundingClientRect().bottom + 8;
+    const padB = DESKTOP.matches ? 24 : H - (c.y * 2 - padT) + 8;
+    map.fitBounds(b, { paddingTopLeft: [Math.max(16, padL), padT], paddingBottomRight: [16, Math.max(16, padB)], maxZoom: 14 });
+  }
 
   const cluster = L.markerClusterGroup({
     showCoverageOnHover: false, spiderfyOnMaxZoom: true, chunkedLoading: true,
@@ -88,11 +122,9 @@
   function focusOn(r, zoomIn) {
     if (r.lat == null) return;
     const z = zoomIn ? Math.max(map.getZoom(), 15) : map.getZoom();
-    const W = map.getSize().x, H = map.getSize().y;
-    // 地図の中心をピンからずらす：パソコンはピンがパネル（400+16+420px）の右側の中央に、スマホは上 22% の帯の中に来るように
-    const dx = DESKTOP.matches ? -Math.round(836 / 2) : 0;
-    const dy = DESKTOP.matches ? 0 : Math.round(H * 0.5 - H * 0.29);   // 上 40% の帯のうち、検索バーとチップの下あたり
-    const target = map.project([r.lat, r.lon], z).add([dx, dy]);
+    const W = map.getSize().x, H = map.getSize().y, c = visibleCenter();
+    // ピンが「パネルやシートに隠れていない範囲」の中心に来るよう、地図の中心をずらす
+    const target = map.project([r.lat, r.lon], z).add([W / 2 - c.x, H / 2 - c.y]);
     map.setView(map.unproject(target, z), z, { animate: true });
   }
 
@@ -104,8 +136,9 @@
     // 1回目は高精度・10秒。だめなら通常精度・20秒・5分以内の位置も可（パソコンやWi-Fi測位向け）
     map.locate({ setView: true, maxZoom: 14, enableHighAccuracy: locTry === 1, timeout: locTry === 1 ? 10000 : 20000, maximumAge: locTry === 1 ? 0 : 300000 });
   }
-  $("btnLocate").addEventListener("click", () => {
+  $("btnLocate").addEventListener("click", async () => {
     if (!navigator.geolocation) return toast("この端末では現在地を取得できません");
+    try { const st = await navigator.permissions?.query({ name: "geolocation" }); if (st && st.state === "denied") return showLocHelp(); } catch {}
     if (!window.isSecureContext) return toast("現在地は https のページでだけ使えます");
     $("btnLocate").classList.add("busy");
     locTry = 0; locate();
@@ -119,10 +152,24 @@
     if (e.code !== 1 && locTry < 2) return locate();   // 許可されていない以外は、通常精度でもう一度
     $("btnLocate").classList.remove("busy");
     console.warn("現在地エラー", e.code, e.message);
-    toast(e.code === 1 ? "位置情報の利用が許可されていません。ブラウザのアドレスバー（鍵マーク）か端末の設定で許可してください"
-      : e.code === 3 ? "現在地の取得に時間がかかっています。少し待ってもう一度押してください"
+    if (e.code === 1) return showLocHelp();
+    toast(e.code === 3 ? "現在地の取得に時間がかかっています。少し待ってもう一度押してください"
       : "現在地を特定できませんでした。パソコンでは位置情報サービスがオフだと取れないことがあります");
   });
+
+  // 現在地が使えないときの手順（端末・ブラウザで違うので、使っているものに合わせて出す）
+  function showLocHelp() {
+    const ua = navigator.userAgent, ios = /iPhone|iPad|iPod/.test(ua) || (navigator.platform === "MacIntel" && navigator.maxTouchPoints > 1);
+    let steps;
+    if (ios && /CriOS/.test(ua)) steps = ["iPhoneの「設定」アプリを開く", "下へスクロールして「Chrome」を押す", "「位置情報」→「このAppの使用中」を選ぶ（「正確な位置情報」もオン）", "Chromeに戻ってページを再読み込みし、もう一度 ◎ を押す →「許可」"];
+    else if (ios && /FxiOS|EdgiOS/.test(ua)) steps = ["iPhoneの「設定」アプリ → 使っているブラウザ（Firefox・Edge）を押す", "「位置情報」→「このAppの使用中」", "ブラウザに戻って再読み込みし、もう一度 ◎ を押す →「許可」"];
+    else if (ios) steps = ["iPhoneの「設定」→「プライバシーとセキュリティ」→「位置情報サービス」をオン", "同じ画面の下の方の「Safari Webサイト」→「このAppの使用中」（「正確な位置情報」もオン）", "Safariのアドレスバー左の「ぁあ」→「Webサイトの設定」→「位置情報」→「許可」", "再読み込みして、もう一度 ◎ を押す"];
+    else if (/Android/.test(ua)) steps = ["端末の上から下へスワイプし「位置情報」をオン", "Chromeのアドレスバー左のアイコン →「権限」→「位置情報」→「許可」", "再読み込みして、もう一度 ◎ を押す"];
+    else if (/Mac/.test(ua)) steps = ["アドレスバー左のアイコン（鍵や調整のマーク）→「位置情報」→「許可」", "Macの「システム設定」→「プライバシーとセキュリティ」→「位置情報サービス」→ 使っているブラウザをオン", "ブラウザを再起動して、もう一度 ◎ を押す"];
+    else steps = ["アドレスバー左のアイコン（鍵や調整のマーク）→「位置情報」→「許可」", "Windowsの「設定」→「プライバシーとセキュリティ」→「位置情報」→「位置情報サービス」とブラウザをオン", "再読み込みして、もう一度 ◎ を押す"];
+    $("locSteps").innerHTML = steps.map((t) => `<li>${esc(t)}</li>`).join("");
+    openPage("pageLoc");
+  }
 
   /* ---------------- データ ---------------- */
   let SITE = { line_url: "" };
@@ -233,6 +280,7 @@
   function apply() {
     filtered = ITEMS.filter(matches).sort(SORTS[$("sort").value] || SORTS.rent);
     renderMarkers(); shown = 0; $("list").innerHTML = ""; renderMore(); renderCount(); renderChips(); saveCond();
+    if (typeof highlightAreas === "function") highlightAreas(true);
   }
   function renderCount() {
     const n = filtered.length;
@@ -394,7 +442,7 @@
 
   /* ---------------- 検索 ---------------- */
   let qt = null;
-  $("q").addEventListener("input", () => { clearTimeout(qt); $("qClear").hidden = !$("q").value; qt = setTimeout(() => { F.q = norm($("q").value); apply(); if (!DESKTOP.matches && F.q) $("drawer").classList.add("open"); }, 200); });
+  $("q").addEventListener("input", () => { clearTimeout(qt); $("qClear").hidden = !$("q").value; qt = setTimeout(() => { F.q = norm($("q").value); apply(); if (!DESKTOP.matches && F.q && !hiKey) $("drawer").classList.add("open"); }, 200); });
   $("qClear").addEventListener("click", () => { $("q").value = ""; $("qClear").hidden = true; F.q = ""; apply(); });
 
   /* ---------------- 引き出し ---------------- */
@@ -415,31 +463,32 @@
     document.querySelectorAll(".item.active").forEach((el) => el.classList.remove("active"));
     document.querySelector(`.item[data-id="${CSS.escape(id)}"]`)?.classList.add("active");
     showActivePin(r);
-    focusOn(r, fromList);
     const rd = r._round;
-    let deadline = rd && rd.apply_to ? `${fmtMD(rd.apply_to)}まで${daysLeft(rd.apply_to) >= 0 ? `<span class="deadline">あと${daysLeft(rd.apply_to)}日</span>` : ""}` : rd && rd.anytime ? "いつでも（先着順）" : "—";
-    if (isInfo(r)) deadline = rd && rd.apply_from ? `次回の募集 ${fmtMD(rd.apply_from)}〜${rd.apply_to ? fmtMD(rd.apply_to) : ""}。この団地が募集されるかは募集時に公式で` : rd && rd.expected ? `次回の募集 ${esc(rd.expected)}` : "次回の募集は公式で";
     const gq = encodeURIComponent(`${r.pref}${r.address}`);
+    const b = buildingInfo(r);
     const rows = [
-      ["締切", deadline],
       ...(r.geo_level === "city" ? [["地図の位置", "おおよそ（市区町村の中心）。正確な場所は公式ページで"]] : []),
-      ["抽せん日", rd && rd.lottery ? fmtMD(rd.lottery) : "—"],
-      ["最寄駅", esc(r.access)],
+      ["最寄駅", esc(r.access || "—")],
       ["入居できる人", esc(r.persons || "—")],
-      ["建物", `${esc(r.built || "—")}・エレベーター${r.elevator ? "有" : "無"}${r.barrier_free ? "・バリアフリー" : ""}${r.spec && !r.barrier_free ? "・" + esc(r.spec) : ""}`],
+      ["建てた年", b.year],
+      ["エレベーター", r.elevator ? "あり" : "なし"],
+      ...(b.floors ? [["建物", esc(b.floors)]] : []),
+      ...(b.floor ? [["募集する階", esc(b.floor)]] : []),
+      ...(b.extra.length ? [["その他", b.extra.map(esc).join("<br>")]] : []),
     ];
-    if (r.floor) rows.push(["対象階", esc(r.floor)]);
     if (r.accident) rows.push(["事故内容", esc(r.accident)]);
-    if (r.priority_lottery) rows.push(["優遇", "優遇抽せんあり"]);
     $("detailBody").innerHTML = `
       <h2>${esc(r.name)}</h2>
-      <p class="addr"><span class="tag" style="--op:${colorOf(OPS[r.operator])}">${esc(r._opLabel)}</span><span class="tag cat">${esc(isInfo(r) ? "団地情報（いまは募集期間外）" : r.category)}</span>${esc(r.pref)}${esc(r.address)}</p>
+      <p class="addr"><span class="tag" style="--op:${colorOf(OPS[r.operator])}">${esc(r._opLabel)}</span><span class="tag cat">${esc(isInfo(r) ? "いまは募集期間外" : r.category)}</span>${esc(r.pref)}${esc(r.address)}</p>
+      ${roundBox(r, rd)}
       <div class="kv-grid">
         <div class="kv"><div class="k">家賃（月）</div><div class="v">${r.rent_min != null ? `¥${yen(r.rent_min)}〜${yen(r.rent_max)}` : '<small>募集時に発表</small>'}</div></div>
         <div class="kv"><div class="k">間取り・広さ</div><div class="v wrap">${esc(r.layout.length > 22 ? r.layout.slice(0, 22) + "…" : r.layout) || "—"} ${r.area_text ? `<small>${esc(r.area_text)}㎡</small>` : ""}</div></div>
         <div class="kv"><div class="k">募集戸数</div><div class="v">${r.units != null ? `${r.units}戸` : '<small>募集時に発表</small>'}${typeof r.vacant_now === "number" ? `<small> いま空き${r.vacant_now}</small>` : ""}</div></div>
-        <div class="kv"><div class="k">前回倍率</div><div class="v">${r.ratio_prev != null ? `${r.ratio_prev}倍` : "—"}</div></div>
+        <div class="kv"><div class="k">前回の倍率</div><div class="v">${r.ratio_prev != null ? `${r.ratio_prev}倍` : "—"}</div></div>
       </div>
+      ${b.feats.length ? `<div class="feats">${b.feats.map((t) => `<span>${esc(t)}</span>`).join("")}</div>` : ""}
+      <h3 class="sec">建物と場所</h3>
       <table>${rows.map(([k, v]) => `<tr><td>${k}</td><td>${v}</td></tr>`).join("")}</table>
       <p class="cards-h">当選したら</p>
       <div class="cards">
@@ -453,7 +502,7 @@
         <a class="card" href="#" data-aff="rent"><b>家賃の安い賃貸</b><span>${esc(r.city)}の近くで探す</span></a>
       </div>
       <p class="hint">提携先のリンクは準備中です。いまは各サービスの入口に飛びます。</p>`;
-    if (rd && (rd.apply_to || rd.anytime)) $("detailBody").querySelector("table").insertAdjacentHTML("afterend", `<div class="line-cta slim"><span>締切や次の募集を<b>LINE</b>で受け取る</span><a class="line-btn" data-line href="#">友だち追加</a></div>`);
+    if (rd && (rd.apply_to || rd.anytime)) $("detailBody").querySelector(".round-box").insertAdjacentHTML("afterend", `<div class="line-cta slim"><span>締切や次の募集を<b>LINE</b>で受け取る</span><a class="line-btn" data-line href="#">友だち追加</a></div>`);
     setupLine();
     $("detailFoot").innerHTML = `
       <div class="btn-row">
@@ -463,8 +512,63 @@
       ${r.pdf_url ? `<div class="links"><span></span><a href="${esc(safeUrl(r.pdf_url))}" target="_blank" rel="noopener">募集案内PDF p.${esc(r.pdf_page)}</a></div>` : ""}`;
     $("detail").hidden = false; $("detailBody").scrollTop = 0;
     drawer.classList.add("hidden-by-detail");
+    focusOn(r, true);   // シートを出してから、見えている範囲の中心にピンが来るよう寄せる
     $("detailFoot").querySelector(".official").addEventListener("click", () => { store.set("visitedOfficial", Date.now()); });
     $("detailBody").querySelectorAll("[data-aff]").forEach((a) => a.addEventListener("click", (e) => { e.preventDefault(); toast("提携先のリンクは準備中です（試作版）"); }));
+  }
+  // 募集の状態：いま申し込めるか・いつまでか・決め方（抽せん／先着順）・抽せん日
+  function roundBox(r, rd) {
+    if (!rd) return "";
+    const st = isInfo(r) ? "info" : roundStatus(rd);
+    const how = /先着/.test(rd.kind || rd.label || "") ? "先着順（早い者勝ち）" : /抽/.test(rd.kind || "") ? "抽せん" : (rd.kind || "");
+    const howNote = rd.kind && how && rd.kind !== how ? rd.kind : "";
+    let badge = "", line = "", bar = "";
+    if (st === "open") {
+      const left = daysLeft(rd.apply_to), total = (dayOf(rd.apply_to) - dayOf(rd.apply_from)) / 86400000 + 1, done = (TODAY - dayOf(rd.apply_from)) / 86400000 + 1;
+      badge = `<span class="badge">受付中 あと${left}日</span>`;
+      line = `申込期間 <b>${fmtMD(rd.apply_from)} 〜 ${fmtMD(rd.apply_to)}</b>`;
+      bar = `<div class="bar"><i style="width:${Math.min(100, Math.round(done / total * 100))}%"></i></div>`;
+    } else if (st === "anytime") { badge = `<span class="badge ok">いつでも申し込める</span>`; line = rd.apply_to ? `受付は <b>${fmtMD(rd.apply_to)}</b> まで` : "空きが出しだい、随時受付"; }
+    else if (st === "upcoming") { badge = `<span class="badge soon">もうすぐ</span>`; line = rd.apply_from ? `申込期間 <b>${fmtMD(rd.apply_from)} 〜 ${rd.apply_to ? fmtMD(rd.apply_to) : ""}</b>` : `次の募集 ${esc(rd.expected || "は公式発表待ち")}`; }
+    else if (st === "info") { badge = `<span class="badge gray">いまは募集期間外</span>`; line = rd.apply_from ? `次の募集 <b>${fmtMD(rd.apply_from)}〜</b>（この団地が出るかは募集時に公式で）` : `次の募集 ${esc(rd.expected || "は公式で")}`; }
+    else { badge = `<span class="badge gray">受付終了</span>`; line = `この募集は ${rd.apply_to ? fmtMD(rd.apply_to) : ""} で締め切りました`; }
+    const rowsR = [];
+    if (how) rowsR.push(["決め方", esc(how)]);
+    if (rd.lottery) rowsR.push(["抽せん日", fmtMD(rd.lottery)]);
+    if (howNote) rowsR.push(["申込のしかた", esc(howNote)]);
+    if (r._notes?.length) rowsR.push(["注意", r._notes.map(esc).join("<br>")]);
+    return `<div class="round-box"><div class="rb-head">${badge}<span class="rb-name">${esc(rd.label)}</span></div><div class="rb-line">${line}</div>${bar}
+      ${rowsR.length ? `<dl>${rowsR.map(([k, v]) => `<dt>${k}</dt><dd>${v}</dd>`).join("")}</dl>` : ""}</div>`;
+  }
+  // 建物の情報を、読める言葉に分ける（住戸型式などの記号は出さない）
+  const ERA = { S: 1925, H: 1988, R: 2018, 昭和: 1925, 平成: 1988, 令和: 2018 };
+  function buildingInfo(r) {
+    const nowY = TODAY.getFullYear();
+    let year = "—";
+    if (r.built_from) { const age = nowY - r.built_from; year = `${r.built_from}年${/〜|・/.test(r.built || "") ? "ごろ〜" : ""}（築${age}年）`; }
+    const feats = [], extra = [], notes = [];
+    let floors = "", floor = "";
+    const toks = String(r.spec || "").split(/[・、\u3000]+|\s{1,}/).map((t) => t.trim()).filter(Boolean);
+    for (const t of toks) {
+      if (/バリアフリー|段差なし/.test(t)) feats.push("バリアフリー");
+      else if (/車い?す/.test(t)) feats.push("車いす向け");
+      else if (/風呂：?バランス釜/.test(t)) feats.push("風呂あり（バランス釜）");
+      else if (/風呂あり/.test(t)) feats.push("風呂あり");
+      else if (/都市ガス/.test(t)) feats.push("都市ガス");
+      else if (/駐車場あり/.test(t)) feats.push(/申込済/.test(t) ? "駐車場（申込済）" : "駐車場あり");
+      else if (/住戸改善|スーパーリフォーム|リフォーム/.test(t)) { const m = /\((平成|昭和|令和)?(\d+)/.exec(t); feats.push(m ? `室内リフォーム済（${m[1] ? (ERA[m[1]] + +m[2]) : ""}年）`.replace("（年）", "") : "室内リフォーム済"); }
+      else if (/(\d+)階建/.test(t)) floors = `${/(\d+)階建/.exec(t)[1]}階建て`;
+      else if (/受付|抽選|抽せん|追加住宅/.test(t)) notes.push(t.replace(/^(\d+)月追加住宅（(.*)）$/, "$1月に追加された住宅（$2）"));
+      else if (/^総戸数/.test(t)) extra.push(t.replace("総戸数", "団地全体 ").replace("戸", "戸"));
+      else if (/^共益費/.test(t)) extra.push(t.replace("共益費", "共益費 月"));
+      else if (/ミニキッチン/.test(t)) extra.push(t.replace(/。$/, ""));
+      // 住戸型式・A1 などの記号、棟数、構造、読み仮名は出さない
+    }
+    if (/階/.test(r.floor || "")) floor = r.floor.replace(/^.*\//, "");
+    if (/(\d+)・?.*階建/.test(r.floor || "") && !floors) floors = (/[\d・]+階建て?/.exec(r.floor) || [""])[0];
+    if (r.barrier_free && !feats.includes("バリアフリー")) feats.unshift("バリアフリー");
+    r._notes = notes;
+    return { year, feats: [...new Set(feats)], extra, floors, floor };
   }
   const UR_PREF = { "東京都": "tokyo", "神奈川県": "kanagawa", "埼玉県": "saitama", "千葉県": "chiba" };
   const urUrl = (r) => `https://www.ur-net.go.jp/chintai/kanto/${UR_PREF[r.pref] || ""}/`;

@@ -5,7 +5,7 @@
   --accent: #1a73e8; --accent-ink: #fff; --danger: #d93025; --accent-soft: #e8f0fe; --accent-soft-ink: #1967d2;
   --r: 8px; --shadow: 0 1px 2px rgba(60, 64, 67, .3), 0 2px 6px 2px rgba(60, 64, 67, .15);
   --safe-b: env(safe-area-inset-bottom, 0px);
-  --drawer-peek: 176px;
+  --drawer-peek: 66px;
 }
 * { box-sizing: border-box; }
 [hidden] { display: none !important; }
@@ -24,7 +24,7 @@ button { cursor: pointer; }
 
 /* ---- 上のバー ---- */
 .topbar { position: absolute; left: 12px; right: 12px; top: calc(10px + env(safe-area-inset-top, 0px)); display: flex; gap: 8px; z-index: 600; }
-.search { flex: 1; display: flex; align-items: center; height: 44px; background: #fff; border-radius: 22px; box-shadow: var(--shadow); padding: 0 12px 0 14px; gap: 8px; }
+.search { flex: 1; min-width: 0; display: flex; align-items: center; height: 44px; background: #fff; border-radius: 22px; box-shadow: var(--shadow); padding: 0 12px 0 14px; gap: 8px; }
 .search svg { width: 20px; height: 20px; color: var(--ink-3); flex: none; }
 .search input { flex: 1; min-width: 0; border: 0; outline: 0; background: transparent; font-size: 16px; }
 .search input::-webkit-search-cancel-button { display: none; }
@@ -129,7 +129,7 @@ button { cursor: pointer; }
 .line-btn { background: #06c755; color: #fff; font-weight: 700; padding: 8px 12px; border-radius: 9px; font-size: 13px; white-space: nowrap; text-decoration: none; }
 
 /* ---- 物件の詳細 ---- */
-.detail { position: absolute; left: 0; right: 0; bottom: 0; top: 40%; background: #fff; border-radius: 18px 18px 0 0; z-index: 650; display: flex; flex-direction: column; box-shadow: var(--shadow); padding-bottom: var(--safe-b); overflow: hidden; transition: top .22s; }
+.detail { position: absolute; left: 0; right: 0; bottom: 0; top: 50%; background: #fff; border-radius: 18px 18px 0 0; z-index: 650; display: flex; flex-direction: column; box-shadow: var(--shadow); padding-bottom: var(--safe-b); overflow: hidden; transition: top .22s; }
 .detail .close { position: absolute; top: 12px; right: 14px; }
 .detail-body { padding: 0 16px 12px; overflow-y: auto; flex: 1 1 auto; min-height: 0; -webkit-overflow-scrolling: touch; overscroll-behavior: contain; }
 .detail.full { top: calc(8px + env(safe-area-inset-top, 0px)); }
@@ -288,3 +288,19 @@ button { cursor: pointer; }
   .toast { bottom: 24px; }
   .leaflet-control-container .leaflet-top.leaflet-right { top: 16px; }
 }
+
+/* 詳細：募集の状態（いつ・何の締切・決め方） */
+.round-box { border: 1.5px solid var(--line); border-radius: 12px; padding: 10px 12px; margin: 8px 0 10px; background: #fbfcfe; }
+.round-box .rb-head { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+.round-box .rb-name { font-size: 13px; font-weight: 600; color: var(--ink-2); }
+.round-box .rb-line { font-size: 14px; margin-top: 6px; }
+.round-box .bar { height: 6px; background: var(--bg-2); border-radius: 3px; margin-top: 6px; overflow: hidden; }
+.round-box .bar i { display: block; height: 100%; background: var(--accent); border-radius: 3px; }
+.round-box dl { display: grid; grid-template-columns: auto 1fr; gap: 4px 10px; margin: 8px 0 0; font-size: 13px; }
+.round-box dt { color: var(--ink-3); white-space: nowrap; }
+.round-box dd { margin: 0; color: var(--ink); }
+.feats { display: flex; flex-wrap: wrap; gap: 6px; margin: 2px 0 6px; }
+.feats span { font-size: 12px; background: #e8f0fe; color: #1a56c4; border-radius: 999px; padding: 3px 9px; font-weight: 600; }
+.detail h3.sec { font-size: 13px; color: var(--ink-3); margin: 12px 0 0; font-weight: 600; }
+.loc-steps { padding-left: 1.3em; line-height: 1.8; font-size: 15px; }
+.loc-steps li { margin: 6px 0; }

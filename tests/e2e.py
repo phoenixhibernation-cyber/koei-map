@@ -47,7 +47,7 @@ with sync_playwright() as p:
     pg.click("#list .item >> nth=0"); pg.wait_for_timeout(600)
     check("詳細シートが開く", pg.is_visible("#detail"))
     check("公式ページで申し込むボタンがある", pg.is_visible("#detailFoot .official"))
-    check("締切の日付が出る", "まで" in pg.inner_text("#detailBody"))
+    check("募集の状態（申込期間）が出る", pg.is_visible("#detailBody .round-box") and ("申込期間" in pg.inner_text("#detailBody .round-box") or "受付" in pg.inner_text("#detailBody .round-box")))
     pg.screenshot(path=OUT / "04_detail.png")
     href = pg.get_attribute("#detailFoot .official", "href"); check("公式リンクが to-kousya.or.jp", "to-kousya.or.jp" in (href or ""))
     pg.click("#detailClose"); pg.wait_for_timeout(300)

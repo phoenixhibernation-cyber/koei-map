@@ -80,12 +80,15 @@ status: 進行中
 - 2026-11-06 工程07：オーナー決定。A 全部無料・送客だけ／送客は引っ越し・ネット回線・電気ガス・UR/民間賃貸の4種で、その人の都県に合わせる／LINE通知は登録した都県の「始まった」「締切3日前」だけ／Stripe 使わない／PSM しない（docs/07_価格.md）
 - 2026-11-06 工程06：オーナー決定「LINEは1つ＋小さなサーバー（Vercel）」。server/ に webhook（都県を覚える）と毎朝の送信（cron）を作成。Vercel プロジェクト koei-map-line・非公開 Blob 作成済み。本番への配置とLINEの秘密の値はオーナー操作待ち
 - 2026-11-06 工程06：オーナー感想（2回目）：カレンダーのアイコン・開くと幅が広がる → 直した。絞り込みUI・募集中スイッチ・選んだピンは選ぶページ（5案＋2問）でオーナー決定待ち
+- 2026-11-07 工程06：オーナー感想（iPhone）→ #53〜59 を直した（⋯のはみ出し・一覧を66pxまで閉じる・現在地の手順ページ・1都3県の境界と地名の囲み・詳細に募集の状態・建物情報を読める形に）
 - 2026-11-06 工程06：オーナー感想（反映されない・ズームがずれる・現在地が取れない・カレンダーが見にくい・横幅が広い）→ #44〜48 として対応（docs/06_レビュー記録.md）
 
 - 2026-11-05 工程06：通知はLINE公式だけで始める。順番は UR→県営→市営 → URは部屋データがボット対策の裏（API は Origin/Referer 必須、ヘッドレスでも値が入らない）なので「団地の場所＋公式へ」に変更
 - 2026-11-05 工程06：埼玉県営（PDF）・川崎市営（PDF）・相模原市営（PDF）の自動取得ができた。千葉市営はPDFが出る募集期間中に読む作り。都営は旧 build.py の出力を変換（移植は次の募集まで）
 
 ## 作業メモ（技術の細かいこと）
+- 境界は data/areas.json（scripts/build_areas.py、元は smartnews-smri/japan-topography の N03 s0010）。boundaries.json は使わなくなった。highlightAreas() が地域チップ・検索文字から範囲を決めて fitVisible() で寄せる
+- 詳細は roundBox()（募集の状態）と buildingInfo()（spec を札・注意に振り分け、住戸型式は捨てる）
 - LINE通知サーバー：server/（Vercel プロジェクト koei-map-line、team phoenixhibernation-1421s-projects）。保存は非公開 Blob（store koei-map-line、subs/<userId>.json と state/notified.json）。cron は 21:30 UTC（06:30 JST）。CRON_SECRET は server/.cron_secret（git管理外）。手元テストは .env.local の BLOB_READ_WRITE_TOKEN で可。本番配置は権限上オーナーが `vercel deploy --prod` を打つ
 - scripts/notify_line.py は削除（送信ロジックは server/lib/notify.js に移植、同じキー形式 id:apply_from:open|deadline）。workflow から LINE の段を外した
 - 選ぶページの固定入口：decisions/index.html。各ページに版の日時を表示する
