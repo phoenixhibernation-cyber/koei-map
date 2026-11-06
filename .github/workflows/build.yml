@@ -11,7 +11,6 @@ permissions:
 
 env:
   TZ: Asia/Tokyo
-  LINE_CHANNEL_ACCESS_TOKEN: ${{ secrets.LINE_CHANNEL_ACCESS_TOKEN }}
 
 jobs:
   build:
@@ -50,25 +49,3 @@ jobs:
             git pull --rebase --autostash origin main
             git push
           fi
-      - name: 新しい募集があれば LINE で知らせる（トークンがあるときだけ）
-        if: ${{ env.LINE_CHANNEL_ACCESS_TOKEN != '' }}
-        run: |
-          python scripts/notify_line.py
-          if [ -f data/notified.json ]; then
-            git add data/notified.json
-            git diff --cached --quiet || (git commit -m "通知の記録 $(date +%Y-%m-%d)" && git pull --rebase --autostash origin main && git push)
-          fi
-      - name: 読み取りに失敗した運営元があれば知らせる（Issue。開いているものがあればコメント）
-        if: ${{ always() && steps.build.outputs.exit != '0' }}
-        uses: actions/github-script@v7
-        with:
-          script: |
-            const fs = require('fs');
-            const body = fs.existsSync('data/build_report.md') ? fs.readFileSync('data/build_report.md', 'utf8') : '（レポートなし。例外で止まった可能性）';
-            const title = '自動取得で失敗した運営元があります';
-            const open = await github.rest.issues.listForRepo({ owner: context.repo.owner, repo: context.repo.repo, state: 'open', labels: 'auto-build' });
-            if (open.data.length) {
-              await github.rest.issues.createComment({ owner: context.repo.owner, repo: context.repo.repo, issue_number: open.data[0].number, body });
-            } else {
-              await github.rest.issues.create({ owner: context.repo.owner, repo: context.repo.repo, title, body, labels: ['auto-build'] });
-            }

@@ -61,7 +61,8 @@ status: 進行中
 - 2026-11-05 工程06：GitHub Actions で10ソースの自動取得が通った（初回キャッシュなし、2,741件・失敗なし）
 
 ## オーナー待ちのこと
-- 工程06：通知を地域で分ける仕組みの作り方を選ぶ（1アカウント＋小さなサーバー／都県ごとに4アカウント）
+- 工程06：LINE通知サーバーを本番に置く（`! cd ~/Projects/koei-map/server && vercel deploy --prod --yes`）→ LINE公式アカウント作成 → Vercel に LINE_CHANNEL_ACCESS_TOKEN と LINE_CHANNEL_SECRET を入れる → LINE Developers に Webhook URL を設定
+- 工程08：絞り込みの見せ方（5案）・募集中スイッチ・選んだピンまわりを選ぶ（decisions/2026-11-06_絞り込みUI.html）
 - 工程06：最後の確認。スマホで主な流れ（絞り込み→詳細→公式ページ→カレンダー）を一度通して「出せる」と言う
 - 工程06：LINE公式アカウントを作り、トークンを GitHub Secrets（LINE_CHANNEL_ACCESS_TOKEN）に登録する（AIはアカウント作成・秘密の値の入力をしない決まりのため、オーナー自身で）
 
@@ -77,12 +78,17 @@ status: 進行中
 - 2026-11-06 工程06：別のレビュー役の指摘12件（#32〜43、docs/06_レビュー記録.md）を全部直した。カレンダーが「例年の時期」に入ると止まる不具合も含む
 - 2026-11-06 工程07：試算（2:6:2・LINE料金・3つの骨格）と選ぶページを用意。オーナー決定待ち
 - 2026-11-06 工程07：オーナー決定。A 全部無料・送客だけ／送客は引っ越し・ネット回線・電気ガス・UR/民間賃貸の4種で、その人の都県に合わせる／LINE通知は登録した都県の「始まった」「締切3日前」だけ／Stripe 使わない／PSM しない（docs/07_価格.md）
+- 2026-11-06 工程06：オーナー決定「LINEは1つ＋小さなサーバー（Vercel）」。server/ に webhook（都県を覚える）と毎朝の送信（cron）を作成。Vercel プロジェクト koei-map-line・非公開 Blob 作成済み。本番への配置とLINEの秘密の値はオーナー操作待ち
+- 2026-11-06 工程06：オーナー感想（2回目）：カレンダーのアイコン・開くと幅が広がる → 直した。絞り込みUI・募集中スイッチ・選んだピンは選ぶページ（5案＋2問）でオーナー決定待ち
 - 2026-11-06 工程06：オーナー感想（反映されない・ズームがずれる・現在地が取れない・カレンダーが見にくい・横幅が広い）→ #44〜48 として対応（docs/06_レビュー記録.md）
 
 - 2026-11-05 工程06：通知はLINE公式だけで始める。順番は UR→県営→市営 → URは部屋データがボット対策の裏（API は Origin/Referer 必須、ヘッドレスでも値が入らない）なので「団地の場所＋公式へ」に変更
 - 2026-11-05 工程06：埼玉県営（PDF）・川崎市営（PDF）・相模原市営（PDF）の自動取得ができた。千葉市営はPDFが出る募集期間中に読む作り。都営は旧 build.py の出力を変換（移植は次の募集まで）
 
 ## 作業メモ（技術の細かいこと）
+- LINE通知サーバー：server/（Vercel プロジェクト koei-map-line、team phoenixhibernation-1421s-projects）。保存は非公開 Blob（store koei-map-line、subs/<userId>.json と state/notified.json）。cron は 21:30 UTC（06:30 JST）。CRON_SECRET は server/.cron_secret（git管理外）。手元テストは .env.local の BLOB_READ_WRITE_TOKEN で可。本番配置は権限上オーナーが `vercel deploy --prod` を打つ
+- scripts/notify_line.py は削除（送信ロジックは server/lib/notify.js に移植、同じキー形式 id:apply_from:open|deadline）。workflow から LINE の段を外した
+- 選ぶページの固定入口：decisions/index.html。各ページに版の日時を表示する
 - 版は js/app.js の VERSION と index.html の ?v= を同じ値に（今 2026-11-06c）。ズームは map.zoomIn/zoomOut を差し替えて visibleCenter() 基準。?e2e では window.__map を出す
 - 条件の保存は smiley:cond（v=1）。?round= と ?e2e では保存しない。復元時に今のデータに無い値・型違いは捨てる。並び順も復元・クリアの対象
 - カレンダー：exp（見込み）と unk（発表待ち）は受付中にしない。unk は「YYYY年M月」→数字の続きでない「M月」の順で例年の枠に1回だけ当て、余った unk は「発表待ち」として残す。地域変更で CAL.kinds を kindsHere に合わせる

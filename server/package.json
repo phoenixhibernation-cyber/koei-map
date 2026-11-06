@@ -1,0 +1,9 @@
+{
+  "name": "koei-map-line",
+  "private": true,
+  "type": "module",
+  "description": "住まいのSmiley の LINE 通知（友だちごとに都県を覚え、募集の開始・締切3日前だけを送る）",
+  "dependencies": {
+    "@vercel/blob": "^2.0.0"
+  }
+}

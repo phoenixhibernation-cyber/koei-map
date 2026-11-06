@@ -1,0 +1,189 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>工程08：絞り込みの見せ方を選ぶ</title>
+<style>
+  :root { --bg:#f6f7fb; --card:#fff; --ink:#1d2433; --sub:#6b7385; --line:#e3e6ee; --accent:#4f6bed; --blue:#1a73e8; }
+  * { box-sizing:border-box; }
+  body { margin:0; font-family:-apple-system,"Hiragino Sans","Noto Sans JP",sans-serif; background:var(--bg); color:var(--ink); }
+  header { padding:28px 24px 8px; max-width:1200px; margin:0 auto; }
+  h1 { font-size:22px; margin:0 0 6px; }
+  .lead { color:var(--sub); margin:0; line-height:1.7; }
+  .stamp { font-size:12px; color:var(--sub); margin:6px 0 0; }
+  section { max-width:1200px; margin:24px auto; padding:0 24px; }
+  h2 { font-size:16px; margin:0 0 4px; }
+  .q-note { color:var(--sub); font-size:13px; margin:0 0 12px; line-height:1.6; }
+  .grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(300px,1fr)); gap:14px; }
+  label.card { display:block; background:var(--card); border:2px solid var(--line); border-radius:16px; padding:14px; cursor:pointer; transition:border-color .15s, box-shadow .15s; }
+  label.card:has(input:checked) { border-color:var(--accent); box-shadow:0 0 0 4px rgba(79,107,237,.12); }
+  .card input { margin-right:8px; accent-color:var(--accent); }
+  .tag { font-weight:700; font-size:15px; }
+  .why { color:var(--sub); font-size:13px; margin:6px 0 10px; line-height:1.6; }
+  .body { font-size:14px; line-height:1.6; }
+  .pros { font-size:12.5px; color:var(--sub); margin:8px 0 0; line-height:1.6; }
+  textarea { width:100%; min-height:60px; border:1px solid var(--line); border-radius:10px; padding:10px; font:inherit; margin-top:10px; }
+  footer { position:sticky; bottom:0; background:rgba(246,247,251,.92); backdrop-filter:blur(6px); border-top:1px solid var(--line); padding:14px 24px; text-align:center; }
+  button.copy { background:var(--accent); color:#fff; border:0; border-radius:999px; padding:12px 28px; font-size:15px; cursor:pointer; }
+  #done { color:var(--sub); font-size:13px; margin-left:10px; }
+  .rec { display:inline-block; background:#e8edff; color:#2f49c9; font-size:12px; border-radius:999px; padding:2px 8px; margin-left:6px; vertical-align:middle; }
+
+  /* ---- スマホの絵（共通） ---- */
+  .ph { width:270px; height:480px; margin:0 auto; border:6px solid #1d2433; border-radius:28px; background:#dfe6ef; position:relative; overflow:hidden; font-size:11px; }
+  .ph .map { position:absolute; inset:0; background:
+     radial-gradient(circle at 30% 40%, #cfe3ff 0 10px, transparent 11px), radial-gradient(circle at 65% 55%, #cfe3ff 0 14px, transparent 15px), radial-gradient(circle at 50% 75%, #cfe3ff 0 8px, transparent 9px),
+     repeating-linear-gradient(0deg, transparent 0 22px, #cbd3dd 22px 23px), repeating-linear-gradient(90deg, transparent 0 26px, #cbd3dd 26px 27px), #eef2f6; }
+  .ph .cl { position:absolute; width:26px; height:26px; border-radius:50%; background:#fff; border:2.5px solid var(--blue); color:var(--blue); font-weight:700; display:flex; align-items:center; justify-content:center; font-size:10px; }
+  .ph .top { position:absolute; left:8px; right:8px; top:10px; display:flex; gap:6px; }
+  .ph .search { flex:1; background:#fff; border-radius:999px; height:30px; display:flex; align-items:center; padding:0 10px; color:#8a93a6; box-shadow:0 1px 4px rgba(0,0,0,.12); }
+  .ph .rb { width:30px; height:30px; border-radius:50%; background:#fff; box-shadow:0 1px 4px rgba(0,0,0,.12); display:flex; align-items:center; justify-content:center; }
+  .ph .chips { position:absolute; left:8px; right:0; top:46px; display:flex; gap:5px; overflow:hidden; white-space:nowrap; }
+  .ph .chips.wrap { flex-wrap:wrap; right:8px; white-space:normal; }
+  .ph .chip { background:#fff; border-radius:999px; padding:5px 9px; box-shadow:0 1px 4px rgba(0,0,0,.12); font-weight:600; color:#1d2433; flex:none; }
+  .ph .chip.on { background:#e8f0fe; color:#1a56c4; }
+  .ph .chip.big { padding:6px 10px; }
+  .ph .chip .v { color:#1a56c4; font-weight:700; }
+  .ph .drawer { position:absolute; left:0; right:0; bottom:0; height:90px; background:#fff; border-radius:14px 14px 0 0; padding:10px 10px 0; box-shadow:0 -2px 10px rgba(0,0,0,.08); }
+  .ph .drawer .hd { display:flex; justify-content:space-between; font-weight:700; margin-bottom:6px; }
+  .ph .drawer .hd small { color:#8a93a6; font-weight:500; }
+  .ph .row { display:flex; justify-content:space-between; padding:5px 0; border-top:1px solid #eef0f4; }
+  .ph .sheet { position:absolute; left:0; right:0; bottom:0; background:#fff; border-radius:16px 16px 0 0; box-shadow:0 -4px 16px rgba(0,0,0,.14); padding:10px 12px 12px; }
+  .ph .sheet .hd { display:flex; justify-content:space-between; align-items:center; font-weight:700; font-size:12px; margin-bottom:8px; }
+  .ph .tabs { display:flex; gap:12px; border-bottom:1.5px solid #eef0f4; margin:0 -12px 8px; padding:0 12px; overflow:hidden; white-space:nowrap; }
+  .ph .tabs span { padding:4px 0 6px; color:#8a93a6; font-weight:600; }
+  .ph .tabs span.on { color:#1a56c4; border-bottom:2px solid #1a56c4; }
+  .ph .opts { display:flex; flex-wrap:wrap; gap:6px; }
+  .ph .opt { border:1.5px solid #e3e6ee; border-radius:8px; padding:5px 8px; }
+  .ph .opt.on { border-color:#1a56c4; background:#e8f0fe; color:#1a56c4; font-weight:700; }
+  .ph .cta { margin-top:10px; background:var(--blue); color:#fff; text-align:center; border-radius:999px; padding:9px; font-weight:700; font-size:12px; }
+  .ph .sub { color:#8a93a6; }
+  .ph .dots { text-align:center; margin-top:6px; color:#c5cad6; letter-spacing:3px; }
+  .ph .dots b { color:#1a56c4; }
+  .ph .bbar { position:absolute; left:0; right:0; bottom:0; height:52px; background:#fff; border-top:1px solid #eef0f4; display:flex; }
+  .ph .bbar div { flex:1; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:2px; color:#8a93a6; font-size:9.5px; }
+  .ph .bbar div.on { color:#1a56c4; font-weight:700; }
+  .ph .bbar i { width:16px; height:16px; border-radius:4px; background:currentColor; opacity:.8; display:block; }
+  .ph .acc { border-top:1px solid #eef0f4; padding:8px 0; display:flex; justify-content:space-between; }
+  .ph .acc .v { color:#1a56c4; font-weight:700; }
+  .ph .pill { background:#1a73e8; color:#fff; border-radius:999px; padding:4px 10px; font-weight:700; display:inline-flex; gap:6px; align-items:center; }
+  .ph .badge { background:#fff; color:#1a73e8; border-radius:999px; padding:0 5px; font-size:9px; }
+  .ph .summary { position:absolute; left:8px; right:8px; top:46px; background:#fff; border-radius:10px; padding:7px 10px; box-shadow:0 1px 4px rgba(0,0,0,.12); display:flex; justify-content:space-between; align-items:center; }
+  .ph .summary b { color:#1a56c4; }
+  .ph .card1 { border:1.5px solid #e3e6ee; border-radius:12px; padding:10px; }
+  .ph .card1 h4 { margin:0 0 6px; font-size:13px; }
+  .ph .arrow { position:absolute; top:50%; font-size:16px; color:#8a93a6; }
+</style>
+</head>
+<body>
+<header>
+  <h1 id="title"></h1>
+  <p class="lead" id="lead"></p>
+  <p class="stamp" id="stamp"></p>
+</header>
+<main id="questions"></main>
+<footer>
+  <button class="copy" id="copy">決定をコピー</button><span id="done"></span>
+</footer>
+
+<script>
+const MAP = `<div class="map"><div class="cl" style="left:40px;top:190px">32</div><div class="cl" style="left:120px;top:230px">600</div><div class="cl" style="left:170px;top:280px">126</div><div class="cl" style="left:90px;top:300px">15</div></div>`;
+const TOP = `<div class="top"><div class="search">🔍 団地名・駅・住所</div><div class="rb">📅</div><div class="rb">⋯</div></div>`;
+const DRAWER = `<div class="drawer"><div class="hd"><span>2,572件 <small>今募集中</small></span><small>家賃が安い順 ▾</small></div><div class="row"><b>鶴ケ丘B</b><b>¥9,800〜</b></div><div class="row"><b>初声シーサイドタウンL</b><b>¥9,900〜</b></div></div>`;
+
+const DATA = {
+  title: "工程08：絞り込みの見せ方を選ぶ",
+  lead: "今は「地域・運営元・家賃・間取り・築年・単身可・EVあり・もっと条件」のチップが横一列に並んでいるだけで、使いづらいという感想をいただきました。見せ方を5案にしました。絵はスマホ1画面のイメージです（色や細かい飾りはあとで整えます）。いいと思う案にチェックして、最後に「決定をコピー」を押してチャットに貼ってください。",
+  questions: [
+    {
+      id: "絞り込みの見せ方",
+      title: "1. 絞り込みの見せ方",
+      note: "1つ選んでください。組み合わせたい点はメモへ",
+      multiple: false,
+      options: [
+        { id: "A", label: "A　3つにまとめたチップ", why: "条件を「地域・運営元」「家賃・間取り」「こだわり」の3つの入口にまとめる。押すと下からシートが出て、その中でタブを切り替える",
+          html: `<div class="ph">${MAP}${TOP}<div class="chips wrap"><span class="chip big on">📍 <span class="v">東京都・都営</span></span><span class="chip big">💴 家賃・間取り</span><span class="chip big">✨ こだわり</span></div>${DRAWER}</div>`,
+          pros: "良い点：横スクロールが無くなり、1画面に収まる。今の作りを活かせるので早い（1日）。弱い点：単身可・EVなどはシートの中に隠れる" },
+        { id: "B", label: "B　「絞り込み」ボタン1つ＋左右スワイプのシート", why: "地図の上はボタン1つだけ。開くと全画面に近いシートで、地域→運営元→家賃→間取り→築年→こだわり をタブで切り替え（左右スワイプでも移動）。最後に「この条件で見る（件数）」",
+          html: `<div class="ph">${MAP}${TOP}<div class="chips"><span class="pill">⚙ 絞り込み <span class="badge">3</span></span><span class="chip">家賃が安い順 ▾</span></div>
+            <div class="sheet" style="height:300px"><div class="hd"><span>絞り込み</span><span class="sub">クリア</span></div><div class="tabs"><span>地域</span><span class="on">家賃</span><span>間取り</span><span>築年</span><span>こだわり</span></div>
+            <div class="sub" style="margin-bottom:6px">家賃の上限</div><div class="opts"><span class="opt">〜2万</span><span class="opt on">〜3万</span><span class="opt">〜5万</span><span class="opt">〜8万</span><span class="opt">上限なし</span></div>
+            <div class="sub" style="margin:10px 0 6px">広さ</div><div class="opts"><span class="opt">30㎡〜</span><span class="opt">40㎡〜</span><span class="opt">50㎡〜</span></div>
+            <div class="cta">この条件で見る（1,204件）</div></div></div>`,
+          pros: "良い点：地図が広く見える。条件が多くても整理できる。「スライドで切り替え」に一番近い。弱い点：今どんな条件か、閉じると数字のバッジでしか分からない（2日）" },
+        { id: "C", label: "C　1枚ずつめくるカード", why: "条件を1枚1枚のカードにして、左右にめくって答えていく（地域 → 家賃 → 間取り → 築年 → こだわり）。飛ばしてもよい。答えるたびに地図の件数が変わる",
+          html: `<div class="ph">${MAP}${TOP}<div class="chips"><span class="chip on">東京都</span><span class="chip on">〜3万</span><span class="chip">条件を変える ▾</span></div>
+            <div class="sheet" style="height:250px"><div class="hd"><span>2 / 5　家賃</span><span class="sub">スキップ →</span></div>
+            <div class="card1"><h4>家賃の上限は？</h4><div class="opts"><span class="opt">〜2万</span><span class="opt on">〜3万</span><span class="opt">〜5万</span><span class="opt">〜8万</span><span class="opt">上限なし</span></div></div>
+            <div class="dots">●<b>●</b>●●●</div><div class="cta">次へ（1,204件）</div><span class="arrow" style="left:4px">‹</span><span class="arrow" style="right:4px">›</span></div></div>`,
+          pros: "良い点：迷わず1つずつ決められる。初めての人にやさしい。弱い点：条件を変えたい常連には手数が多い（2日）" },
+        { id: "D", label: "D　下の固定バー（Googleマップ風）", why: "画面の下に「検索・絞り込み・カレンダー・お知らせ」のバーを常に置き、地図の上には何も置かない。絞り込みは開くと項目ごとに折りたたみ（開いた項目だけ広がる）",
+          html: `<div class="ph">${MAP}<div class="top"><div class="search">🔍 団地名・駅・住所</div></div>
+            <div class="sheet" style="height:290px;bottom:52px;border-radius:16px 16px 0 0"><div class="hd"><span>絞り込み</span><span class="sub">2,572件</span></div>
+            <div class="acc"><span>地域</span><span class="v">東京都 ›</span></div><div class="acc"><span>運営元</span><span class="v">すべて ›</span></div><div class="acc"><span>家賃</span><span class="v">〜3万円 ›</span></div><div class="acc"><span>間取り</span><span class="sub">指定なし ›</span></div><div class="acc"><span>築年・単身・EV</span><span class="sub">指定なし ›</span></div>
+            <div class="cta">この条件で見る</div></div>
+            <div class="bbar"><div><i></i>地図</div><div class="on"><i></i>絞り込み</div><div><i></i>カレンダー</div><div><i></i>お知らせ</div></div></div>`,
+          pros: "良い点：見慣れた形。カレンダー・お知らせの入口も分かりやすくなる（カレンダーのアイコン問題も解決）。弱い点：下のバーの分、地図と一覧が少し狭くなる（2〜3日）" },
+        { id: "E", label: "E　よく使う条件のボタン＋「詳しく」", why: "先頭に「家賃3万以下」「単身OK」「駅近」「新しい順」のような、よく使う条件のボタンを並べる。細かい条件は「詳しく」の中。選んだ条件は1行の文で見せる",
+          html: `<div class="ph">${MAP}${TOP}<div class="summary"><span><b>東京都</b>・<b>〜3万円</b>・単身OK</span><span class="sub">変更 ›</span></div>
+            <div class="chips" style="top:84px"><span class="chip on">家賃3万以下</span><span class="chip on">単身OK</span><span class="chip">駅近</span><span class="chip">新しい順</span></div>${DRAWER}</div>`,
+          pros: "良い点：1タップで一番多い使い方ができる。今の条件が文で分かる。弱い点：「よく使う条件」の選び方を間違えると使われない（1〜2日）" },
+      ],
+    },
+    {
+      id: "募集中スイッチ",
+      title: "2. 「募集中」のスイッチは要る？",
+      note: "今は、スイッチを切ると「募集が終わった物件」や「募集期間外の団地情報（場所と家賃の幅だけ）」も地図に出ます。使う人にとって、募集していないものを見る価値があるかどうか",
+      multiple: false,
+      options: [
+        { id: "外す", label: "外す：募集中と「いつでも」だけを常に表示", why: "スイッチが1つ減ってすっきりする。終わった募集は見られなくなる（カレンダーで次の時期だけ分かる）", html: "地図・一覧は常に「今申し込めるもの」だけ。<span class='rec'>おすすめ</span>" },
+        { id: "残す", label: "残す：ただし「もっと条件」の中に移す", why: "「次の募集まで待つ人が、場所を下見しておく」使い方ができる", html: "先頭のスイッチは消し、「もっと条件」の中に「募集期間外の団地も表示」を置く。" },
+      ],
+    },
+    {
+      id: "選んだ物件の見せ方",
+      title: "3. 選んだ物件（赤いピン）まわり",
+      note: "気になるものを全部チェック（複数可）。「自分が指定したポイントの表示周り」のご指摘に対する案です",
+      multiple: true,
+      options: [
+        { id: "丸を消す", label: "赤いピンの下の数字の丸を消す", why: "今は同じ住所に複数の住戸があると、赤いピンの下に「3」の丸が残って重なって見える", html: "選んだ団地の丸を一時的に消し、赤いピンに「3戸」の小さなラベルを付ける。" },
+        { id: "一覧をまとめる", label: "一覧で同じ団地を1行にまとめる", why: "今は「鶴ケ丘B」が住戸の型ごとに何行も出る", html: "1行＝1団地にして「2K・3戸・¥9,800〜」のように出す。開くと住戸の型ごとの内訳。" },
+        { id: "地図を寄せる", label: "選んだら地図をもう少し寄せる", why: "今は最低ズーム15。建物の形が分かる16〜17まで寄せたい", html: "選んだとき 16 まで寄せる（パソコンは 17）。" },
+        { id: "今のまま", label: "今のままでよい", why: "", html: "変えない。" },
+      ],
+    },
+  ],
+};
+// ===== ここまで =====
+document.getElementById("title").textContent = DATA.title;
+document.getElementById("lead").textContent = DATA.lead;
+document.getElementById("stamp").textContent = "このページの版：2026-11-06 22:40（ページを開いたら、この版の日時が最新か確かめてください。古いときは再読み込み）";
+const main = document.getElementById("questions");
+for (const q of DATA.questions) {
+  const s = document.createElement("section");
+  s.innerHTML = `<h2>${q.title}</h2><p class="q-note">${q.note || ""}</p><div class="grid"></div>
+    <textarea data-q="${q.id}" placeholder="気になる点・組み合わせたい点（任意）"></textarea>`;
+  const grid = s.querySelector(".grid");
+  for (const o of q.options) {
+    const el = document.createElement("label");
+    el.className = "card";
+    el.innerHTML = `<input type="${q.multiple ? "checkbox" : "radio"}" name="${q.id}" value="${o.id}">
+      <span class="tag">${o.label}</span><div class="why">${o.why || ""}</div><div class="body">${o.html}</div>${o.pros ? `<div class="pros">${o.pros}</div>` : ""}`;
+    grid.appendChild(el);
+  }
+  main.appendChild(s);
+}
+document.getElementById("copy").addEventListener("click", async () => {
+  const lines = [`【決定】${DATA.title}`];
+  for (const q of DATA.questions) {
+    const picked = [...document.querySelectorAll(`input[name="${q.id}"]:checked`)].map(i => i.value);
+    const memo = document.querySelector(`textarea[data-q="${q.id}"]`).value.trim();
+    lines.push(`- ${q.title}：${picked.length ? picked.join("、") : "（未選択）"}${memo ? ` ／メモ：${memo}` : ""}`);
+  }
+  const text = lines.join("\n");
+  try { await navigator.clipboard.writeText(text); document.getElementById("done").textContent = "コピーしました。チャットに貼ってください"; }
+  catch { prompt("この文をコピーしてチャットに貼ってください", text); }
+});
+</script>
+</body>
+</html>

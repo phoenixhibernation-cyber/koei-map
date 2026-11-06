@@ -282,7 +282,7 @@ button { cursor: pointer; }
   .detail { left: 416px; right: auto; width: 420px; top: 16px; bottom: 16px; border-radius: 18px; }
   .detail .handle { display: none; }
   .popover { left: 16px; right: auto; width: 368px; bottom: 16px; border-radius: 18px; }
-  .page { left: 0; width: 440px; right: auto; box-shadow: 4px 0 24px rgba(20, 30, 50, .1); }
+  .page { left: 0; width: 400px; right: auto; box-shadow: 4px 0 24px rgba(20, 30, 50, .1); }
   .menu { left: 184px; right: auto; top: 64px; }
   .nudge { left: 432px; right: auto; width: 360px; bottom: 24px; }
   .toast { bottom: 24px; }

@@ -6,7 +6,7 @@
   const esc = (s) => String(s ?? "").replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
   const yen = (n) => (n == null ? "—" : n.toLocaleString("ja-JP"));
   const norm = (s) => String(s || "").normalize("NFKC").toLowerCase().replace(/\s+/g, "");
-  const VERSION = "2026-11-06d";   // 画面の「このサービスについて」に出す版。index.html の ?v= も同じにする
+  const VERSION = "2026-11-06e";   // 画面の「このサービスについて」に出す版。index.html の ?v= も同じにする
   console.log("住まいのSmiley", VERSION);
   const PAGE = 50;
   const DESKTOP = window.matchMedia("(min-width: 900px)");
@@ -630,7 +630,7 @@
       if (url) { a.href = url; a.target = "_blank"; a.rel = "noopener"; a.addEventListener("click", () => { store.set("subscribed", true); }); }
       else a.addEventListener("click", (e) => { e.preventDefault(); toast(SITE.line_note || "LINE公式アカウントは準備中です"); });
     });
-    $("lineNote").textContent = url ? "友だち追加すると、選んだ地域の「募集が始まった」「締切3日前」が届きます。" : (SITE.line_note || "");
+    $("lineNote").textContent = url ? "友だち追加のあと、LINEの中で都県を選ぶと、その都県の「募集が始まった」「締切3日前」が届きます。" : (SITE.line_note || "");
   }
   $("mailForm").addEventListener("submit", (e) => {
     e.preventDefault();
