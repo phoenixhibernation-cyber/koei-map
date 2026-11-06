@@ -6,7 +6,7 @@
   const esc = (s) => String(s ?? "").replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
   const yen = (n) => (n == null ? "—" : n.toLocaleString("ja-JP"));
   const norm = (s) => String(s || "").normalize("NFKC").toLowerCase().replace(/\s+/g, "");
-  const VERSION = "2026-11-06c";   // 画面の「このサービスについて」に出す版。index.html の ?v= も同じにする
+  const VERSION = "2026-11-06d";   // 画面の「このサービスについて」に出す版。index.html の ?v= も同じにする
   console.log("住まいのSmiley", VERSION);
   const PAGE = 50;
   const DESKTOP = window.matchMedia("(min-width: 900px)");
@@ -128,7 +128,16 @@
   let SITE = { line_url: "" };
   Promise.all([fetch("data/rounds.json", { cache: "no-cache" }).then((r) => r.json()), fetch("data/listings.json", { cache: "no-cache" }).then((r) => r.json()),
     fetch("data/site.json", { cache: "no-cache" }).then((r) => r.json()).catch(() => ({}))])
-    .then(([rd, ld, st]) => { SITE = Object.assign(SITE, st || {}); init(rd, ld); })
+    .then(([rd, ld, st]) => {
+      SITE = Object.assign(SITE, st || {});
+      // 端末が古い index.html を使い続けているとき（GitHub Pages のキャッシュ）、版の違いを見て自分で取り直す（1回だけ）
+      if (SITE.version && SITE.version !== VERSION && !new URLSearchParams(location.search).has("e2e")) {
+        let tried = null; try { tried = sessionStorage.getItem("smiley:reloaded"); } catch {}
+        if (tried !== SITE.version) { try { sessionStorage.setItem("smiley:reloaded", SITE.version); } catch {} location.replace(location.pathname + "?v=" + encodeURIComponent(SITE.version) + location.hash); return; }
+        console.warn("版が合いません（画面", VERSION, "／データ", SITE.version, "）");
+      }
+      init(rd, ld);
+    })
     .catch((e) => { console.error(e); $("count").textContent = "データを読み込めませんでした"; });
 
   function roundStatus(r) {
