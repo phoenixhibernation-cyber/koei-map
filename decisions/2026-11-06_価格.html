@@ -1,0 +1,147 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>工程07：お金の入り方を決める</title>
+<style>
+  :root { --bg:#f6f7fb; --card:#fff; --ink:#1d2433; --sub:#6b7385; --line:#e3e6ee; --accent:#4f6bed; }
+  * { box-sizing:border-box; }
+  body { margin:0; font-family:-apple-system,"Hiragino Sans","Noto Sans JP",sans-serif; background:var(--bg); color:var(--ink); }
+  header { padding:32px 24px 8px; max-width:1100px; margin:0 auto; }
+  h1 { font-size:22px; margin:0 0 6px; }
+  .lead { color:var(--sub); margin:0; line-height:1.7; }
+  section { max-width:1100px; margin:24px auto; padding:0 24px; }
+  h2 { font-size:16px; margin:0 0 4px; }
+  .q-note { color:var(--sub); font-size:13px; margin:0 0 12px; }
+  .grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(260px,1fr)); gap:14px; }
+  label.card { display:block; background:var(--card); border:2px solid var(--line); border-radius:16px; padding:16px; cursor:pointer; transition:border-color .15s, box-shadow .15s; }
+  label.card:hover { box-shadow:0 4px 16px rgba(29,36,51,.06); }
+  label.card:has(input:checked) { border-color:var(--accent); box-shadow:0 0 0 4px rgba(79,107,237,.12); }
+  .card input { margin-right:8px; accent-color:var(--accent); }
+  .tag { font-weight:600; }
+  .why { color:var(--sub); font-size:13px; margin:6px 0 10px; }
+  .body { font-size:14px; line-height:1.7; }
+  .body table { border-collapse:collapse; width:100%; font-size:13px; margin:6px 0; }
+  .body th, .body td { border:1px solid var(--line); padding:4px 6px; text-align:right; }
+  .body th:first-child, .body td:first-child { text-align:left; }
+  .rec { display:inline-block; background:#e8edff; color:#2f49c9; font-size:12px; border-radius:999px; padding:2px 8px; margin-left:6px; }
+  .info { background:#fff; border:1px solid var(--line); border-radius:12px; padding:12px 16px; font-size:14px; line-height:1.7; margin-bottom:14px; }
+  textarea { width:100%; min-height:60px; border:1px solid var(--line); border-radius:10px; padding:10px; font:inherit; margin-top:10px; }
+  footer { position:sticky; bottom:0; background:rgba(246,247,251,.92); backdrop-filter:blur(6px); border-top:1px solid var(--line); padding:14px 24px; text-align:center; }
+  button { background:var(--accent); color:#fff; border:0; border-radius:999px; padding:12px 28px; font-size:15px; cursor:pointer; }
+  #done { color:var(--sub); font-size:13px; margin-left:10px; }
+</style>
+</head>
+<body>
+<header>
+  <h1 id="title"></h1>
+  <p class="lead" id="lead"></p>
+</header>
+<main id="questions"></main>
+<footer>
+  <button id="copy">決定をコピー</button><span id="done"></span>
+</footer>
+
+<script>
+const DATA = {
+  title: "工程07：お金の入り方を決める",
+  lead: "使う人は無料（工程01で決定）。ここでは「事業者からもらう形」「LINE通知の費用の抑え方」「有料のおまけを付けるか」を決めます。数字は docs/07_価格.md の試算（1都3県・年58回の通知・2:6:2）から。いいと思う案にチェックして、最後に「決定をコピー」を押してチャットに貼ってください。",
+  questions: [
+    {
+      id: "骨格",
+      title: "1. 稼ぎ方の骨格",
+      note: "1つ選んでください。どの案も利益率は90%以上（費用はほぼLINEだけ）なので、差は「手間」と「上乗せの大きさ」",
+      multiple: false,
+      options: [
+        { id: "A", label: "A 全部無料・送客だけ", why: "工程01の決定そのまま。手間が一番少ない。AIのおすすめ",
+          html: `<table><tr><th>規模</th><th>年間の利益</th></tr><tr><td>控えめ（1回2,000人）</td><td>約66万円</td></tr><tr><td>ふつう（8,000人）</td><td>約282万円</td></tr><tr><td>うまくいった（25,000人）</td><td>約882万円</td></tr></table>
+          収入は送客（引っ越し・ネット回線・電気ガス・賃貸）。Stripe もサーバーも要らない。<span class="rec">おすすめ</span>` },
+        { id: "B", label: "B 無料＋「当たりやすさ診断」480円（1回）", why: "2%が買う前提。診断の機能はまだ無いので作る必要あり",
+          html: `<table><tr><th>規模</th><th>Aに上乗せ</th></tr><tr><td>控えめ</td><td>+約7万円</td></tr><tr><td>ふつう</td><td>+約30万円</td></tr><tr><td>うまくいった</td><td>+約93万円</td></tr></table>
+          Stripe の口座・本人確認・返金対応・決済用のサーバーが要る。過去数回分の倍率PDFを読む仕組みも必要。` },
+        { id: "C", label: "C 無料＋「通知プレミアム」月200円", why: "友だちの3%が払う前提。全地域の締切リマインド＋条件のクラウド保存",
+          html: `<table><tr><th>規模</th><th>Aに上乗せ</th></tr><tr><td>控えめ</td><td>+約2万円</td></tr><tr><td>ふつう</td><td>+約14万円</td></tr><tr><td>うまくいった</td><td>+約56万円</td></tr></table>
+          Stripe の月額課金とサーバーが要る。上乗せは一番小さい。` },
+      ],
+    },
+    {
+      id: "通知の送り方",
+      title: "2. LINE通知の送り方（費用に直結）",
+      note: "1つ選んでください。LINE公式は「配信回数×友だち数」で数えます（無料200通／ライト5,000円で5,000通／スタンダード15,000円で30,000通、2026-11-06時点・税別）",
+      multiple: false,
+      options: [
+        { id: "全員", label: "今のまま全員に全部送る", why: "作り直し不要。ただし友だち41人で無料枠を超える",
+          html: `<table><tr><th>友だち数</th><th>LINE費用（月）</th></tr><tr><td>〜41人</td><td>0円</td></tr><tr><td>〜1,034人</td><td>5,000円</td></tr><tr><td>〜6,206人</td><td>15,000円</td></tr><tr><td>8,000人</td><td>約41,000円</td></tr></table>
+          1都3県の募集が年58回あるので、1人に月4.8通届く。遠い地域の通知も来るので、友だちが外れやすい。` },
+        { id: "地域", label: "地域で分けて送る（都県ごと）", why: "費用が約1/3。AIのおすすめ。工程06の残りとしてAIが作る（半日）",
+          html: `<table><tr><th>友だち数</th><th>LINE費用（月）</th></tr><tr><td>〜109人</td><td>0円</td></tr><tr><td>〜2,747人</td><td>5,000円</td></tr><tr><td>〜16,483人</td><td>15,000円</td></tr></table>
+          友だち追加のときに「どの都県の通知がほしいか」を聞いて覚える。覚える場所として小さなサーバー（Vercel か Cloudflare の無料枠・0円）を1つ足す。<span class="rec">おすすめ</span>` },
+      ],
+    },
+    {
+      id: "送客の種類",
+      title: "3. 送客（提携リンク）の種類",
+      note: "入れたいものを全部チェック。提携サービス（A8.net・もしもアフィリエイトなど）への登録はオーナー自身がやります（AIはアカウント作成をしない決まり）",
+      multiple: true,
+      options: [
+        { id: "引っ越し", label: "引っ越し見積もり（当選者向け）", why: "入居が決まった人は必ず引っ越す。1件あたりの報酬が高い（数千円）", html: "詳細シートの「当選したら」の欄と、LINEの当選時期の通知に出す。" },
+        { id: "ネット回線", label: "ネット回線（当選者向け）", why: "引っ越しとセットで申し込む人が多い", html: "引っ越し見積もりの横に並べる。" },
+        { id: "電気ガス", label: "電気・ガスの切り替え（当選者向け）", why: "報酬は小さめだが申込率が高い", html: "同じ欄に3つ目として並べる。" },
+        { id: "賃貸", label: "UR・民間賃貸の紹介（落選者向け）", why: "9割の人が落選する。ここが一番人数が多い", html: "締切後の「次の募集まで待てない人へ」の案内と、URのピンから。" },
+      ],
+    },
+    {
+      id: "Stripe",
+      title: "4. Stripe（クレジットカード決済）を使うか",
+      note: "1つ選んでください。骨格でAを選んだなら「使わない」でOK",
+      multiple: false,
+      options: [
+        { id: "使わない", label: "使わない（今は）", why: "Aなら不要。あとで B や C を足すときに改めて決める", html: "課金の置き場所だけ用意しておく（ボタンは出さない）。" },
+        { id: "使う", label: "使う", why: "BかCを選んだとき", html: "Stripe の登録と本人確認はオーナー自身。AIは手元のテストモードで決済の流れを確かめる。" },
+      ],
+    },
+    {
+      id: "PSM",
+      title: "5. 価格アンケート（PSM）をするか",
+      note: "BかCのときだけ意味があります。工程05で「アンケートはしない」と決めているので、Aなら「しない」",
+      multiple: false,
+      options: [
+        { id: "しない", label: "しない", why: "Aを選んだとき", html: "公開後の数字で判断する（工程05の決定と同じ）。" },
+        { id: "する", label: "する（文面はAIが用意済み）", why: "BかCを選んだとき。送る相手と送るのはオーナー", html: "docs/07_価格.md の文面を、使ってくれそうな人5〜10人に送る。" },
+      ],
+    },
+  ],
+};
+
+document.getElementById("title").textContent = DATA.title;
+document.getElementById("lead").textContent = DATA.lead;
+const main = document.getElementById("questions");
+for (const q of DATA.questions) {
+  const s = document.createElement("section");
+  s.innerHTML = `<h2>${q.title}</h2><p class="q-note">${q.note || ""}</p><div class="grid"></div>
+    <textarea data-q="${q.id}" placeholder="気になる点・組み合わせたい点（任意）"></textarea>`;
+  const grid = s.querySelector(".grid");
+  for (const o of q.options) {
+    const el = document.createElement("label");
+    el.className = "card";
+    el.innerHTML = `<input type="${q.multiple ? "checkbox" : "radio"}" name="${q.id}" value="${o.id}">
+      <span class="tag">${o.label}</span><div class="why">${o.why || ""}</div><div class="body">${o.html}</div>`;
+    grid.appendChild(el);
+  }
+  main.appendChild(s);
+}
+document.getElementById("copy").addEventListener("click", async () => {
+  const lines = [`【決定】${DATA.title}`];
+  for (const q of DATA.questions) {
+    const picked = [...document.querySelectorAll(`input[name="${q.id}"]:checked`)].map(i => i.value);
+    const memo = document.querySelector(`textarea[data-q="${q.id}"]`).value.trim();
+    lines.push(`- ${q.title}：${picked.length ? picked.join("、") : "（未選択）"}${memo ? ` ／メモ：${memo}` : ""}`);
+  }
+  const text = lines.join("\n");
+  try { await navigator.clipboard.writeText(text); document.getElementById("done").textContent = "コピーしました。チャットに貼ってください"; }
+  catch { prompt("この文をコピーしてチャットに貼ってください", text); }
+});
+</script>
+</body>
+</html>

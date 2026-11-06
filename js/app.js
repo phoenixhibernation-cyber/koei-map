@@ -12,7 +12,10 @@
   const dayOf = (s) => { const d = new Date(s + "T00:00:00"); return d; };
   const daysLeft = (s) => Math.round((dayOf(s) - TODAY) / 86400000);
   const fmtMD = (s) => { const d = dayOf(s); return `${d.getMonth() + 1}/${d.getDate()}（${"日月火水木金土"[d.getDay()]}）`; };
-  const store = { get: (k) => { try { return JSON.parse(localStorage.getItem("smiley:" + k)); } catch { return null; } }, set: (k, v) => { try { localStorage.setItem("smiley:" + k, JSON.stringify(v)); } catch {} } };
+  const store = { get: (k) => { try { return JSON.parse(localStorage.getItem("smiley:" + k)); } catch (e) { console.warn("保存した設定を読めません:", k, e); return null; } },
+    set: (k, v) => { try { localStorage.setItem("smiley:" + k, JSON.stringify(v)); } catch (e) { console.warn("設定を保存できません（プライベートモードなど）:", k, e); } } };
+  const colorOf = (op) => /^#[0-9a-f]{3,8}$/i.test(op?.color || "") ? op.color : "#888";            // データ由来の色は形式を確かめてから属性に入れる
+  const safeUrl = (u) => /^https?:\/\//i.test(u || "") ? u : "#";                                  // href は http(s) だけ
 
   let OPS = {}, ROUNDS = [], ITEMS = [], byId = new Map(), markers = new Map();
   const CITY_PREF = new Map();   // 市区町村名 → 都県
@@ -58,7 +61,7 @@
     },
   });
   map.addLayer(cluster);
-  const pinIcon = (r, active) => L.divIcon({ className: "pin-icon", html: `<div class="pin${active ? " active" : ""}${isInfo(r) ? " info" : ""}" style="--op:${OPS[r.operator].color}"></div>`, iconSize: [24, 24], iconAnchor: [12, 30] });
+  const pinIcon = (r, active) => L.divIcon({ className: "pin-icon", html: `<div class="pin${active ? " active" : ""}${isInfo(r) ? " info" : ""}" style="--op:${colorOf(OPS[r.operator])}"></div>`, iconSize: [24, 24], iconAnchor: [12, 30] });
   // 選んだ物件の赤いピン（クラスタに飲まれないよう、地図に直接置く）
   const activeIcon = L.divIcon({ className: "pin-icon", html: '<div class="pin-red"><svg viewBox="0 0 24 36" width="36" height="54"><path d="M12 0C5.4 0 0 5.4 0 12c0 9 12 24 12 24s12-15 12-24C24 5.4 18.6 0 12 0z" fill="#ea4335"/><circle cx="12" cy="12" r="5" fill="#fff"/></svg></div>', iconSize: [36, 54], iconAnchor: [18, 54] });
   let activeMarker = null;
@@ -108,12 +111,26 @@
 
   // 選んだ条件はこの端末に残す（次に開いたとき、同じ条件で始まる）
   const SAVE_KEYS = ["now", "prefs", "cities", "rentMax", "layouts", "ops", "single", "ev", "builtFrom", "areaMin", "ratioMax", "walkMax", "noBus", "bf", "priority", "unitsMin", "vacant", "cats"];
-  function saveCond() { const o = {}; for (const k of SAVE_KEYS) o[k] = F[k] instanceof Set ? [...F[k]] : F[k]; o.sort = $("sort").value; store.set("cond", o); }
+  const COND_V = 1;                 // 保存する形の版。変えたら古い保存は無視する
+  let NOSAVE = false;               // ?e2e（テスト）のときは保存しない
+  function saveCond() {
+    if (NOSAVE || F.round) return;  // 通知のリンク（?round=）から開いたときは、その人の条件を上書きしない
+    const o = { v: COND_V }; for (const k of SAVE_KEYS) o[k] = F[k] instanceof Set ? [...F[k]] : F[k]; o.sort = $("sort").value; store.set("cond", o);
+  }
   function restoreCond() {
-    const o = store.get("cond"); if (!o || typeof o !== "object") return false;
-    for (const k of SAVE_KEYS) { if (!(k in o)) continue; F[k] = F[k] instanceof Set ? new Set(Array.isArray(o[k]) ? o[k] : []) : o[k]; }
-    if (o.sort && [...$("sort").options].some((x) => x.value === o.sort)) $("sort").value = o.sort;
-    return SAVE_KEYS.some((k) => k !== "now" && (F[k] instanceof Set ? F[k].size : F[k])) || !F.now;
+    const o = store.get("cond"); if (!o || typeof o !== "object" || o.v !== COND_V) return false;
+    // 今のデータに無い値（消えた運営元・地域など）は捨てる。型が違う値も捨てる
+    const domain = { prefs: new Set(PREFS), cities: new Set(CITY_PREF.keys()), layouts: new Set(LAYOUTS), ops: new Set(Object.keys(OPS)), cats: new Set(ITEMS.map((r) => r.cat_group || r.category)) };
+    const num = (v) => (typeof v === "number" && Number.isFinite(v)) ? v : null;
+    for (const k of SAVE_KEYS) {
+      if (!(k in o)) continue;
+      if (F[k] instanceof Set) F[k] = new Set((Array.isArray(o[k]) ? o[k] : []).filter((v) => domain[k].has(v)));
+      else if (typeof F[k] === "boolean") { if (typeof o[k] === "boolean") F[k] = o[k]; }   // 型が違えば今の値（初期値）のまま
+      else F[k] = num(o[k]);
+    }
+    const sortOk = o.sort && [...$("sort").options].some((x) => x.value === o.sort);
+    if (sortOk) $("sort").value = o.sort;
+    return SAVE_KEYS.some((k) => k !== "now" && (F[k] instanceof Set ? F[k].size : F[k])) || !F.now || (sortOk && o.sort !== "rent");
   }
   function init(rd, ld) {
     OPS = rd.operators; ROUNDS = rd.rounds; ITEMS = ld.items;
@@ -128,8 +145,9 @@
     });
     buildAbout(); setupLine();
     const params = new URLSearchParams(location.search);
+    NOSAVE = params.has("e2e");
     if (params.get("round") && roundById.has(params.get("round"))) { F.round = params.get("round"); F.now = false; }
-    else if (!params.has("e2e") && restoreCond()) setTimeout(() => toast("前回の条件で表示しています（「条件をクリア」で戻せます）"), 600);
+    else if (!NOSAVE && restoreCond()) setTimeout(() => toast("前回の条件で表示しています（「条件をクリア」で戻せます）"), 600);
     bindUI();
     apply();
   }
@@ -194,7 +212,7 @@
     const ratio = r.ratio_prev != null ? `・前回${r.ratio_prev}倍` : "";
     const cat = isInfo(r) || /^(一般|世帯向|先着順|UR|一般世帯向け?住宅?)$/.test(r.category || "") ? "" : `・${r.category.replace(/住宅$/, "")}`;
     li.innerHTML = `<b>${esc(r.name)}</b><span class="rent">${isInfo(r) ? '<small class="info">団地情報</small>' : r.rent_min != null ? `¥${yen(r.rent_min)}〜` : "家賃は募集時に"}</span>
-      <span class="sub"><span class="tag" style="--op:${OPS[r.operator].color}">${esc(r._opLabel)}</span>${esc([r.layout, r.area_text ? r.area_text + "㎡" : ""].filter(Boolean).join(" "))}${r.layout || r.area_text ? "・" : ""}${esc(walk)}${ratio}${r.single_ok ? "・単身可" : ""}${esc(cat)}</span>`;
+      <span class="sub"><span class="tag" style="--op:${colorOf(OPS[r.operator])}">${esc(r._opLabel)}</span>${esc([r.layout, r.area_text ? r.area_text + "㎡" : ""].filter(Boolean).join(" "))}${r.layout || r.area_text ? "・" : ""}${esc(walk)}${ratio}${r.single_ok ? "・単身可" : ""}${esc(cat)}</span>`;
     li.addEventListener("click", () => openDetail(r.id, true));
     li.addEventListener("keydown", (e) => { if (e.key === "Enter") openDetail(r.id, true); });
     return li;
@@ -223,12 +241,12 @@
     set("rent", F.rentMax != null ? `〜${(F.rentMax / 10000)}万円` : "");
     set("layout", F.layouts.size ? [...F.layouts].join("・") : "");
     { const c = document.querySelector('.chip[data-chip="op"]'); const ops = [...F.ops]; c.classList.toggle("set", ops.length > 0);
-      c.querySelector(".v").innerHTML = ops.length ? ops.map((o) => `<i class="dot" style="--op:${OPS[o].color}"></i>`).join("") + esc(ops.length <= 2 ? ops.map((o) => shortOp(OPS[o])).join("・") : `${ops.length}つ`) : ""; }
+      c.querySelector(".v").innerHTML = ops.length ? ops.map((o) => `<i class="dot" style="--op:${colorOf(OPS[o])}"></i>`).join("") + esc(ops.length <= 2 ? ops.map((o) => OPS[o] ? shortOp(OPS[o]) : o).join("・") : `${ops.length}つ`) : ""; }
     set("built", F.builtFrom != null ? `${F.builtFrom}年〜` : "");
     const moreN = [F.areaMin != null, F.ratioMax != null, F.walkMax != null, F.noBus, F.bf, F.priority, F.unitsMin != null, F.vacant, F.cats.size > 0].filter(Boolean).length;
     set("more", moreN ? `${moreN}` : "");
     for (const k of ["single", "ev"]) { const c = document.querySelector(`.chip[data-chip="${k}"]`); c.classList.toggle("on", F[k]); c.setAttribute("aria-pressed", F[k]); }
-    const any = F.prefs.size || F.cities.size || F.rentMax != null || F.layouts.size || F.ops.size || F.single || F.ev || F.round || F.q || F.builtFrom != null || moreN;
+    const any = F.prefs.size || F.cities.size || F.rentMax != null || F.layouts.size || F.ops.size || F.single || F.ev || F.round || F.q || F.builtFrom != null || moreN || !F.now || $("sort").value !== "rent";
     $("chipReset").hidden = !any;
     document.documentElement.style.setProperty("--chips-h", $("chips").offsetHeight + "px");
   }
@@ -238,7 +256,7 @@
     const k = c.dataset.chip;
     if (k === "now") { F.now = !F.now; F.round = null; apply(); return; }
     if (k === "single" || k === "ev") { F[k] = !F[k]; apply(); return; }
-    if (c.id === "chipReset") { RESET(); $("q").value = ""; $("qClear").hidden = true; apply(); return; }
+    if (c.id === "chipReset") { RESET(); $("q").value = ""; $("qClear").hidden = true; $("sort").value = "rent"; apply(); return; }
     openPopover(k);
   });
   $("chipReset").addEventListener("click", () => {});
@@ -374,7 +392,7 @@
     if (r.priority_lottery) rows.push(["優遇", "優遇抽せんあり"]);
     $("detailBody").innerHTML = `
       <h2>${esc(r.name)}</h2>
-      <p class="addr"><span class="tag" style="--op:${OPS[r.operator].color}">${esc(r._opLabel)}</span><span class="tag cat">${esc(isInfo(r) ? "団地情報（いまは募集期間外）" : r.category)}</span>${esc(r.pref)}${esc(r.address)}</p>
+      <p class="addr"><span class="tag" style="--op:${colorOf(OPS[r.operator])}">${esc(r._opLabel)}</span><span class="tag cat">${esc(isInfo(r) ? "団地情報（いまは募集期間外）" : r.category)}</span>${esc(r.pref)}${esc(r.address)}</p>
       <div class="kv-grid">
         <div class="kv"><div class="k">家賃（月）</div><div class="v">${r.rent_min != null ? `¥${yen(r.rent_min)}〜${yen(r.rent_max)}` : '<small>募集時に発表</small>'}</div></div>
         <div class="kv"><div class="k">間取り・広さ</div><div class="v wrap">${esc(r.layout.length > 22 ? r.layout.slice(0, 22) + "…" : r.layout) || "—"} ${r.area_text ? `<small>${esc(r.area_text)}㎡</small>` : ""}</div></div>
@@ -390,7 +408,7 @@
       </div>
       <p class="cards-h">落選したら、今すぐ入れる家</p>
       <div class="cards">
-        <a class="card" href="${esc(urUrl(r))}" target="_blank" rel="noopener"><b>UR賃貸（${esc(r.pref.replace(/[都県]$/, ""))}）</b><span>礼金・仲介手数料なし。空き部屋を探す</span></a>
+        <a class="card" href="${esc(safeUrl(urUrl(r)))}" target="_blank" rel="noopener"><b>UR賃貸（${esc(r.pref.replace(/[都県]$/, ""))}）</b><span>礼金・仲介手数料なし。空き部屋を探す</span></a>
         <a class="card" href="#" data-aff="rent"><b>家賃の安い賃貸</b><span>${esc(r.city)}の近くで探す</span></a>
       </div>
       <p class="hint">提携先のリンクは準備中です。いまは各サービスの入口に飛びます。</p>`;
@@ -399,9 +417,9 @@
     $("detailFoot").innerHTML = `
       <div class="btn-row">
         <a class="btn ghost gmap" href="https://www.google.com/maps/search/?api=1&query=${gq}" target="_blank" rel="noopener"><svg viewBox="0 0 24 24" aria-hidden="true" width="18" height="18"><path d="M12 2a7 7 0 0 0-7 7c0 5 7 13 7 13s7-8 7-13a7 7 0 0 0-7-7zm0 9.5A2.5 2.5 0 1 1 12 6a2.5 2.5 0 0 1 0 5.5z" fill="currentColor"/></svg>Googleマップ</a>
-        <a class="btn official" href="${esc(r.official_url)}" target="_blank" rel="noopener">公式ページで申し込む ↗</a>
+        <a class="btn official" href="${esc(safeUrl(r.official_url))}" target="_blank" rel="noopener">公式ページで申し込む ↗</a>
       </div>
-      ${r.pdf_url ? `<div class="links"><span></span><a href="${esc(r.pdf_url)}" target="_blank" rel="noopener">募集案内PDF p.${esc(r.pdf_page)}</a></div>` : ""}`;
+      ${r.pdf_url ? `<div class="links"><span></span><a href="${esc(safeUrl(r.pdf_url))}" target="_blank" rel="noopener">募集案内PDF p.${esc(r.pdf_page)}</a></div>` : ""}`;
     $("detail").hidden = false; $("detailBody").scrollTop = 0;
     drawer.classList.add("hidden-by-detail");
     $("detailFoot").querySelector(".official").addEventListener("click", () => { store.set("visitedOfficial", Date.now()); });
@@ -448,6 +466,7 @@
       else if (r.apply_from && r.apply_to) ev.push({ op: r.operator, kind: "fix", from: dayOf(r.apply_from), to: dayOf(r.apply_to), r, anyRange: /随時|常時/.test(r.label) });
       else ev.push({ op: r.operator, kind: "unk", r });
     }
+    const used = new Set();
     const parseDays = (t) => { const m = /(\d+)日〜(\d+)日/.exec(t || ""); if (m) return [+m[1], +m[2]]; if (/中旬/.test(t) && !/上旬/.test(t)) return [10, 24]; return [1, 15]; };
     for (const [k, op] of Object.entries(OPS)) {
       const sc = op.schedule || {}; if (!sc.months || !sc.months.length) continue;
@@ -457,34 +476,46 @@
         if (!sc.months.includes(m)) continue;
         if (ev.some((e) => e.op === k && e.kind === "fix" && !e.anyRange && e.from.getFullYear() === y && e.from.getMonth() + 1 === m)) continue;
         const to = new Date(y, m - 1, Math.min(d2, 28)); if (to < TODAY) continue;
-        const unk = ev.find((e) => e.op === k && e.kind === "unk" && (!e.r.expected || e.r.expected.includes(`${m}月`)));
+        const unks = ev.filter((e) => e.op === k && e.kind === "unk" && !used.has(e));
+        const unk = unks.find((e) => (e.r.expected || "").includes(`${y}年${m}月`)) || unks.find((e) => !e.r.expected || new RegExp(`(^|[^\\d])${m}月`).test(e.r.expected));
+        if (unk) used.add(unk);
         ev.push({ op: k, kind: "exp", from: new Date(y, m - 1, d1), to, r: unk ? unk.r : null, how: sc.how, label: `${y}年${m}月の募集（例年の時期）` });
       }
     }
-    return ev.filter((e) => !(e.kind === "unk" && (OPS[e.op].schedule?.months || []).length));
+    // 例年の枠に入らなかった未発表の募集は「発表待ち」として残す（expected の「YYYY年M月」があればその月に置く）
+    for (const e of ev) {
+      if (e.kind !== "unk" || used.has(e)) continue;
+      const m = /(\d{4})年(\d{1,2})月/.exec(e.r.expected || "");
+      e.from = m ? monthStart(+m[1], +m[2]) : TODAY; e.to = m ? monthEnd(+m[1], +m[2]) : TODAY;
+    }
+    return ev.filter((e) => !(e.kind === "unk" && used.has(e)));
   }
   const dl = (d) => Math.round((d - TODAY) / 86400000);
-  const evStatus = (e) => e.kind === "any" ? "any" : e.kind === "unk" ? "unk" : TODAY < e.from ? "up" : TODAY <= e.to ? "open" : "closed";
+  // 例年の時期（exp）と発表待ち（unk）は日付が確定していないので、今日がその中でも「受付中」にはしない（up のまま）
+  const evStatus = (e) => e.kind === "any" ? "any" : e.kind === "unk" ? "up" : e.kind === "exp" ? (TODAY <= e.to ? "up" : "closed") : TODAY < e.from ? "up" : TODAY <= e.to ? "open" : "closed";
   function renderCal() {
     const stored = store.get("cal") || {};
     if (!CAL.pref) CAL.pref = (F.prefs.size === 1 ? [...F.prefs][0] : null) || stored.pref || "東京都";
-    if (!CAL.kinds.size && Array.isArray(stored.kinds)) stored.kinds.forEach((k) => CAL.kinds.add(k));
-    store.set("cal", { pref: CAL.pref, kinds: [...CAL.kinds] });
+    if (!["all", ...PREFS].includes(CAL.pref)) CAL.pref = "東京都";
+    if (!CAL.kinds.size && Array.isArray(stored.kinds)) stored.kinds.filter((k) => KINDS.includes(k)).forEach((k) => CAL.kinds.add(k));
     const EV = calEvents();
     const months = [...Array(12)].map((_, i) => ({ m: (TODAY.getMonth() + i) % 12 + 1, y: TODAY.getFullYear() + Math.floor((TODAY.getMonth() + i) / 12) }));
     const inPref = Object.keys(OPS).filter((k) => CAL.pref === "all" || !OPS[k].pref || OPS[k].pref === CAL.pref);
     const kindsHere = KINDS.filter((k) => inPref.some((o) => OPS[o].label === k));
+    CAL.kinds = new Set([...CAL.kinds].filter((k) => kindsHere.includes(k)));   // この地域に無い種別は外す（全部外れたら「すべて」）
+    if (CAL.kinds.size === kindsHere.length) CAL.kinds.clear();
+    store.set("cal", { pref: CAL.pref, kinds: [...CAL.kinds] });
     const ops = inPref.filter((k) => !CAL.kinds.size || CAL.kinds.has(OPS[k].label)).sort((a, z) => KINDS.indexOf(OPS[a].label) - KINDS.indexOf(OPS[z].label));
     const nameOf = (k) => (CAL.pref !== "all" && OPS[k].label === "県営") ? "県営" : shortOp(OPS[k]);
     const countOf = (rid) => ITEMS.filter((x) => x.round_id === rid).length;
 
-    let h = `<div class="cal-ctl"><label class="cal-pref">地域 <select id="calPref">${["all", ...PREFS].map((p) => `<option value="${p}"${CAL.pref === p ? " selected" : ""}>${p === "all" ? "1都3県すべて" : esc(p)}</option>`).join("")}</select></label>
-      <div class="cal-kinds">${kindsHere.map((k) => `<button type="button" class="opt" data-kind="${k}" aria-pressed="${!CAL.kinds.size || CAL.kinds.has(k)}">${k}</button>`).join("")}</div></div>
+    let h = `<div class="cal-ctl"><label class="cal-pref">地域 <select id="calPref">${["all", ...PREFS].map((p) => `<option value="${esc(p)}"${CAL.pref === p ? " selected" : ""}>${p === "all" ? "1都3県すべて" : esc(p)}</option>`).join("")}</select></label>
+      <div class="cal-kinds">${kindsHere.map((k) => `<button type="button" class="opt" data-kind="${esc(k)}" aria-pressed="${!CAL.kinds.size || CAL.kinds.has(k)}">${k}</button>`).join("")}</div></div>
       <div class="legend"><span><i class="fix"></i>申込期間（確定）</span><span><i class="exp"></i>例年の時期（見込み）</span><span><i class="any"></i>いつでも（先着順）</span><span><i class="now"></i>今月</span></div>
       <div class="cal-months">${months.map(({ m }, i) => `<div class="h${i === 0 ? " now" : ""}${m === 1 ? " jan" : ""}">${m}<small>月</small></div>`).join("")}</div>`;
     if (!ops.length) h += `<p class="hint">この条件に合う運営元がありません</p>`;
     for (const k of ops) {
-      const op = OPS[k], es = EV.filter((e) => e.op === k), col = op.color;
+      const op = OPS[k], es = EV.filter((e) => e.op === k), col = colorOf(op);
       const openE = es.filter((e) => evStatus(e) === "open" && !e.anyRange).sort((a, z) => a.to - z.to);
       const upE = es.filter((e) => evStatus(e) === "up" && !e.anyRange).sort((a, z) => a.from - z.from);
       const anyE = es.find((e) => e.kind === "any" || (e.anyRange && evStatus(e) !== "closed"));
@@ -492,14 +523,14 @@
       // 1行目：いま／次がひと目で分かる
       let stat = "";
       if (openE.length) stat = `<span class="badge">受付中 あと${daysLeft(openE[0].r.apply_to)}日</span><span class="when">${md(openE[0].from)}〜${md(openE[0].to)}</span>`;
-      else if (upE.length) { const e = upE[0]; stat = `<span class="badge ${dl(e.from) <= 30 ? "soon" : "gray"}">${e.kind === "exp" ? "次は" : "確定"} ${e.from.getMonth() + 1}月${e.kind === "exp" ? "ごろ" : ""}</span><span class="when">${e.kind === "exp" ? `例年 ${md(e.from)}〜${md(e.to)}` : `${md(e.from)}〜${md(e.to)}`}</span>`; }
+      else if (upE.length) { const e = upE[0]; stat = `<span class="badge ${dl(e.from) <= 30 ? "soon" : "gray"}">${e.kind === "fix" ? "確定" : "次は"} ${e.from.getMonth() + 1}月${e.kind === "fix" ? "" : "ごろ"}</span><span class="when">${e.kind === "exp" ? `例年 ${md(e.from)}〜${md(e.to)}` : e.kind === "unk" ? "日付は発表待ち" : `${md(e.from)}〜${md(e.to)}`}</span>`; }
       else if (!anyE) stat = `<span class="badge gray">時期は未発表</span>`;
       if (anyOpen) stat += `<span class="badge ok">いつでも</span>`;
       else if (anyE) stat += `<span class="badge gray">先着順は${anyE.from.getMonth() + 1}月から</span>`;
       const opened = CAL.open.has(k) || (!CAL.open.has("!" + k) && openE.length > 0);
-      h += `<div class="cal-op${opened ? " opened" : ""}" style="--op:${col}" data-op="${k}"><button type="button" class="cal-head"><i class="dot"></i><b>${esc(nameOf(k))}</b>${stat}<span class="caret">${opened ? "▴" : "▾"}</span></button><div class="cal-cells">`;
+      h += `<div class="cal-op${opened ? " opened" : ""}" style="--op:${col}" data-op="${esc(k)}"><button type="button" class="cal-head"><i class="dot"></i><b>${esc(nameOf(k))}</b>${stat}<span class="caret">${opened ? "▴" : "▾"}</span></button><div class="cal-cells">`;
       for (const [i, { m, y }] of months.entries()) {
-        const inM = es.filter((e) => (e.kind === "fix" || e.kind === "exp") && !e.anyRange && e.from <= monthEnd(y, m) && e.to >= monthStart(y, m));
+        const inM = es.filter((e) => (e.kind === "fix" || e.kind === "exp" || e.kind === "unk") && !e.anyRange && e.from <= monthEnd(y, m) && e.to >= monthStart(y, m));
         let cls = "c";
         if (inM.some((e) => evStatus(e) === "open")) cls += " open";
         else if (inM.some((e) => e.kind === "fix")) cls += " fix";
@@ -530,15 +561,16 @@
   }
   // 1つの募集（確定・例年・いつでも）の説明と、地図で見る／公式ページ
   function evHtml(e, countOf) {
-    const st = evStatus(e), r = e.r, url = r?.url || OPS[e.op].url;
+    const st = evStatus(e), r = e.r, url = safeUrl(r?.url || OPS[e.op].url);
     let title = "", sub = "", bar = "", badge = "";
-    if (st === "open") {
+    if (st === "open" && r?.apply_from && r?.apply_to) {
       const total = (e.to - e.from) / 86400000 + 1, done = (TODAY - e.from) / 86400000 + 1;
       title = r.label; badge = `<span class="badge">あと${daysLeft(r.apply_to)}日</span>`;
       sub = `申込 ${fmtMD(r.apply_from)} 〜 ${fmtMD(r.apply_to)}${r.lottery ? `・抽せん ${fmtMD(r.lottery)}` : ""}${r.units ? `・${r.units.toLocaleString("ja-JP")}戸` : ""}${r.kind ? `・${r.kind}` : ""}`;
       bar = `<div class="bar"><i style="width:${Math.min(100, Math.round((done / total) * 100))}%"></i></div>`;
     } else if (st === "any") { title = r.label; sub = r.kind || "いつでも（先着順）"; badge = `<span class="badge ok">いつでも</span>`; }
     else if (e.kind === "exp") { title = e.label; sub = `${r?.expected ? r.expected : `例年 ${md(e.from)}〜${md(e.to)}ごろ`}${e.how ? `・${e.how}` : ""}。日付は公式発表待ち`; badge = `<span class="badge gray">例年</span>`; }
+    else if (e.kind === "unk") { title = r.label; sub = `${r.expected || "時期は未発表"}。日付は公式発表待ち`; badge = `<span class="badge gray">発表待ち</span>`; }
     else { title = r.label; sub = `申込 ${fmtMD(r.apply_from)} 〜 ${fmtMD(r.apply_to)}${r.lottery ? `・抽せん ${fmtMD(r.lottery)}` : ""}${r.kind ? `・${r.kind}` : ""}`; badge = `<span class="badge soon">${e.anyRange ? "先着順" : "確定"} ${daysLeft(r.apply_from)}日後から</span>`; }
     const n = r ? countOf(r.id) : 0;
     const acts = (st === "open" || st === "any") && n
@@ -577,7 +609,7 @@
 
   function buildAbout() {
     renderUseLog();
-    $("aboutSources").innerHTML = Object.values(OPS).map((o) => `<li><a href="${esc(o.url)}" target="_blank" rel="noopener">${esc(o.long)}</a></li>`).join("");
+    $("aboutSources").innerHTML = Object.values(OPS).map((o) => `<li><a href="${esc(safeUrl(o.url))}" target="_blank" rel="noopener">${esc(o.long)}</a></li>`).join("");
   }
 
   /* ---------------- トースト ---------------- */
