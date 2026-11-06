@@ -9,7 +9,7 @@
 }
 * { box-sizing: border-box; }
 [hidden] { display: none !important; }
-html, body { margin: 0; height: 100%; }
+html, body { margin: 0; height: 100%; width: 100%; overflow-x: hidden; }
 body { font-family: Roboto, -apple-system, "Hiragino Sans", "Noto Sans JP", sans-serif; color: var(--ink); background: var(--bg); font-size: 15px; line-height: 1.5; -webkit-text-size-adjust: 100%; overscroll-behavior: none; }
 button, input, select { font: inherit; color: inherit; }
 button { cursor: pointer; }
@@ -191,7 +191,7 @@ button { cursor: pointer; }
 .cal-pref select { font-size: 15px; font-weight: 600; color: var(--ink); border: 1px solid var(--line); border-radius: 8px; padding: 7px 10px; background: #fff; }
 .cal-kinds { display: flex; gap: 6px; flex-wrap: wrap; }
 .cal-kinds .opt { padding: 5px 11px; font-size: 13px; }
-.legend { display: flex; gap: 8px 12px; flex-wrap: wrap; font-size: 11px; color: var(--ink-2); margin: 0 0 8px; }
+.legend { display: flex; gap: 6px 12px; flex-wrap: wrap; font-size: 11px; color: var(--ink-3); margin: 12px 0 10px; }
 .legend i { display: inline-block; width: 14px; height: 9px; border-radius: 2px; vertical-align: -1px; margin-right: 3px; --op: #1a73e8; }
 .legend i.fix { background: var(--op); }
 .legend i.exp { background: repeating-linear-gradient(135deg, var(--op) 0 3px, #fff 3px 6px); opacity: .7; }
@@ -206,18 +206,22 @@ button { cursor: pointer; }
 .cal-head { display: flex; align-items: center; flex-wrap: wrap; gap: 5px 6px; width: 100%; background: none; border: 0; padding: 4px 22px 4px 0; text-align: left; font-size: 14px; color: var(--ink); position: relative; }
 .cal-head b { white-space: nowrap; }
 .cal-head .dot { width: 10px; height: 10px; margin: 0; }
-.cal-head b { font-size: 14.5px; margin-right: 2px; }
+.cal-head b { font-size: 15px; margin-right: 4px; }
 .cal-head .when { font-size: 12px; color: var(--ink-2); }
 .cal-head .caret { position: absolute; right: 4px; top: 50%; transform: translateY(-50%); color: var(--ink-3); font-size: 12px; }
 .cal-cells { display: grid; grid-template-columns: repeat(12, 1fr); gap: 2px; margin: 4px 0 0; }
-.cal-cells .c { height: 22px; border-radius: 4px; background: var(--bg-2); position: relative; }
+.cal-cells .c { height: 24px; border-radius: 4px; background: var(--bg-2); position: relative; }
 .cal-cells .c.now { box-shadow: inset 0 0 0 1.5px #f9ab00; }
 .cal-cells .c.open { background: var(--op); }
 .cal-cells .c.open::after { content: ""; position: absolute; left: 50%; top: 50%; width: 6px; height: 6px; margin: -3px 0 0 -3px; border-radius: 50%; background: #fff; }
 .cal-cells .c.fix { background: var(--op); opacity: .85; }
 .cal-cells .c.exp { background: repeating-linear-gradient(135deg, var(--op) 0 3px, #fff 3px 6px); opacity: .6; }
 .cal-cells .c.any { background: var(--op); opacity: .18; }
-.cal-sub { font-size: 11px; color: var(--ink-3); margin: 4px 0 0; }
+.cal-sub { font-size: 12px; color: var(--ink-2); margin: 6px 0 2px; }
+.cal-official { margin: 8px 0 4px; font-size: 13px; }
+.cal-official a { color: var(--accent); text-decoration: none; font-weight: 600; }
+.cal-detail .ev.quiet { padding: 6px 0 4px; }
+.cal-detail .ev.quiet b { font-size: 13.5px; font-weight: 600; }
 .cal-detail { display: none; margin: 2px 0 4px; }
 .cal-op.opened .cal-detail { display: block; }
 .cal-detail .ev { padding: 8px 0 6px; border-top: 1px dashed var(--line); margin-top: 6px; }

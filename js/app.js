@@ -6,6 +6,8 @@
   const esc = (s) => String(s ?? "").replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
   const yen = (n) => (n == null ? "—" : n.toLocaleString("ja-JP"));
   const norm = (s) => String(s || "").normalize("NFKC").toLowerCase().replace(/\s+/g, "");
+  const VERSION = "2026-11-06c";   // 画面の「このサービスについて」に出す版。index.html の ?v= も同じにする
+  console.log("住まいのSmiley", VERSION);
   const PAGE = 50;
   const DESKTOP = window.matchMedia("(min-width: 900px)");
   const TODAY = new Date(); TODAY.setHours(0, 0, 0, 0);
@@ -36,6 +38,22 @@
     maxZoom: 18, updateWhenZooming: false, attribution: '<a href="https://maps.gsi.go.jp/development/ichiran.html" target="_blank" rel="noopener">国土地理院</a>',
   }).addTo(map);
   L.control.zoom({ position: "topright", zoomInTitle: "拡大", zoomOutTitle: "縮小" }).addTo(map);
+  // ＋−ボタン・キーボードのズームは、パネルやシートに隠れていない「見えている範囲」の中心を基準にする
+  function visibleCenter() {
+    const W = map.getSize().x, H = map.getSize().y;
+    let l = 0, r = W, t = 0, b = H;
+    if (DESKTOP.matches) { l = 400; if (!$("detail").hidden) l = 416 + 420; }
+    else {
+      t = $("chips").getBoundingClientRect().bottom;
+      const det = $("detail"), dr = $("drawer");
+      b = !det.hidden ? det.getBoundingClientRect().top : (dr ? dr.getBoundingClientRect().top : H);
+      if (b - t < 80) { t = 0; b = H; }
+    }
+    return L.point((l + r) / 2, (t + b) / 2);
+  }
+  if (new URLSearchParams(location.search).has("e2e")) window.__map = map;   // 自動テスト用
+  map.zoomIn = (delta, opt) => map.setZoomAround(visibleCenter(), map.getZoom() + (delta || map.options.zoomDelta || 1), opt);
+  map.zoomOut = (delta, opt) => map.setZoomAround(visibleCenter(), map.getZoom() - (delta || map.options.zoomDelta || 1), opt);
 
   // 境界（都内の色分け。関東全体の境界は工程06で）
   const PALETTE = ["#c9dbf3", "#cfe9d4", "#f7dfc0", "#e8d3eb", "#cde9ec"];
@@ -80,17 +98,31 @@
 
   // 現在地
   let meMarker = null;
+  let locTry = 0;
+  function locate() {
+    locTry++;
+    // 1回目は高精度・10秒。だめなら通常精度・20秒・5分以内の位置も可（パソコンやWi-Fi測位向け）
+    map.locate({ setView: true, maxZoom: 14, enableHighAccuracy: locTry === 1, timeout: locTry === 1 ? 10000 : 20000, maximumAge: locTry === 1 ? 0 : 300000 });
+  }
   $("btnLocate").addEventListener("click", () => {
     if (!navigator.geolocation) return toast("この端末では現在地を取得できません");
+    if (!window.isSecureContext) return toast("現在地は https のページでだけ使えます");
     $("btnLocate").classList.add("busy");
-    map.locate({ setView: true, maxZoom: 14, enableHighAccuracy: true, timeout: 12000 });
+    locTry = 0; locate();
   });
   map.on("locationfound", (e) => {
     $("btnLocate").classList.remove("busy");
     const icon = L.divIcon({ className: "", html: '<div class="me-dot"></div>', iconSize: [18, 18], iconAnchor: [9, 9] });
     if (meMarker) meMarker.setLatLng(e.latlng); else meMarker = L.marker(e.latlng, { icon, keyboard: false, interactive: false, zIndexOffset: 1000 }).addTo(map);
   });
-  map.on("locationerror", () => { $("btnLocate").classList.remove("busy"); toast("現在地を取得できませんでした。位置情報の利用を許可してください。"); });
+  map.on("locationerror", (e) => {
+    if (e.code !== 1 && locTry < 2) return locate();   // 許可されていない以外は、通常精度でもう一度
+    $("btnLocate").classList.remove("busy");
+    console.warn("現在地エラー", e.code, e.message);
+    toast(e.code === 1 ? "位置情報の利用が許可されていません。ブラウザのアドレスバー（鍵マーク）か端末の設定で許可してください"
+      : e.code === 3 ? "現在地の取得に時間がかかっています。少し待ってもう一度押してください"
+      : "現在地を特定できませんでした。パソコンでは位置情報サービスがオフだと取れないことがあります");
+  });
 
   /* ---------------- データ ---------------- */
   let SITE = { line_url: "" };
@@ -511,7 +543,6 @@
 
     let h = `<div class="cal-ctl"><label class="cal-pref">地域 <select id="calPref">${["all", ...PREFS].map((p) => `<option value="${esc(p)}"${CAL.pref === p ? " selected" : ""}>${p === "all" ? "1都3県すべて" : esc(p)}</option>`).join("")}</select></label>
       <div class="cal-kinds">${kindsHere.map((k) => `<button type="button" class="opt" data-kind="${esc(k)}" aria-pressed="${!CAL.kinds.size || CAL.kinds.has(k)}">${k}</button>`).join("")}</div></div>
-      <div class="legend"><span><i class="fix"></i>申込期間（確定）</span><span><i class="exp"></i>例年の時期（見込み）</span><span><i class="any"></i>いつでも（先着順）</span><span><i class="now"></i>今月</span></div>
       <div class="cal-months">${months.map(({ m }, i) => `<div class="h${i === 0 ? " now" : ""}${m === 1 ? " jan" : ""}">${m}<small>月</small></div>`).join("")}</div>`;
     if (!ops.length) h += `<p class="hint">この条件に合う運営元がありません</p>`;
     for (const k of ops) {
@@ -522,8 +553,8 @@
       const anyOpen = anyE && (anyE.kind === "any" || evStatus(anyE) === "open");
       // 1行目：いま／次がひと目で分かる
       let stat = "";
-      if (openE.length) stat = `<span class="badge">受付中 あと${daysLeft(openE[0].r.apply_to)}日</span><span class="when">${md(openE[0].from)}〜${md(openE[0].to)}</span>`;
-      else if (upE.length) { const e = upE[0]; stat = `<span class="badge ${dl(e.from) <= 30 ? "soon" : "gray"}">${e.kind === "fix" ? "確定" : "次は"} ${e.from.getMonth() + 1}月${e.kind === "fix" ? "" : "ごろ"}</span><span class="when">${e.kind === "exp" ? `例年 ${md(e.from)}〜${md(e.to)}` : e.kind === "unk" ? "日付は発表待ち" : `${md(e.from)}〜${md(e.to)}`}</span>`; }
+      if (openE.length) stat = `<span class="badge">受付中 あと${daysLeft(openE[0].r.apply_to)}日</span>`;
+      else if (upE.length) { const e = upE[0]; stat = `<span class="badge ${dl(e.from) <= 30 ? "soon" : "gray"}">${e.kind === "fix" ? `${md(e.from)}から` : `次は${e.from.getMonth() + 1}月ごろ`}</span>`; }
       else if (!anyE) stat = `<span class="badge gray">時期は未発表</span>`;
       if (anyOpen) stat += `<span class="badge ok">いつでも</span>`;
       else if (anyE) stat += `<span class="badge gray">先着順は${anyE.from.getMonth() + 1}月から</span>`;
@@ -541,9 +572,10 @@
       }
       const sc = op.schedule || {};
       const subtxt = sc.months?.length ? `例年 ${sc.months.join("・")}月${sc.days ? "（" + sc.days + "）" : ""}・${sc.how || ""}${sc.anytime_note ? "／" + sc.anytime_note : ""}` : (sc.anytime_note || sc.note || "");
-      h += `</div><div class="cal-sub">${esc(subtxt)}</div><div class="cal-detail">${[...openE, ...upE.slice(0, 2), ...(anyE ? [anyE] : [])].map((e) => evHtml(e, countOf)).join("")}</div></div>`;
+      h += `</div><div class="cal-detail"><div class="cal-sub">${esc(subtxt)}</div>${[...openE, ...upE.slice(0, 2), ...(anyE ? [anyE] : [])].map((e) => evHtml(e, countOf)).join("")}<div class="cal-official"><a href="${esc(safeUrl(op.url))}" target="_blank" rel="noopener">${esc(nameOf(k))}の公式ページ ↗</a></div></div></div>`;
     }
-    h += `<div class="line-cta"><span><b>LINE</b>で「募集が始まった」「締切3日前」を受け取る。見逃しゼロに</span><a class="line-btn" data-line href="#">友だち追加</a></div>
+    h += `<div class="legend"><span><i class="fix"></i>申込期間（確定）</span><span><i class="exp"></i>例年の時期（見込み）</span><span><i class="any"></i>いつでも（先着順）</span><span><i class="now"></i>今月</span></div>
+      <div class="line-cta"><span><b>LINE</b>で「募集が始まった」「締切3日前」を受け取る。見逃しゼロに</span><a class="line-btn" data-line href="#">友だち追加</a></div>
       <button type="button" class="btn ghost" id="calNotify" style="width:100%;margin-top:10px">お知らせの受け取り方を見る</button>`;
     $("calBody").innerHTML = h;
     setupLine();
@@ -573,10 +605,11 @@
     else if (e.kind === "unk") { title = r.label; sub = `${r.expected || "時期は未発表"}。日付は公式発表待ち`; badge = `<span class="badge gray">発表待ち</span>`; }
     else { title = r.label; sub = `申込 ${fmtMD(r.apply_from)} 〜 ${fmtMD(r.apply_to)}${r.lottery ? `・抽せん ${fmtMD(r.lottery)}` : ""}${r.kind ? `・${r.kind}` : ""}`; badge = `<span class="badge soon">${e.anyRange ? "先着順" : "確定"} ${daysLeft(r.apply_from)}日後から</span>`; }
     const n = r ? countOf(r.id) : 0;
-    const acts = (st === "open" || st === "any") && n
-      ? `<button type="button" class="primary" data-round="${esc(r.id)}">地図で見る（${n.toLocaleString("ja-JP")}件）</button><a href="${esc(url)}" target="_blank" rel="noopener">公式ページ ↗</a>`
-      : `<a href="${esc(url)}" target="_blank" rel="noopener">公式ページ ↗</a>`;
-    return `<div class="ev"><div class="row"><b>${esc(title)}</b>${badge}</div><div class="sub">${esc(sub)}${r?.note && e.kind !== "exp" ? `<br>${esc(r.note)}` : ""}</div>${bar}<div class="acts">${acts}</div></div>`;
+    // 受付中・いつでも だけに「地図で見る」「公式ページ」。例年・発表待ちは説明だけ（公式ページは運営元ごとに1つ、下にまとめる）
+    const acts = (st === "open" || st === "any")
+      ? `${n ? `<button type="button" class="primary" data-round="${esc(r.id)}">地図で見る（${n.toLocaleString("ja-JP")}件）</button>` : ""}<a href="${esc(url)}" target="_blank" rel="noopener">公式ページ ↗</a>`
+      : "";
+    return `<div class="ev${acts ? "" : " quiet"}"><div class="row"><b>${esc(title)}</b>${badge}</div><div class="sub">${esc(sub)}${r?.note && e.kind !== "exp" ? `<br>${esc(r.note)}` : ""}</div>${bar}${acts ? `<div class="acts">${acts}</div>` : ""}</div>`;
   }
 
   // S6 通知登録（試作：まだ送信しない。登録内容は端末に保存するだけ）
@@ -609,6 +642,7 @@
 
   function buildAbout() {
     renderUseLog();
+    if ($("ver")) $("ver").textContent = VERSION;
     $("aboutSources").innerHTML = Object.values(OPS).map((o) => `<li><a href="${esc(safeUrl(o.url))}" target="_blank" rel="noopener">${esc(o.long)}</a></li>`).join("");
   }
 
