@@ -62,6 +62,7 @@ status: 進行中
 
 ## オーナー待ちのこと
 - 工程06：LINE通知サーバーを本番に置く（`! cd ~/Projects/koei-map/server && vercel deploy --prod --yes`）→ LINE公式アカウント作成 → Vercel に LINE_CHANNEL_ACCESS_TOKEN と LINE_CHANNEL_SECRET を入れる → LINE Developers に Webhook URL を設定
+- 2026-11-07 工程06：オーナー決定（追記）。カレンダーは1〜12月固定・今月が分かる・終わった分なし／地域は全国の地方→都道府県→市区町村（載っていない所は準備中）→ 実装・公開（版 2026-11-07b）
 - 工程08：絞り込みの見せ方（5案）・募集中スイッチ・選んだピンまわりを選ぶ（decisions/2026-11-06_絞り込みUI.html）
 - 工程06：最後の確認。スマホで主な流れ（絞り込み→詳細→公式ページ→カレンダー）を一度通して「出せる」と言う
 - 工程06：LINE公式アカウントを作り、トークンを GitHub Secrets（LINE_CHANNEL_ACCESS_TOKEN）に登録する（AIはアカウント作成・秘密の値の入力をしない決まりのため、オーナー自身で）

@@ -6,7 +6,7 @@
   const esc = (s) => String(s ?? "").replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
   const yen = (n) => (n == null ? "—" : n.toLocaleString("ja-JP"));
   const norm = (s) => String(s || "").normalize("NFKC").toLowerCase().replace(/\s+/g, "");
-  const VERSION = "2026-11-07a";   // 画面の「このサービスについて」に出す版。index.html の ?v= も同じにする
+  const VERSION = "2026-11-07b";   // 画面の「このサービスについて」に出す版。index.html の ?v= も同じにする
   console.log("住まいのSmiley", VERSION);
   const PAGE = 50;
   const DESKTOP = window.matchMedia("(min-width: 900px)");
@@ -21,7 +21,17 @@
 
   let OPS = {}, ROUNDS = [], ITEMS = [], byId = new Map(), markers = new Map();
   const CITY_PREF = new Map();   // 市区町村名 → 都県
-  const PREFS = ["東京都", "神奈川県", "埼玉県", "千葉県"];
+  const PREFS = ["東京都", "神奈川県", "埼玉県", "千葉県"];   // いま物件が載っている都県
+  // 全国の枠組み（地方 → 都道府県 → 市区町村）。PREFS 以外は「準備中」で見せる
+  const REGIONS = [
+    ["北海道・東北", ["北海道", "青森県", "岩手県", "宮城県", "秋田県", "山形県", "福島県"]],
+    ["関東", ["東京都", "神奈川県", "埼玉県", "千葉県", "茨城県", "栃木県", "群馬県"]],
+    ["中部", ["新潟県", "富山県", "石川県", "福井県", "山梨県", "長野県", "岐阜県", "静岡県", "愛知県"]],
+    ["関西（近畿）", ["大阪府", "京都府", "兵庫県", "奈良県", "滋賀県", "和歌山県", "三重県"]],
+    ["中国・四国", ["鳥取県", "島根県", "岡山県", "広島県", "山口県", "徳島県", "香川県", "愛媛県", "高知県"]],
+    ["九州・沖縄", ["福岡県", "佐賀県", "長崎県", "熊本県", "大分県", "宮崎県", "鹿児島県", "沖縄県"]],
+  ];
+  let areaRegion = null;
   let filtered = [], shown = 0, activeId = null;
   const F = { now: true, prefs: new Set(), cities: new Set(), rentMax: null, layouts: new Set(), ops: new Set(), single: false, ev: false, q: "", round: null,
     builtFrom: null, areaMin: null, ratioMax: null, walkMax: null, noBus: false, bf: false, priority: false, unitsMin: null, vacant: false, cats: new Set() };
@@ -399,8 +409,15 @@
     b.innerHTML = "";
     const counts = new Map(), pc = new Map();
     ITEMS.forEach((r) => { if (!F.now || r._status === "open" || r._status === "anytime") { counts.set(r.city, (counts.get(r.city) || 0) + 1); pc.set(r.pref, (pc.get(r.pref) || 0) + 1); } });
+    if (!areaRegion) areaRegion = (REGIONS.find(([, ps]) => ps.some((p) => F.prefs.has(p))) || REGIONS[1])[0];
+    const sel = document.createElement("label"); sel.className = "region-sel";
+    sel.innerHTML = `<span>地方</span><select>${REGIONS.map(([n, ps]) => `<option${n === areaRegion ? " selected" : ""}>${esc(n)}${ps.some((p) => PREFS.includes(p)) ? "" : "（準備中）"}</option>`).join("")}</select>`;
+    sel.querySelector("select").addEventListener("change", (e) => { areaRegion = REGIONS[e.target.selectedIndex][0]; renderAreaBody(b); });
+    b.appendChild(sel);
     const wrap = document.createElement("div"); wrap.className = "area-tree";
-    for (const p of PREFS) {
+    const soon = [];
+    for (const p of REGIONS.find(([n]) => n === areaRegion)[1]) {
+      if (!PREFS.includes(p)) { soon.push(p); continue; }
       const on = F.prefs.has(p);
       const row = document.createElement("div"); row.className = "pref-row" + (on ? " open" : "");
       const head = document.createElement("label"); head.className = "ck pref";
@@ -424,7 +441,8 @@
       }
       wrap.appendChild(row);
     }
-    const h = document.createElement("p"); h.className = "hint"; h.textContent = "都県にチェックを入れると、その中の市区町村を選べます。何も選ばなければ全部です。";
+    if (soon.length) { const d = document.createElement("div"); d.className = "pref-soon"; d.innerHTML = `<b>準備中</b>${soon.map((p) => `<span>${esc(p)}</span>`).join("")}`; wrap.appendChild(d); }
+    const h = document.createElement("p"); h.className = "hint"; h.textContent = "地方を選び、都道府県にチェックを入れると、その中の市区町村を選べます。何も選ばなければ全部です。いま載っているのは1都3県で、ほかの地域は順に増やします。";
     b.appendChild(wrap); b.appendChild(h);
   }
   function group(title, opts) { const g = document.createElement("div"); g.className = "opt-group"; g.innerHTML = `<h4>${esc(title)}</h4>`; const grid = document.createElement("div"); grid.className = "opt-grid"; opts.forEach((o) => grid.appendChild(o)); g.appendChild(grid); return g; }
@@ -644,7 +662,11 @@
     if (!["all", ...PREFS].includes(CAL.pref)) CAL.pref = "東京都";
     if (!CAL.kinds.size && Array.isArray(stored.kinds)) stored.kinds.filter((k) => KINDS.includes(k)).forEach((k) => CAL.kinds.add(k));
     const EV = calEvents();
-    const months = [...Array(12)].map((_, i) => ({ m: (TODAY.getMonth() + i) % 12 + 1, y: TODAY.getFullYear() + Math.floor((TODAY.getMonth() + i) / 12) }));
+    // 1月〜12月で固定。今月より前の月は「来年のその月」を見せる（終わった募集は出さない）
+    const curM = TODAY.getMonth() + 1, curY = TODAY.getFullYear();
+    const months = [...Array(12)].map((_, i) => ({ m: i + 1, y: i + 1 >= curM ? curY : curY + 1 }));
+    const yearStrip = curM === 1 ? `<span style="grid-column:1/13">${curY}年</span>`
+      : `<span class="next" style="grid-column:1/${curM}">${curY + 1}年</span><span style="grid-column:${curM}/13">${curY}年</span>`;
     const inPref = Object.keys(OPS).filter((k) => CAL.pref === "all" || !OPS[k].pref || OPS[k].pref === CAL.pref);
     const kindsHere = KINDS.filter((k) => inPref.some((o) => OPS[o].label === k));
     CAL.kinds = new Set([...CAL.kinds].filter((k) => kindsHere.includes(k)));   // この地域に無い種別は外す（全部外れたら「すべて」）
@@ -654,9 +676,10 @@
     const nameOf = (k) => (CAL.pref !== "all" && OPS[k].label === "県営") ? "県営" : shortOp(OPS[k]);
     const countOf = (rid) => ITEMS.filter((x) => x.round_id === rid).length;
 
-    let h = `<div class="cal-ctl"><label class="cal-pref">地域 <select id="calPref">${["all", ...PREFS].map((p) => `<option value="${esc(p)}"${CAL.pref === p ? " selected" : ""}>${p === "all" ? "1都3県すべて" : esc(p)}</option>`).join("")}</select></label>
+    let h = `<div class="cal-ctl"><label class="cal-pref">地域 <select id="calPref"><option value="all"${CAL.pref === "all" ? " selected" : ""}>1都3県すべて</option>${REGIONS.map(([n, ps]) => `<optgroup label="${esc(n)}">${ps.map((p) => PREFS.includes(p) ? `<option value="${esc(p)}"${CAL.pref === p ? " selected" : ""}>${esc(p)}</option>` : `<option disabled>${esc(p)}（準備中）</option>`).join("")}</optgroup>`).join("")}</select></label>
       <div class="cal-kinds">${kindsHere.map((k) => `<button type="button" class="opt" data-kind="${esc(k)}" aria-pressed="${!CAL.kinds.size || CAL.kinds.has(k)}">${k}</button>`).join("")}</div></div>
-      <div class="cal-months">${months.map(({ m }, i) => `<div class="h${i === 0 ? " now" : ""}${m === 1 ? " jan" : ""}">${m}<small>月</small></div>`).join("")}</div>`;
+      <div class="cal-grid-head"><div class="cal-years">${yearStrip}</div>
+      <div class="cal-months">${months.map(({ m }) => `<div class="h${m === curM ? " now" : ""}${m === curM && m > 1 ? " yb" : ""}">${m === curM ? "今月" : m + "<small>月</small>"}</div>`).join("")}</div></div>`;
     if (!ops.length) h += `<p class="hint">この条件に合う運営元がありません</p>`;
     for (const k of ops) {
       const op = OPS[k], es = EV.filter((e) => e.op === k), col = colorOf(op);
@@ -673,21 +696,30 @@
       else if (anyE) stat += `<span class="badge gray">先着順は${anyE.from.getMonth() + 1}月から</span>`;
       const opened = CAL.open.has(k) || (!CAL.open.has("!" + k) && openE.length > 0);
       h += `<div class="cal-op${opened ? " opened" : ""}" style="--op:${col}" data-op="${esc(k)}"><button type="button" class="cal-head"><i class="dot"></i><b>${esc(nameOf(k))}</b>${stat}<span class="caret">${opened ? "▴" : "▾"}</span></button><div class="cal-cells">`;
-      for (const [i, { m, y }] of months.entries()) {
-        const inM = es.filter((e) => (e.kind === "fix" || e.kind === "exp" || e.kind === "unk") && !e.anyRange && e.from <= monthEnd(y, m) && e.to >= monthStart(y, m));
-        let cls = "c";
-        if (inM.some((e) => evStatus(e) === "open")) cls += " open";
-        else if (inM.some((e) => e.kind === "fix")) cls += " fix";
-        else if (inM.length) cls += " exp";
-        else if (anyE && (anyE.kind === "any" || (anyE.from <= monthEnd(y, m) && anyE.to >= monthStart(y, m)))) cls += " any";
-        if (i === 0) cls += " now";
-        h += `<div class="${cls}" title="${esc(inM.map((e) => `${md(e.from)}〜${md(e.to)}`).join(" / "))}"></div>`;
-      }
+      const cells = months.map(({ m, y }) => {
+        const inM = es.filter((e) => (e.kind === "fix" || e.kind === "exp" || e.kind === "unk") && !e.anyRange && evStatus(e) !== "closed" && e.from <= monthEnd(y, m) && e.to >= monthStart(y, m));
+        let st = "";
+        if (inM.some((e) => evStatus(e) === "open")) st = "open";
+        else if (inM.some((e) => e.kind === "fix")) st = "fix";
+        else if (inM.length) st = "exp";
+        else if (anyE && (anyE.kind === "any" || (anyE.from <= monthEnd(y, m) && anyE.to >= monthStart(y, m)))) st = "any";
+        return { m, st, tip: inM.map((e) => `${md(e.from)}〜${md(e.to)}`).join(" / ") };
+      });
+      // 隣の月と同じ種類なら1本の帯につなげる（今月の左＝年の切れ目ではつなげない）
+      const joined = (a, z) => a && z && a.st && a.st === z.st && z.m !== curM;
+      cells.forEach((c, i) => {
+        let cls = "c" + (c.st ? " " + c.st : "");
+        if (c.st && joined(cells[i - 1], c)) cls += " jl";
+        if (c.st && joined(c, cells[i + 1])) cls += " jr";
+        if (c.m === curM) cls += " now";
+        if (c.m === curM && c.m > 1) cls += " yb";
+        h += `<div class="${cls}" title="${esc(c.tip)}"></div>`;
+      });
       const sc = op.schedule || {};
       const subtxt = sc.months?.length ? `例年 ${sc.months.join("・")}月${sc.days ? "（" + sc.days + "）" : ""}・${sc.how || ""}${sc.anytime_note ? "／" + sc.anytime_note : ""}` : (sc.anytime_note || sc.note || "");
       h += `</div><div class="cal-detail"><div class="cal-sub">${esc(subtxt)}</div>${[...openE, ...upE.slice(0, 2), ...(anyE ? [anyE] : [])].map((e) => evHtml(e, countOf)).join("")}<div class="cal-official"><a href="${esc(safeUrl(op.url))}" target="_blank" rel="noopener">${esc(nameOf(k))}の公式ページ ↗</a></div></div></div>`;
     }
-    h += `<div class="legend"><span><i class="fix"></i>申込期間（確定）</span><span><i class="exp"></i>例年の時期（見込み）</span><span><i class="any"></i>いつでも（先着順）</span><span><i class="now"></i>今月</span></div>
+    h += `<div class="legend"><span><i class="fix"></i>申込期間（確定）</span><span><i class="exp"></i>例年の時期（見込み）</span><span><i class="any"></i>いつでも（先着順）</span><span><i class="now"></i>今月</span></div>${curM > 1 ? `<p class="cal-note">左の1〜${curM - 1}月は来年（${curY + 1}年）の予定です。今年すでに締め切った分は出しません。</p>` : ""}
       <div class="line-cta"><span><b>LINE</b>で「募集が始まった」「締切3日前」を受け取る。見逃しゼロに</span><a class="line-btn" data-line href="#">友だち追加</a></div>
       <button type="button" class="btn ghost" id="calNotify" style="width:100%;margin-top:10px">お知らせの受け取り方を見る</button>`;
     $("calBody").innerHTML = h;
