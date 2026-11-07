@@ -10,3 +10,4 @@ async function call(path, body) {
 }
 export const reply = (replyToken, messages) => call("reply", { replyToken, messages });
 export const multicast = (to, messages) => call("multicast", { to, messages });
+export const push = (to, messages) => call("push", { to, messages });

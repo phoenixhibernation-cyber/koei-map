@@ -2,6 +2,7 @@
 import crypto from "node:crypto";
 import { PREFS, getSub, putSub, delSub } from "../lib/store.js";
 import { reply } from "../lib/line.js";
+import { watchKey } from "../lib/notify.js";
 
 const short = (p) => p.replace(/[都県]$/, "");
 const SITE = "https://phoenixhibernation-cyber.github.io/koei-map/";
@@ -35,7 +36,26 @@ async function handle(ev) {
   }
   if (ev.type === "message" && ev.message?.type === "text") {
     const t = ev.message.text.trim();
-    if (/停止|解除|やめ/.test(t)) { sub.prefs = []; await putSub(sub); return reply(ev.replyToken, [{ type: "text", text: "お知らせを止めました。また受け取りたいときは「設定」と送ってください。" }]); }
+    // 地図の「この団地をLINEで見張る」から：「見張る 東京都 ○○団地」
+    const mw = t.match(/^見張る\s+(\S+?[都道府県])\s+(.+)$/);
+    if (mw) {
+      const key = watchKey(mw[1], mw[2].slice(0, 60));
+      const w = new Set(sub.watch || []); w.add(key);
+      sub.watch = [...w].slice(-20); sub.updated = new Date().toISOString(); await putSub(sub);
+      return reply(ev.replyToken, [{ type: "text", text: `「${mw[2]}」を見張ります。この団地が募集に入った日と、締切の3日前にお知らせします。\n\n見張り中：${sub.watch.length}件（最大20件）\n一覧は「見張り一覧」、やめるときは「見張りをやめる ${mw[2]}」と送ってください。` }]);
+    }
+    if (/^見張り一覧/.test(t)) {
+      const names = (sub.watch || []).map((k) => "・" + k.split("/").slice(1).join("/"));
+      return reply(ev.replyToken, [{ type: "text", text: names.length ? `見張り中の団地\n${names.join("\n")}` : "見張っている団地はありません。地図で団地を開き「この団地をLINEで見張る」を押すと追加できます。" }]);
+    }
+    const mu = t.match(/^見張りをやめる\s*(.*)$/);
+    if (mu) {
+      const name = mu[1].trim();
+      sub.watch = name ? (sub.watch || []).filter((k) => k.split("/").slice(1).join("/") !== name) : [];
+      await putSub(sub);
+      return reply(ev.replyToken, [{ type: "text", text: name ? `「${name}」の見張りをやめました。` : "見張りを全部やめました。" }]);
+    }
+    if (/停止|解除|やめ/.test(t)) { sub.prefs = []; sub.watch = []; await putSub(sub); return reply(ev.replyToken, [{ type: "text", text: "お知らせを止めました。また受け取りたいときは「設定」と送ってください。" }]); }
     return reply(ev.replyToken, [menu(sub)]);   // 「設定」「地域」など、何を送られても地域の選び直しを出す
   }
 }

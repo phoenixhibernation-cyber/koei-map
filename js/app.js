@@ -6,7 +6,7 @@
   const esc = (s) => String(s ?? "").replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
   const yen = (n) => (n == null ? "—" : n.toLocaleString("ja-JP"));
   const norm = (s) => String(s || "").normalize("NFKC").toLowerCase().replace(/\s+/g, "");
-  const VERSION = "2026-11-07c";   // 画面の「このサービスについて」に出す版。index.html の ?v= も同じにする
+  const VERSION = "2026-11-07d";   // 画面の「このサービスについて」に出す版。index.html の ?v= も同じにする
   console.log("住まいのSmiley", VERSION);
   const PAGE = 50;
   const DESKTOP = window.matchMedia("(min-width: 900px)");
@@ -405,7 +405,7 @@
       const v = summaryOf(k);
       sec.innerHTML = `<button type="button" class="acc-head" aria-expanded="${openSec === k}"><span class="acc-t">${esc(title)}</span><span class="acc-v${v ? " set" : ""}">${esc(v || "指定なし")}</span><span class="acc-c">›</span></button><div class="acc-body"></div>`;
       if (openSec === k) buildBody(k, sec.querySelector(".acc-body"));
-      sec.querySelector(".acc-head").addEventListener("click", () => { openSec = openSec === k ? null : k; renderFilter(); const el = b.querySelector(`[data-sec="${k}"]`); if (openSec) el.scrollIntoView({ block: "nearest" }); });
+      sec.querySelector(".acc-head").addEventListener("click", () => { openSec = openSec === k ? null : k; renderFilter(); const el = b.querySelector(`[data-sec="${k}"]`); if (openSec) b.scrollTop = Math.max(0, el.offsetTop - 8); });   // scrollIntoView は画面全体まで動かすので使わない
       b.appendChild(sec);
     }
     refreshFilterHead();
@@ -539,18 +539,24 @@
       <table>${rows.map(([k, v]) => `<tr><td>${k}</td><td>${v}</td></tr>`).join("")}</table>
       <p class="cards-h">当選したら</p>
       <div class="cards">
-        <a class="card" href="#" data-aff="move"><b>引っ越し見積もり</b><span>複数社を一括で比べる</span></a>
-        <a class="card" href="#" data-aff="net"><b>ネット回線</b><span>入居日に合わせて開通</span></a>
-        <a class="card" href="#" data-aff="power"><b>電気・ガス</b><span>まとめて申し込み</span></a>
+        ${affCard("move", "#", "引っ越し見積もり", "複数社を一括で比べる")}
+        ${affCard("net", "#", "ネット回線", "入居日に合わせて開通")}
+        ${affCard("power", "#", "電気・ガス", "まとめて申し込み")}
       </div>
       <p class="cards-h">落選したら、今すぐ入れる家</p>
       <div class="cards">
-        <a class="card" href="${esc(safeUrl(urUrl(r)))}" target="_blank" rel="noopener"><b>UR賃貸（${esc(r.pref.replace(/[都県]$/, ""))}）</b><span>礼金・仲介手数料なし。空き部屋を探す</span></a>
-        <a class="card" href="#" data-aff="rent"><b>家賃の安い賃貸</b><span>${esc(r.city)}の近くで探す</span></a>
+        ${affCard("ur", safeUrl(urUrl(r)), `UR賃貸（${r.pref.replace(/[都県]$/, "")}）`, "礼金・仲介手数料なし。空き部屋を探す", true)}
+        ${affCard("rent", "#", "家賃の安い賃貸", `${r.city}の近くで探す`)}
       </div>
       <p class="hint">提携先のリンクは準備中です。いまは各サービスの入口に飛びます。</p>`;
-    if (rd && (rd.apply_to || rd.anytime)) $("detailBody").querySelector(".round-box").insertAdjacentHTML("afterend", `<div class="line-cta slim"><span>締切や次の募集を<b>LINE</b>で受け取る</span><a class="line-btn" data-line href="#">友だち追加</a></div>`);
+    // この団地だけを見張る（LINEに「見張る 都道府県 団地名」を送る画面が開く。送ると、この団地が募集に入った日と締切3日前に届く）
+    $("detailBody").querySelector(".round-box")?.insertAdjacentHTML("afterend", `<div class="line-cta slim watch"><span><b>LINE</b>でこの団地だけを見張る<small>募集に入った日と締切3日前に届きます</small></span><a class="line-btn" data-watch href="#">見張る</a></div>`);
     setupLine();
+    const wb = $("detailBody").querySelector("[data-watch]");
+    if (wb) {
+      if (SITE.line_id) { wb.href = `https://line.me/R/oaMessage/${encodeURIComponent(SITE.line_id)}/?${encodeURIComponent(`見張る ${r.pref} ${r.name}`)}`; wb.target = "_blank"; wb.rel = "noopener"; }
+      else wb.addEventListener("click", (e) => { e.preventDefault(); toast(SITE.line_note || "LINE公式アカウントは準備中です"); });
+    }
     $("detailFoot").innerHTML = `
       <div class="btn-row">
         <a class="btn ghost gmap" href="https://www.google.com/maps/search/?api=1&query=${gq}" target="_blank" rel="noopener"><svg viewBox="0 0 24 24" aria-hidden="true" width="18" height="18"><path d="M12 2a7 7 0 0 0-7 7c0 5 7 13 7 13s7-8 7-13a7 7 0 0 0-7-7zm0 9.5A2.5 2.5 0 1 1 12 6a2.5 2.5 0 0 1 0 5.5z" fill="currentColor"/></svg>Googleマップ</a>
@@ -562,6 +568,10 @@
     focusOn(r, true);   // シートを出してから、見えている範囲の中心にピンが来るよう寄せる
     $("detailFoot").querySelector(".official").addEventListener("click", () => { store.set("visitedOfficial", Date.now()); });
     $("detailBody").querySelectorAll("[data-aff]").forEach((a) => a.addEventListener("click", (e) => { e.preventDefault(); toast("提携先のリンクは準備中です（試作版）"); }));
+  }
+  // 提携カード：上に絵（img/aff/<種類>.webp。site.json の aff_img に載っている種類だけ。無ければ色の帯だけ）、下に名前と一言
+  function affCard(kind, href, title, sub, real) {
+    return `<a class="card aff-${kind}" href="${esc(href)}"${real ? ' target="_blank" rel="noopener"' : ` data-aff="${kind}"`}><span class="card-img">${(SITE.aff_img || []).includes(kind) ? `<img src="img/aff/${kind}.webp" alt="" loading="lazy">` : ""}</span><b>${esc(title)}</b><span class="card-sub">${esc(sub)}</span><span class="card-go">見てみる ›</span></a>`;
   }
   // 募集の状態：いま申し込めるか・いつまでか・決め方（抽せん／先着順）・抽せん日
   function roundBox(r, rd) {
