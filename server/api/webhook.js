@@ -62,7 +62,7 @@ async function handle(ev) {
 
 export async function POST(req) {
   const raw = await req.text();
-  const secret = process.env.LINE_CHANNEL_SECRET || "";
+  const secret = (process.env.LINE_CHANNEL_SECRET || "").trim();
   const sig = req.headers.get("x-line-signature") || "";
   const mac = crypto.createHmac("sha256", secret).update(raw).digest("base64");
   if (!secret || sig.length !== mac.length || !crypto.timingSafeEqual(Buffer.from(sig), Buffer.from(mac))) {

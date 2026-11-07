@@ -1,5 +1,5 @@
 // LINE Messaging API の薄い包み（返信・一斉送信）。トークンは環境変数 LINE_CHANNEL_ACCESS_TOKEN
-const TOKEN = () => process.env.LINE_CHANNEL_ACCESS_TOKEN || "";
+const TOKEN = () => (process.env.LINE_CHANNEL_ACCESS_TOKEN || "").trim();
 
 async function call(path, body) {
   const res = await fetch("https://api.line.me/v2/bot/message/" + path, {
