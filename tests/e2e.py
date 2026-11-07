@@ -60,8 +60,8 @@ with sync_playwright() as p:
     pg.click("#nudgeYes"); pg.wait_for_timeout(300)
     check("通知登録ページが開く", pg.is_visible("#pageNotify"))
     check("LINEの友だち追加ボタンがある", pg.is_visible("#btnLine"))
-    pg.click("#btnLine"); pg.wait_for_timeout(300)
-    check("LINE未設定のときは準備中と出る", "準備中" in pg.inner_text("#toast"))
+    pass  # 押すと新しいタブでLINEが開くので、テストでは押さない
+    check("LINEの友だち追加リンクが入っている", "line.me" in (pg.get_attribute("#btnLine", "href") or ""))
     pg.screenshot(path=OUT / "06_notify.png")
     pg.click("#pageNotify [data-close]")
 
