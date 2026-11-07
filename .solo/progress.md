@@ -61,7 +61,8 @@ status: 進行中
 - 2026-11-05 工程06：GitHub Actions で10ソースの自動取得が通った（初回キャッシュなし、2,741件・失敗なし）
 
 ## オーナー待ちのこと
-- 工程06：LINE通知サーバーを本番に置く（`! cd ~/Projects/koei-map/server && vercel deploy --prod --yes`）→ LINE公式アカウント作成 → Vercel に LINE_CHANNEL_ACCESS_TOKEN と LINE_CHANNEL_SECRET を入れる → LINE Developers に Webhook URL を設定
+- 2026-11-08 工程06：LINE通知サーバーを本番に置いた（https://koei-map-line.vercel.app 、webhook応答・cron（合言葉つき）・dry実行OK）
+- 工程06：LINE公式アカウント作成 → Vercel に LINE_CHANNEL_ACCESS_TOKEN と LINE_CHANNEL_SECRET を入れる → LINE Developers に Webhook URL を設定
 - 2026-11-07 工程06：オーナー決定（追記）。カレンダーは1〜12月固定・今月が分かる・終わった分なし／地域は全国の地方→都道府県→市区町村（載っていない所は準備中）→ 実装・公開（版 2026-11-07b）
 - 2026-11-07 工程08の選ぶページ：オーナー決定。絞り込み＝D（下の固定バー：地図・絞り込み・カレンダー・お知らせ／絞り込みは項目ごとの折りたたみ）／募集中スイッチ＝外す／選んだピン＝地図を寄せる（スマホ16・PC17）→ 実装・公開（版 2026-11-07c）
 - 2026-11-07 工程07の追記：通知は「都県」に加えて「この団地」を見張れる（詳細の「見張る」→LINEに「見張る 都道府県 団地名」を送る→募集入り・締切3日前に届く）→ 実装・公開（版 2026-11-07d）。提携カードは絵の入る形にした（絵はオーナーがGeminiで作る）。提携の種類は候補を挙げて絞る（未）
