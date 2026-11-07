@@ -10,7 +10,7 @@
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='8' fill='%23234e8c'/%3E%3Cpath d='M16 7l-9 7.5V25h6.5v-6h5v6H25V14.5z' fill='white'/%3E%3C/svg%3E">
 <link rel="stylesheet" href="vendor/leaflet/leaflet.css">
 <link rel="stylesheet" href="vendor/markercluster/MarkerCluster.css">
-<link rel="stylesheet" href="css/app.css?v=20261107b">
+<link rel="stylesheet" href="css/app.css?v=20261107c">
 </head>
 <body>
 
@@ -18,32 +18,12 @@
   <div id="map" role="region" aria-label="地図"></div>
 
   <!-- S1: 上のバー -->
-  <div class="topbar">
+  <div class="topbar" id="topbar">
     <label class="search">
       <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="11" cy="11" r="7" fill="none" stroke="currentColor" stroke-width="2"/><path d="M20 20l-4-4" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
       <input id="q" type="search" placeholder="団地名・駅・住所" autocomplete="off" aria-label="団地名・駅・住所で探す">
       <button type="button" class="clear" id="qClear" aria-label="検索を消す" hidden>×</button>
     </label>
-    <button type="button" class="round-btn" id="btnCal" aria-label="募集カレンダー">
-      <svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="4" width="18" height="17" rx="2.5" fill="none" stroke="currentColor" stroke-width="2"/><path d="M3 9h18" stroke="currentColor" stroke-width="2"/><path d="M8 2v4M16 2v4" stroke="currentColor" stroke-width="2" stroke-linecap="round"/><rect x="6.5" y="12" width="3" height="3" rx=".6" fill="currentColor"/><rect x="10.5" y="12" width="3" height="3" rx=".6" fill="currentColor"/><rect x="14.5" y="12" width="3" height="3" rx=".6" fill="currentColor"/><rect x="6.5" y="16" width="3" height="3" rx=".6" fill="currentColor"/><rect x="10.5" y="16" width="3" height="3" rx=".6" fill="currentColor"/></svg>
-    </button>
-    <button type="button" class="round-btn" id="btnMenu" aria-label="メニュー">
-      <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="5" cy="12" r="2" fill="currentColor"/><circle cx="12" cy="12" r="2" fill="currentColor"/><circle cx="19" cy="12" r="2" fill="currentColor"/></svg>
-    </button>
-  </div>
-
-  <!-- S1: チップ -->
-  <div class="chips" id="chips" role="toolbar" aria-label="絞り込み">
-    <button type="button" class="chip on sw-chip" data-chip="now" aria-pressed="true"><span class="sw"><i></i></span>募集中</button>
-    <button type="button" class="chip" data-chip="area">地域 <span class="v"></span><span class="caret">▾</span></button>
-    <button type="button" class="chip" data-chip="op">運営元 <span class="v"></span><span class="caret">▾</span></button>
-    <button type="button" class="chip" data-chip="rent">家賃 <span class="v"></span><span class="caret">▾</span></button>
-    <button type="button" class="chip" data-chip="layout">間取り <span class="v"></span><span class="caret">▾</span></button>
-    <button type="button" class="chip" data-chip="built">築年 <span class="v"></span><span class="caret">▾</span></button>
-    <button type="button" class="chip" data-chip="single" aria-pressed="false">単身可</button>
-    <button type="button" class="chip" data-chip="ev" aria-pressed="false">EVあり</button>
-    <button type="button" class="chip" data-chip="more">もっと条件 <span class="v"></span><span class="caret">▾</span></button>
-    <button type="button" class="chip reset" id="chipReset" hidden>条件をクリア</button>
   </div>
 
   <button type="button" class="fab" id="btnLocate" aria-label="現在地を表示">
@@ -54,7 +34,7 @@
   <section class="drawer" id="drawer" aria-label="一覧">
     <div class="handle" id="handle" role="button" tabindex="0" aria-label="一覧を広げる・たたむ"><span></span></div>
     <div class="drawer-head">
-      <p class="count" id="count" aria-live="polite">読み込み中…</p>
+      <div class="count-wrap"><p class="count" id="count" aria-live="polite">読み込み中…</p><p class="cond" id="cond" hidden><span id="condText"></span><button type="button" id="condClear">条件を外す</button></p></div>
       <label class="sort"><span class="visually-hidden">並び替え</span>
         <select id="sort" aria-label="並び替え">
           <option value="rent">家賃が安い順</option>
@@ -71,14 +51,15 @@
     <ol class="list" id="list"></ol>
     <button type="button" class="more" id="more" hidden>さらに表示</button>
     <p class="empty" id="empty" hidden>条件に合う住まいがありません。条件をゆるめてみてください。</p>
+    <button type="button" class="about-link" data-open="pageAbout">このサービスについて</button>
   </section>
 
-  <!-- S3: 絞り込みの小さなシート（チップを押すと開く） -->
+  <!-- S3: 絞り込み（下のバーから開く。項目ごとに折りたたみ） -->
   <div class="scrim" id="scrim" hidden></div>
   <section class="popover" id="popover" hidden aria-label="絞り込み">
-    <div class="pop-head"><h2 id="popTitle"></h2><button type="button" class="close" id="popClose" aria-label="閉じる">×</button></div>
+    <div class="pop-head"><h2 id="popTitle">絞り込み</h2><span class="pop-n" id="popN"></span><button type="button" class="close" id="popClose" aria-label="閉じる">×</button></div>
     <div class="pop-body" id="popBody"></div>
-    <div class="pop-foot"><button type="button" class="btn ghost" id="popClear">クリア</button><button type="button" class="btn" id="popDone">この条件で見る</button></div>
+    <div class="pop-foot"><button type="button" class="btn ghost" id="popClear">すべてクリア</button><button type="button" class="btn" id="popDone">この条件で見る</button></div>
   </section>
 
   <!-- S4: 物件の詳細（地図の上のシート） -->
@@ -157,18 +138,19 @@
     <div class="nudge-btns"><button type="button" class="btn small" id="nudgeYes">お知らせを受け取る</button><button type="button" class="btn ghost small" id="nudgeNo">今はいい</button></div>
   </div>
 
-  <!-- メニュー -->
-  <div class="menu" id="menu" hidden>
-    <button type="button" data-open="pageNotify">お知らせを受け取る</button>
-    <button type="button" data-open="pageCal">募集の予定</button>
-    <button type="button" data-open="pageAbout">このサービスについて</button>
-  </div>
+  <!-- 下の固定バー（案D） -->
+  <nav class="bbar" id="bbar" aria-label="メニュー">
+    <button type="button" data-tab="map" class="on"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 4L3 6.5v13.5l6-2.5 6 2.5 6-2.5V4l-6 2.5z" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/><path d="M9 4v13.5M15 6.5V20" stroke="currentColor" stroke-width="2"/></svg>地図</button>
+    <button type="button" data-tab="filter"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 6h16M7 12h10M10 18h4" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"/></svg>絞り込み<span class="bdg" id="filterN" hidden></span></button>
+    <button type="button" data-tab="cal"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="4.5" width="18" height="16.5" rx="2.5" fill="none" stroke="currentColor" stroke-width="2"/><path d="M3 9.5h18M8 2.5v4M16 2.5v4" stroke="currentColor" stroke-width="2" stroke-linecap="round"/><rect x="6.5" y="12.5" width="3" height="3" rx=".6" fill="currentColor"/><rect x="10.5" y="12.5" width="3" height="3" rx=".6" fill="currentColor"/><rect x="14.5" y="12.5" width="3" height="3" rx=".6" fill="currentColor"/><rect x="6.5" y="16.5" width="3" height="3" rx=".6" fill="currentColor"/></svg>カレンダー</button>
+    <button type="button" data-tab="notify"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 16V11a6 6 0 0112 0v5l1.5 2h-15z" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/><path d="M10 20.5a2 2 0 004 0" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>お知らせ</button>
+  </nav>
 
   <div class="toast" id="toast" role="status" aria-live="polite" hidden></div>
 </div>
 
 <script src="vendor/leaflet/leaflet.js"></script>
 <script src="vendor/markercluster/leaflet.markercluster.js"></script>
-<script src="js/app.js?v=20261107b"></script>
+<script src="js/app.js?v=20261107c"></script>
 </body>
 </html>

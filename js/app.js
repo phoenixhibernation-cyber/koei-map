@@ -6,7 +6,7 @@
   const esc = (s) => String(s ?? "").replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
   const yen = (n) => (n == null ? "—" : n.toLocaleString("ja-JP"));
   const norm = (s) => String(s || "").normalize("NFKC").toLowerCase().replace(/\s+/g, "");
-  const VERSION = "2026-11-07b";   // 画面の「このサービスについて」に出す版。index.html の ?v= も同じにする
+  const VERSION = "2026-11-07c";   // 画面の「このサービスについて」に出す版。index.html の ?v= も同じにする
   console.log("住まいのSmiley", VERSION);
   const PAGE = 50;
   const DESKTOP = window.matchMedia("(min-width: 900px)");
@@ -54,7 +54,7 @@
     let l = 0, r = W, t = 0, b = H;
     if (DESKTOP.matches) { l = 400; if (!$("detail").hidden) l = 416 + 420; }
     else {
-      t = $("chips").getBoundingClientRect().bottom;
+      t = $("topbar").getBoundingClientRect().bottom;
       const det = $("detail"), dr = $("drawer");
       b = !det.hidden ? det.getBoundingClientRect().top : (dr ? dr.getBoundingClientRect().top : H);
       if (b - t < 80) { t = 0; b = H; }
@@ -109,7 +109,7 @@
   function fitVisible(b) {
     if (!b.isValid()) return;
     const W = map.getSize().x, H = map.getSize().y, c = visibleCenter();
-    const padL = DESKTOP.matches ? (c.x * 2 - W) + 24 : 16, padT = DESKTOP.matches ? 24 : $("chips").getBoundingClientRect().bottom + 8;
+    const padL = DESKTOP.matches ? (c.x * 2 - W) + 24 : 16, padT = DESKTOP.matches ? 24 : $("topbar").getBoundingClientRect().bottom + 8;
     const padB = DESKTOP.matches ? 24 : H - (c.y * 2 - padT) + 8;
     map.fitBounds(b, { paddingTopLeft: [Math.max(16, padL), padT], paddingBottomRight: [16, Math.max(16, padB)], maxZoom: 14 });
   }
@@ -131,7 +131,7 @@
   // 詳細パネル・シートに隠れない位置へ地図をずらす（パソコン：左のパネル2枚の右側の中央／スマホ：上の見えている帯の中央）
   function focusOn(r, zoomIn) {
     if (r.lat == null) return;
-    const z = zoomIn ? Math.max(map.getZoom(), 15) : map.getZoom();
+    const z = zoomIn ? Math.max(map.getZoom(), DESKTOP.matches ? 17 : 16) : map.getZoom();   // 建物の形が分かるところまで寄せる
     const W = map.getSize().x, H = map.getSize().y, c = visibleCenter();
     // ピンが「パネルやシートに隠れていない範囲」の中心に来るよう、地図の中心をずらす
     const target = map.project([r.lat, r.lon], z).add([W / 2 - c.x, H / 2 - c.y]);
@@ -190,7 +190,7 @@
       // 端末が古い index.html を使い続けているとき（GitHub Pages のキャッシュ）、版の違いを見て自分で取り直す（1回だけ）
       if (SITE.version && SITE.version !== VERSION && !new URLSearchParams(location.search).has("e2e")) {
         let tried = null; try { tried = sessionStorage.getItem("smiley:reloaded"); } catch {}
-        if (tried !== SITE.version) { try { sessionStorage.setItem("smiley:reloaded", SITE.version); } catch {} location.replace(location.pathname + "?v=" + encodeURIComponent(SITE.version) + location.hash); return; }
+        if (tried !== SITE.version) { try { sessionStorage.setItem("smiley:reloaded", SITE.version); } catch {} const u = new URLSearchParams(location.search); u.set("v", SITE.version); location.replace(location.pathname + "?" + u.toString() + location.hash); return; }
         console.warn("版が合いません（画面", VERSION, "／データ", SITE.version, "）");
       }
       init(rd, ld);
@@ -226,6 +226,7 @@
       else if (typeof F[k] === "boolean") { if (typeof o[k] === "boolean") F[k] = o[k]; }   // 型が違えば今の値（初期値）のまま
       else F[k] = num(o[k]);
     }
+    F.now = true;   // 「募集中」スイッチは廃止（2026-11-07）。常に今申し込めるものだけ
     const sortOk = o.sort && [...$("sort").options].some((x) => x.value === o.sort);
     if (sortOk) $("sort").value = o.sort;
     return SAVE_KEYS.some((k) => k !== "now" && (F[k] instanceof Set ? F[k].size : F[k])) || !F.now || (sortOk && o.sort !== "rent");
@@ -245,7 +246,7 @@
     const params = new URLSearchParams(location.search);
     NOSAVE = params.has("e2e");
     if (params.get("round") && roundById.has(params.get("round"))) { F.round = params.get("round"); F.now = false; }
-    else if (!NOSAVE && restoreCond()) setTimeout(() => toast("前回の条件で表示しています（「条件をクリア」で戻せます）"), 600);
+    else if (!NOSAVE && restoreCond()) setTimeout(() => toast("前回の条件で表示しています（「条件を外す」で戻せます）"), 600);
     bindUI();
     apply();
   }
@@ -295,7 +296,7 @@
   function renderCount() {
     const n = filtered.length;
     const roundLabel = F.round ? (ROUNDS.find((r) => r.id === F.round)?.label || "") : "";
-    $("count").innerHTML = `${n.toLocaleString("ja-JP")}件${roundLabel ? `<small>${esc(roundLabel)}</small>` : F.now ? "<small>今募集中</small>" : ""}`;
+    $("count").innerHTML = `${n.toLocaleString("ja-JP")}件${roundLabel ? `<small>${esc(roundLabel)}</small>` : "<small>今申し込める</small>"}`;
     $("empty").hidden = n > 0;
   }
   function renderMore() {
@@ -328,41 +329,35 @@
     cluster.addLayers(ms);
   }
 
-  /* ---------------- チップ ---------------- */
-  function renderChips() {
-    const set = (k, txt) => { const c = document.querySelector(`.chip[data-chip="${k}"]`); c.classList.toggle("set", !!txt); c.querySelector(".v").textContent = txt || ""; };
-    document.querySelector('.chip[data-chip="now"]').classList.toggle("on", F.now && !F.round);
-    document.querySelector('.chip[data-chip="now"]').setAttribute("aria-pressed", F.now && !F.round);
-    const areaParts = [];
-    for (const p of PREFS) { if (!F.prefs.has(p)) continue; const cs = [...F.cities].filter((c) => CITY_PREF.get(c) === p); areaParts.push(cs.length ? (cs.length <= 2 ? cs.join("・") : `${p.replace(/[都県]$/, "")}${cs.length}か所`) : p.replace(/[都県]$/, "")); }
-    const area = areaParts.join("・");
-    set("area", area);
-    set("rent", F.rentMax != null ? `〜${(F.rentMax / 10000)}万円` : "");
-    set("layout", F.layouts.size ? [...F.layouts].join("・") : "");
-    { const c = document.querySelector('.chip[data-chip="op"]'); const ops = [...F.ops]; c.classList.toggle("set", ops.length > 0);
-      c.querySelector(".v").innerHTML = ops.length ? ops.map((o) => `<i class="dot" style="--op:${colorOf(OPS[o])}"></i>`).join("") + esc(ops.length <= 2 ? ops.map((o) => OPS[o] ? shortOp(OPS[o]) : o).join("・") : `${ops.length}つ`) : ""; }
-    set("built", F.builtFrom != null ? `${F.builtFrom}年〜` : "");
-    const moreN = [F.areaMin != null, F.ratioMax != null, F.walkMax != null, F.noBus, F.bf, F.priority, F.unitsMin != null, F.vacant, F.cats.size > 0].filter(Boolean).length;
-    set("more", moreN ? `${moreN}` : "");
-    for (const k of ["single", "ev"]) { const c = document.querySelector(`.chip[data-chip="${k}"]`); c.classList.toggle("on", F[k]); c.setAttribute("aria-pressed", F[k]); }
-    const any = F.prefs.size || F.cities.size || F.rentMax != null || F.layouts.size || F.ops.size || F.single || F.ev || F.round || F.q || F.builtFrom != null || moreN || !F.now || $("sort").value !== "rent";
-    $("chipReset").hidden = !any;
-    document.documentElement.style.setProperty("--chips-h", $("chips").offsetHeight + "px");
+  /* ---------------- 絞り込み（下のバーから開く・項目ごとに折りたたみ） ---------------- */
+  const SECTIONS = [["area", "地域"], ["op", "運営元"], ["rent", "家賃"], ["layout", "間取り"], ["built", "築年"], ["more", "こだわり"]];
+  const MORE_KEYS = () => [F.single, F.ev, F.areaMin != null, F.ratioMax != null, F.walkMax != null, F.noBus, F.bf, F.priority, F.unitsMin != null, F.vacant, F.cats.size > 0];
+  function summaryOf(k) {
+    if (k === "area") {
+      const parts = [];
+      for (const p of PREFS) { if (!F.prefs.has(p)) continue; const cs = [...F.cities].filter((c) => CITY_PREF.get(c) === p); parts.push(cs.length ? (cs.length <= 2 ? cs.join("・") : `${p.replace(/[都県]$/, "")}${cs.length}か所`) : p); }
+      return parts.join("・");
+    }
+    if (k === "op") { const ops = [...F.ops]; return ops.length ? (ops.length <= 2 ? ops.map((o) => OPS[o] ? shortOp(OPS[o]) : o).join("・") : `${ops.length}つ`) : ""; }
+    if (k === "rent") return F.rentMax != null ? `〜${F.rentMax / 10000}万円` : "";
+    if (k === "layout") return F.layouts.size ? [...F.layouts].join("・") : "";
+    if (k === "built") return F.builtFrom != null ? `${F.builtFrom}年〜` : "";
+    if (k === "more") { const w = [F.single && "単身可", F.ev && "EVあり"].filter(Boolean); const n = MORE_KEYS().filter(Boolean).length - w.length; return [...w, n ? `ほか${n}` : ""].filter(Boolean).join("・"); }
+    return "";
   }
-  window.addEventListener("resize", () => document.documentElement.style.setProperty("--chips-h", $("chips").offsetHeight + "px"));
-  $("chips").addEventListener("click", (e) => {
-    const c = e.target.closest(".chip"); if (!c) return;
-    const k = c.dataset.chip;
-    if (k === "now") { F.now = !F.now; F.round = null; apply(); return; }
-    if (k === "single" || k === "ev") { F[k] = !F[k]; apply(); return; }
-    if (c.id === "chipReset") { RESET(); $("q").value = ""; $("qClear").hidden = true; $("sort").value = "rent"; apply(); return; }
-    openPopover(k);
-  });
-  $("chipReset").addEventListener("click", () => {});
+  // いま効いている条件の数・文（下のバーのバッジと、一覧の上の1行）
+  function renderChips() {
+    const parts = SECTIONS.map(([k]) => summaryOf(k)).filter(Boolean);
+    const n = parts.length;
+    $("filterN").hidden = !n; $("filterN").textContent = n;
+    const roundOn = !!F.round;
+    $("cond").hidden = !(n || roundOn || F.q);
+    $("condText").textContent = [roundOn ? "この募集だけ" : "", F.q ? `「${$("q").value}」` : "", ...parts].filter(Boolean).join("・");
+  }
+  $("condClear").addEventListener("click", () => { RESET(); $("q").value = ""; $("qClear").hidden = true; $("sort").value = "rent"; apply(); });
 
-  /* ---------------- 絞り込みのシート ---------------- */
-  let popKey = null;
-  const TITLES = { area: "地域", rent: "家賃の上限", layout: "間取り", op: "運営元", built: "築年", more: "もっと条件" };
+  let openSec = null;
+  const TITLES = Object.fromEntries(SECTIONS);
   const selectRow = (label, options, cur, onChange) => {
     const g = document.createElement("div"); g.className = "opt-group"; g.innerHTML = `<h4>${esc(label)}</h4>`;
     const row = document.createElement("div"); row.className = "rent-row"; const sel = document.createElement("select");
@@ -371,8 +366,7 @@
     row.appendChild(sel); g.appendChild(row); return g;
   };
   const toggleRow = (label, opts) => group(label, opts.map(([k, l]) => opt(l, F[k], () => { F[k] = !F[k]; })));
-  function openPopover(k) {
-    popKey = k; $("popTitle").textContent = TITLES[k]; const b = $("popBody"); b.innerHTML = "";
+  function buildBody(k, b) {
     if (k === "area") {
       renderAreaBody(b);
     } else if (k === "rent") {
@@ -393,18 +387,55 @@
     } else if (k === "built") {
       const y = new Date().getFullYear();
       b.appendChild(selectRow("この年より新しい建物", [["", "指定なし"], ...[2015, 2010, 2005, 2000, 1995, 1990, 1985, 1980, 1975, 1970].map((v) => [v, `${v}年以降（築${y - v}年以内）`])], F.builtFrom, (v) => { F.builtFrom = v; }));
-      const h = document.createElement("p"); h.className = "hint"; h.textContent = "並び替えで「築年が新しい順／古い順」も選べます。"; b.appendChild(h);
     } else if (k === "more") {
+      b.appendChild(toggleRow("暮らし方", [["single", "単身可"], ["ev", "エレベーターあり"], ["bf", "バリアフリー"], ["vacant", "いま空きあり"]]));
       const cats = [...new Set(ITEMS.map((r) => r.cat_group || r.category))];
       b.appendChild(group("募集の種類", cats.map((c) => opt(c, F.cats.has(c), () => { F.cats.has(c) ? F.cats.delete(c) : F.cats.add(c); }))));
       b.appendChild(selectRow("広さ", [["", "指定なし"], [30, "30㎡以上"], [35, "35㎡以上"], [40, "40㎡以上"], [50, "50㎡以上"], [60, "60㎡以上"]], F.areaMin, (v) => { F.areaMin = v; }));
       b.appendChild(selectRow("前回の倍率", [["", "指定なし"], [1, "1倍以下（ほぼ当たる）"], [3, "3倍以下"], [5, "5倍以下"], [10, "10倍以下"]], F.ratioMax, (v) => { F.ratioMax = v; }));
       b.appendChild(selectRow("駅から", [["", "指定なし"], [5, "徒歩5分以内"], [10, "徒歩10分以内"], [15, "徒歩15分以内"]], F.walkMax, (v) => { F.walkMax = v; }));
       b.appendChild(selectRow("募集戸数", [["", "指定なし"], [2, "2戸以上"], [5, "5戸以上"], [10, "10戸以上"]], F.unitsMin, (v) => { F.unitsMin = v; }));
-      b.appendChild(toggleRow("そのほか", [["noBus", "バス便は除く"], ["bf", "バリアフリー"], ["priority", "優遇抽せんあり"], ["vacant", "いま空きあり"]]));
+      b.appendChild(toggleRow("そのほか", [["noBus", "バス便は除く"], ["priority", "優遇抽せんあり"]]));
     }
-    $("popover").hidden = false; $("scrim").hidden = false;
   }
+  function renderFilter() {
+    const b = $("popBody"); b.innerHTML = "";
+    for (const [k, title] of SECTIONS) {
+      const sec = document.createElement("div"); sec.className = "acc" + (openSec === k ? " open" : ""); sec.dataset.sec = k;
+      const v = summaryOf(k);
+      sec.innerHTML = `<button type="button" class="acc-head" aria-expanded="${openSec === k}"><span class="acc-t">${esc(title)}</span><span class="acc-v${v ? " set" : ""}">${esc(v || "指定なし")}</span><span class="acc-c">›</span></button><div class="acc-body"></div>`;
+      if (openSec === k) buildBody(k, sec.querySelector(".acc-body"));
+      sec.querySelector(".acc-head").addEventListener("click", () => { openSec = openSec === k ? null : k; renderFilter(); const el = b.querySelector(`[data-sec="${k}"]`); if (openSec) el.scrollIntoView({ block: "nearest" }); });
+      b.appendChild(sec);
+    }
+    refreshFilterHead();
+  }
+  // 選ぶたびに：各項目の右の文字と「この条件で見る（N件）」を更新
+  function refreshFilterHead() {
+    $("popBody").querySelectorAll(".acc").forEach((sec) => { const v = summaryOf(sec.dataset.sec), el = sec.querySelector(".acc-v"); el.textContent = v || "指定なし"; el.classList.toggle("set", !!v); });
+    const n = ITEMS.filter(matches).length;
+    $("popDone").textContent = `${n.toLocaleString("ja-JP")}件を見る`;
+    $("popN").textContent = "";
+  }
+  $("popBody").addEventListener("click", (e) => { if (!e.target.closest(".acc-head")) setTimeout(refreshFilterHead, 0); });
+  $("popBody").addEventListener("change", () => setTimeout(refreshFilterHead, 0));
+  function openFilter(k) {
+    closePages(); openSec = k ?? null;
+    renderFilter(); $("popover").hidden = false; $("scrim").hidden = false; setTab("filter");
+  }
+  const openPopover = openFilter;
+
+  // 下のバー
+  function setTab(t) { document.querySelectorAll("#bbar [data-tab]").forEach((b) => b.classList.toggle("on", b.dataset.tab === t)); }
+  $("bbar").addEventListener("click", (e) => {
+    const b = e.target.closest("[data-tab]"); if (!b) return;
+    const t = b.dataset.tab;
+    if (t === "filter") { if (!$("popover").hidden) { closePopover(); apply(); } else openFilter(); return; }
+    if (!$("popover").hidden) { closePopover(); apply(); }
+    if (t === "map") { closePages(); setTab("map"); return; }
+    openPage(t === "cal" ? "pageCal" : "pageNotify");
+  });
+
   function renderAreaBody(b) {
     b.innerHTML = "";
     const counts = new Map(), pc = new Map();
@@ -447,15 +478,13 @@
   }
   function group(title, opts) { const g = document.createElement("div"); g.className = "opt-group"; g.innerHTML = `<h4>${esc(title)}</h4>`; const grid = document.createElement("div"); grid.className = "opt-grid"; opts.forEach((o) => grid.appendChild(o)); g.appendChild(grid); return g; }
   function opt(label, on, toggle) { const btn = document.createElement("button"); btn.type = "button"; btn.className = "opt"; btn.textContent = label; btn.setAttribute("aria-pressed", on); btn.addEventListener("click", () => { toggle(); btn.setAttribute("aria-pressed", btn.getAttribute("aria-pressed") !== "true"); }); return btn; }
-  function closePopover() { $("popover").hidden = true; $("scrim").hidden = true; }
+  function closePopover() { $("popover").hidden = true; $("scrim").hidden = true; if (document.querySelectorAll(".page:not([hidden])").length === 0) setTab("map"); }
   $("popDone").addEventListener("click", () => { closePopover(); apply(); });
   $("popClose").addEventListener("click", () => { closePopover(); apply(); });
   $("scrim").addEventListener("click", () => { closePopover(); apply(); });
   $("popClear").addEventListener("click", () => {
-    if (popKey === "area") { F.prefs.clear(); F.cities.clear(); } if (popKey === "rent") F.rentMax = null; if (popKey === "layout") F.layouts.clear(); if (popKey === "op") F.ops.clear();
-    if (popKey === "built") F.builtFrom = null;
-    if (popKey === "more") Object.assign(F, { areaMin: null, ratioMax: null, walkMax: null, noBus: false, bf: false, priority: false, unitsMin: null, vacant: false, cats: new Set() });
-    closePopover(); apply();
+    const q = F.q, round = F.round; RESET(); F.q = q; F.round = round; if (round) F.now = false;
+    renderFilter();
   });
 
   /* ---------------- 検索 ---------------- */
@@ -598,7 +627,7 @@
   dh.addEventListener("pointerdown", (e) => { dy0 = e.clientY; });
   dh.addEventListener("pointerup", (e) => { if (dy0 == null) return; const dy = e.clientY - dy0; if (dy < -30) $("detail").classList.add("full"); else if (dy > 30) ($("detail").classList.contains("full") ? $("detail").classList.remove("full") : closeDetail()); dy0 = null; });
   $("detailClose").addEventListener("click", closeDetail);
-  map.on("click", () => { if (!$("detail").hidden) closeDetail(); $("menu").hidden = true; });
+  map.on("click", () => { if (!$("detail").hidden) closeDetail(); });
 
   // 公式ページから戻ってきたら、1回だけ通知登録を勧める
   document.addEventListener("visibilitychange", () => {
@@ -610,12 +639,10 @@
   $("nudgeNo").addEventListener("click", () => { $("nudge").hidden = true; });
 
   /* ---------------- ページ（S5・S6・S7） ---------------- */
-  function openPage(id) { closePopover(); $("menu").hidden = true; if (id === "pageCal") renderCal(); if (id === "pageAbout") renderUseLog(); $(id).hidden = false; $(id).querySelector(".page-body").scrollTop = 0; }
-  function closePages() { document.querySelectorAll(".page").forEach((p) => (p.hidden = true)); }
+  function openPage(id) { closePopover(); closePages(); setTab(id === "pageCal" ? "cal" : id === "pageNotify" ? "notify" : ""); if (id === "pageCal") renderCal(); if (id === "pageAbout") renderUseLog(); $(id).hidden = false; $(id).querySelector(".page-body").scrollTop = 0; }
+  function closePages() { document.querySelectorAll(".page").forEach((p) => (p.hidden = true)); if ($("popover").hidden) setTab("map"); }
   document.querySelectorAll("[data-close]").forEach((b) => b.addEventListener("click", closePages));
-  $("btnCal").addEventListener("click", () => openPage("pageCal"));
-  $("btnMenu").addEventListener("click", () => { $("menu").hidden = !$("menu").hidden; });
-  $("menu").addEventListener("click", (e) => { const b = e.target.closest("[data-open]"); if (b) openPage(b.dataset.open); });
+  document.querySelectorAll("[data-open]").forEach((b) => b.addEventListener("click", () => openPage(b.dataset.open)));
 
   /* ---------------- 募集の予定：1年の早見表（都県 → 種別で絞る。横スクロールなし） ---------------- */
   const CAL = { pref: null, kinds: new Set(), open: new Set() };

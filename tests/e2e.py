@@ -25,21 +25,21 @@ with sync_playwright() as p:
     pg.screenshot(path=OUT / "01_home.png")
     count = pg.inner_text("#count")
     check("一覧に件数が出る: " + count.replace("\n", " "), "件" in count)
-    check("最初の画面に注記や申込期間が出ていない", "非公式" not in pg.inner_text("body") and "11/2" not in pg.inner_text("#chips"))
+    check("最初の画面に注記や申込期間が出ていない", "非公式" not in pg.inner_text("body") and "11/2" not in pg.inner_text("#topbar"))
 
     # チップ → 絞り込み
-    pg.click('.chip[data-chip="area"]'); pg.wait_for_timeout(300)
+    pg.click('#bbar [data-tab=filter]'); pg.wait_for_timeout(200); pg.click('[data-sec=area] .acc-head'); pg.wait_for_timeout(300)
     pg.screenshot(path=OUT / "02_filter_area.png")
     pg.click('.ck.pref:has-text("東京都") input'); pg.wait_for_timeout(200); pg.click('.city-grid .ck:has-text("板橋区") input'); pg.click("#popDone"); pg.wait_for_timeout(500)
     c2 = pg.inner_text("#count"); check("板橋区で絞れる: " + c2.split("\n")[0], 90 <= int(c2.split("件")[0].replace(",", "")) <= 200)
 
     # もっと条件（倍率3倍以下）→ 築年の並び替え
-    pg.click('.chip[data-chip="more"]'); pg.wait_for_timeout(300)
+    pg.click('#bbar [data-tab=filter]'); pg.wait_for_timeout(200); pg.click('[data-sec=more] .acc-head'); pg.wait_for_timeout(300)
     pg.select_option('#popBody select >> nth=1', "3"); pg.click("#popDone"); pg.wait_for_timeout(400)
     c3 = pg.inner_text("#count"); check("倍率3倍以下で絞れる: " + c3.split("\n")[0], "件" in c3 and "90件" not in c3)
     pg.select_option("#sort", "old"); pg.wait_for_timeout(400)
     check("築年が古い順に並ぶ", pg.evaluate("document.querySelector('#list .item .sub').textContent") is not None)
-    pg.click("#chipReset"); pg.wait_for_timeout(300); pg.click('.chip[data-chip="area"]'); pg.click('.ck.pref:has-text("東京都") input'); pg.wait_for_timeout(200); pg.click('.city-grid .ck:has-text("板橋区") input'); pg.click("#popDone"); pg.wait_for_timeout(400)
+    pg.evaluate("document.getElementById('condClear').click()"); pg.wait_for_timeout(300); pg.click('#bbar [data-tab=filter]'); pg.wait_for_timeout(200); pg.click('[data-sec=area] .acc-head'); pg.click('.ck.pref:has-text("東京都") input'); pg.wait_for_timeout(200); pg.click('.city-grid .ck:has-text("板橋区") input'); pg.click("#popDone"); pg.wait_for_timeout(400)
 
     # 一覧 → 詳細
     pg.click("#handle"); pg.wait_for_timeout(400)
@@ -66,14 +66,14 @@ with sync_playwright() as p:
     pg.click("#pageNotify [data-close]")
 
     # カレンダー → 地図で見る
-    pg.click("#btnCal"); pg.wait_for_timeout(300)
+    pg.click('#bbar [data-tab=cal]'); pg.wait_for_timeout(300)
     check("カレンダーに今募集中がある", "あと" in pg.inner_text("#calBody"))
     check("カレンダーに「終わった」がない", "終わった" not in pg.inner_text("#calBody"))
     check("カレンダーにLINEの導線がある", pg.is_visible("#calBody .line-cta"))
     pg.screenshot(path=OUT / "07_calendar.png")
     rid = pg.get_attribute("#calBody [data-round] >> nth=0", "data-round")
     pg.click("#calBody [data-round] >> nth=0"); pg.wait_for_timeout(500)
-    check("募集に絞った地図になる: " + rid, "募集" in pg.inner_text("#count") and "今募集中" not in pg.inner_text("#count"))
+    check("募集に絞った地図になる: " + rid, "募集" in pg.inner_text("#count") and "今申し込める" not in pg.inner_text("#count"))
 
     # 通知のリンクから（?round=）
     pg.goto(a.url + "?round=toei-2026-11"); pg.wait_for_function("document.querySelectorAll('#list .item').length > 0", timeout=20000)
@@ -82,6 +82,8 @@ with sync_playwright() as p:
     # 検索
     pg.fill("#q", "勝どき"); pg.wait_for_timeout(500)
     check("検索で絞れる", "勝どき" in pg.inner_text("#list"))
+    check("募集中のスイッチが無い", pg.locator('[data-chip="now"]').count() == 0)
+    check("下のバーに4つ（地図・絞り込み・カレンダー・お知らせ）", pg.locator("#bbar [data-tab]").count() == 4 and pg.is_visible("#bbar"))
     pg.screenshot(path=OUT / "08_search.png")
 
     # パソコン幅
