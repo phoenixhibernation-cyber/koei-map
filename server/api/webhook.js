@@ -22,7 +22,7 @@ async function handle(ev) {
   let sub = (await getSub(userId)) || { userId, prefs: [], since: new Date().toISOString() };
   if (ev.type === "follow") {
     await putSub(sub);
-    return reply(ev.replyToken, [{ type: "text", text: `友だち追加ありがとうございます。住まいのSmiley（公営住宅・URの募集マップ）です。\n\n届くお知らせは2種類です。\n① 都県ごと：選んだ都県の「募集が始まった日」と「締切の3日前」\n② 団地ごと：地図で団地を開き「見張る」を押すと、その団地が募集に入った日と締切の3日前\n\nまず①の都県を、次のボタンで選んでください。\n地図 → ${SITE}` }, menu(sub)]);
+    return reply(ev.replyToken, [{ type: "text", text: `友だち追加ありがとうございます。カチトリ住まい（公営住宅・URの募集マップ）です。\n\n届くお知らせは2種類です。\n① 都県ごと：選んだ都県の「募集が始まった日」と「締切の3日前」\n② 団地ごと：地図で団地を開き「見張る」を押すと、その団地が募集に入った日と締切の3日前\n\nまず①の都県を、次のボタンで選んでください。\n地図 → ${SITE}` }, menu(sub)]);
   }
   if (ev.type === "postback") {
     const v = new URLSearchParams(ev.postback?.data || "").get("pref");

@@ -3,14 +3,14 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<title>住まいのSmiley（試作）</title>
+<title>カチトリ住まい｜公営住宅・URの募集を地図とカレンダーで</title>
 <meta name="robots" content="noindex, nofollow">
 <meta name="description" content="安く住める家の募集を、全部まとめて、地図で、見逃さずに。">
 <meta name="theme-color" content="#ffffff">
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='8' fill='%23234e8c'/%3E%3Cpath d='M16 7l-9 7.5V25h6.5v-6h5v6H25V14.5z' fill='white'/%3E%3C/svg%3E">
 <link rel="stylesheet" href="vendor/leaflet/leaflet.css">
 <link rel="stylesheet" href="vendor/markercluster/MarkerCluster.css">
-<link rel="stylesheet" href="css/app.css?v=20261108b">
+<link rel="stylesheet" href="css/app.css?v=20261109a">
 </head>
 <body>
 
@@ -121,7 +121,7 @@
   <section class="page" id="pageAbout" hidden aria-label="このサービスについて">
     <header><button type="button" class="back" data-close aria-label="戻る">←</button><h2>このサービスについて</h2></header>
     <div class="page-body about">
-      <p><b>住まいのSmiley</b>（試作版）は、都営・県営・市営・公社・UR の募集を、地図とカレンダーでまとめて探せるサービスです。</p>
+      <p><b>カチトリ住まい</b>（試作版）は、都営・県営・市営・公社・UR の募集を、地図とカレンダーでまとめて探せるサービスです。</p>
       <p>東京都・神奈川県・埼玉県・千葉県の公営住宅等から始め、順に全国へ広げていきます。</p>
       <h3>データの更新</h3>
       <p>各運営元の公式ページを月曜と木曜の朝に自動で読み取り、締め切った募集は地図から外します。最終更新：<b id="dataDate">—</b></p>
@@ -129,8 +129,9 @@
       <ul id="aboutSources"></ul>
       <p>UR賃貸住宅の団地情報（名称・住所・家賃の幅など）は UR都市機構の公式サイトの掲載内容をもとにしています。空き部屋の有無と申し込みは公式サイトでご確認ください。</p>
       <p>このサービスは各運営元の公式情報をもとに作った非公式のものです。申し込みは、それぞれの物件の「公式ページで申し込む」から公式サイトで行ってください。地図のピンはおおよその位置です。</p>
-      <h3>お問い合わせ</h3>
-      <p>準備中</p>
+      <h3>運営</h3>
+      <p>カチトリ（<a href="https://kachitori.com/" target="_blank" rel="noopener">カチトリの履歴書</a>と同じ運営です）</p>
+      <p><a href="https://kachitori.com/company" target="_blank" rel="noopener">運営者情報</a>　<a href="https://kachitori.com/privacypolicy" target="_blank" rel="noopener">プライバシーポリシー</a>　<a href="https://kachitori.com/contact" target="_blank" rel="noopener">お問い合わせ</a></p>
       <p class="note">版 <span id="ver"></span>（古い画面が出るときは、ページを再読み込みしてください）</p>
       <h3>使った記録（試作の確認用・この端末だけ）</h3>
       <p id="useLog" class="note"></p>
@@ -157,6 +158,6 @@
 
 <script src="vendor/leaflet/leaflet.js"></script>
 <script src="vendor/markercluster/leaflet.markercluster.js"></script>
-<script src="js/app.js?v=20261108b"></script>
+<script src="js/app.js?v=20261109a"></script>
 </body>
 </html>

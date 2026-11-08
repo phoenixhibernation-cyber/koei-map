@@ -1,0 +1,9 @@
+server
+tests
+docs
+wireframes
+scripts
+.solo
+.github
+data/raw
+*.py
