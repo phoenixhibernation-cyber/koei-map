@@ -29,7 +29,8 @@ export function buildWatchMessages(msgs, ld, subs) {
       const hit = s.watch.filter((w) => inRound.get(m.round)?.has(w));
       if (!hit.length) continue;
       const names = hit.map((w) => w.split("/").slice(1).join("/")).join("・");
-      lines.push(m.type === "open" ? `【見張り中の団地】${names} が「${m.label}」に入りました\n${SITE}?round=${m.round}` : `【見張り中の団地・締切まであと${m.left}日】${names}（${m.label}）\n${SITE}?round=${m.round}`);
+      const body = m.text.split("\n").slice(1).join("\n");   // 見出し行を除いた本文（運営元・期間・締切・地図）
+      lines.push(m.type === "open" ? `【見張り中の団地が募集に入りました】\n${names}\n\n${body}` : `【見張り中の団地・締切まであと${m.left}日】\n${names}\n\n${body}`);
     }
     if (lines.length) out.push({ userId: s.userId, texts: lines.slice(0, 5) });
   }
@@ -37,6 +38,7 @@ export function buildWatchMessages(msgs, ld, subs) {
 }
 
 // 戻り値：[{ key, pref, round, type, label, text }]  pref は都県名（運営元の pref）。UR など都県の無い運営元は全員向け（pref: null）
+// 文面：運営元・募集名・申込期間・締切・抽せん日・戸数・地図のリンク。読んだ人がそのまま動けるだけの中身を入れる
 export function buildMessages(rd, ld, today = todayJST(), notified = {}) {
   const count = {};
   for (const it of ld.items) count[it.round_id] = (count[it.round_id] || 0) + 1;
@@ -45,14 +47,27 @@ export function buildMessages(rd, ld, today = todayJST(), notified = {}) {
     if (r.anytime || r.expected || !(r.apply_from && r.apply_to)) continue;
     const a = day(r.apply_from), b = day(r.apply_to);
     if (isNaN(a) || isNaN(b)) continue;
-    const pref = rd.operators?.[r.operator]?.pref || null;
+    const op = rd.operators?.[r.operator] || {};
+    const pref = op.pref || null;
     const n = count[r.id] || 0;
     const kOpen = `${r.id}:${r.apply_from}:open`, kDl = `${r.id}:${r.apply_from}:deadline`;
-    if (diff(today, a) >= 0 && diff(today, a) <= 2 && today <= b && !notified[kOpen])
-      out.push({ key: kOpen, pref, round: r.id, type: "open", label: r.label, text: `【募集が始まりました】${r.label}\n申込 ${fmt(r.apply_from)}〜${fmt(r.apply_to)}` + (n ? `\n${n.toLocaleString("ja-JP")}件を地図で見る → ${SITE}?round=${r.id}` : `\n詳しくは公式ページ → ${r.url}`) });
     const left = diff(b, today);
+    const body = roundLines(r, op, n, left);
+    if (diff(today, a) >= 0 && diff(today, a) <= 2 && today <= b && !notified[kOpen])
+      out.push({ key: kOpen, pref, round: r.id, type: "open", label: r.label, text: `【募集が始まりました】\n${body}` });
     if (left > 0 && left <= 3 && !notified[kDl])
-      out.push({ key: kDl, pref, round: r.id, type: "deadline", label: r.label, left, text: `【締切まであと${left}日】${r.label}\n${fmt(r.apply_to)}まで\n${SITE}?round=${r.id}` });
+      out.push({ key: kDl, pref, round: r.id, type: "deadline", label: r.label, left, text: `【締切まであと${left}日】\n${body}` });
   }
   return out;
+}
+// 1つの募集の説明（通知の本文）
+export function roundLines(r, op, n, left) {
+  const lines = [`■ ${r.label}`]; if (op.long) lines.push(`運営：${op.long}`);
+  lines.push(`申込期間：${fmt(r.apply_from)}〜${fmt(r.apply_to)}${left > 0 ? `（締切まで${left}日）` : ""}`);
+  if (r.lottery) lines.push(`抽せん日：${fmt(r.lottery)}`);
+  if (r.units) lines.push(`募集戸数：${Number(r.units).toLocaleString("ja-JP")}戸`);
+  if (r.kind) lines.push(`決め方：${r.kind}`);
+  if (r.note) lines.push(`※ ${r.note}`);
+  lines.push(n ? `対象の住まい ${n.toLocaleString("ja-JP")}件を地図で見る\n${SITE}?round=${r.id}` : `詳しくは公式ページ\n${r.url}`);
+  return lines.join("\n");
 }

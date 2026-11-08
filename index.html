@@ -10,7 +10,7 @@
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='8' fill='%23234e8c'/%3E%3Cpath d='M16 7l-9 7.5V25h6.5v-6h5v6H25V14.5z' fill='white'/%3E%3C/svg%3E">
 <link rel="stylesheet" href="vendor/leaflet/leaflet.css">
 <link rel="stylesheet" href="vendor/markercluster/MarkerCluster.css">
-<link rel="stylesheet" href="css/app.css?v=20261107d">
+<link rel="stylesheet" href="css/app.css?v=20261108a">
 </head>
 <body>
 
@@ -80,13 +80,17 @@
   <section class="page" id="pageNotify" hidden aria-label="お知らせを受け取る">
     <header><button type="button" class="back" data-close aria-label="戻る">←</button><h2>お知らせを受け取る</h2></header>
     <div class="page-body">
-      <h3 class="h">届くのはこの2つだけ</h3>
+      <h3 class="h">LINEで受け取れるお知らせは2種類</h3>
       <ol class="three">
-        <li><b>募集が始まった日</b><span>都営・県営・市営。あなたが選んだ都県のものだけ</span></li>
-        <li><b>締切の3日前</b><span>1回だけ</span></li>
+        <li><b>① 都県ごと</b><span>選んだ都県の都営・県営・市営の「募集が始まった日」と「締切の3日前」</span></li>
+        <li><b>② 団地ごと</b><span>気になる団地が「募集に入った日」と「締切の3日前」</span></li>
       </ol>
-      <p class="label">地域の選び方</p>
-      <p class="note">友だち追加すると、LINEの中に「東京・神奈川・埼玉・千葉・すべて」のボタンが出ます。押すだけで切り替えられ、あとから「設定」と送れば変えられます。</p>
+      <p class="label">使い方</p>
+      <ol class="three steps">
+        <li><b>1</b><span>下の緑のボタンで友だち追加</span></li>
+        <li><b>2</b><span>LINEに「東京・神奈川・埼玉・千葉・すべて」のボタンが届くので、知りたい都県を押す（①）</span></li>
+        <li><b>3</b><span>地図で団地を開き、「LINEでこの団地だけを見張る → 見張る」を押す。LINEに文が入るので、そのまま送る（②）</span></li>
+      </ol>
       <div class="area-chips" id="areaChips" hidden>
         <button type="button" class="chip on" data-pref="東京都" aria-pressed="true">東京</button>
         <button type="button" class="chip" data-pref="神奈川県" aria-pressed="false">神奈川</button>
@@ -95,7 +99,7 @@
       </div>
       <a class="btn line" id="btnLine" data-line href="#" rel="noopener">LINEで受け取る（友だち追加）</a>
       <p class="note" id="lineNote"></p>
-      <p class="note">名前や住所は聞きません。いつでもブロックで解除できます。メールでのお知らせは準備中です。</p>
+      <p class="note">名前や住所は聞きません。やめるときはLINEで「停止」と送るか、ブロックしてください。メールでのお知らせは準備中です。</p>
       <form class="mail" id="mailForm" hidden>
         <input type="email" id="mail" placeholder="メールアドレス" autocomplete="email" inputmode="email">
         <button type="submit" class="btn ghost">メールで受け取る</button>
@@ -119,6 +123,8 @@
     <div class="page-body about">
       <p><b>住まいのSmiley</b>（試作版）は、都営・県営・市営・公社・UR の募集を、地図とカレンダーでまとめて探せるサービスです。</p>
       <p>東京都・神奈川県・埼玉県・千葉県の公営住宅等から始め、順に全国へ広げていきます。</p>
+      <h3>データの更新</h3>
+      <p>各運営元の公式ページを月曜と木曜の朝に自動で読み取り、締め切った募集は地図から外します。最終更新：<b id="dataDate">—</b></p>
       <h3>データの出どころ</h3>
       <ul id="aboutSources"></ul>
       <p>UR賃貸住宅の団地情報（名称・住所・家賃の幅など）は UR都市機構の公式サイトの掲載内容をもとにしています。空き部屋の有無と申し込みは公式サイトでご確認ください。</p>
@@ -151,6 +157,6 @@
 
 <script src="vendor/leaflet/leaflet.js"></script>
 <script src="vendor/markercluster/leaflet.markercluster.js"></script>
-<script src="js/app.js?v=20261107d"></script>
+<script src="js/app.js?v=20261108a"></script>
 </body>
 </html>

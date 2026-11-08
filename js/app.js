@@ -6,7 +6,7 @@
   const esc = (s) => String(s ?? "").replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
   const yen = (n) => (n == null ? "—" : n.toLocaleString("ja-JP"));
   const norm = (s) => String(s || "").normalize("NFKC").toLowerCase().replace(/\s+/g, "");
-  const VERSION = "2026-11-07d";   // 画面の「このサービスについて」に出す版。index.html の ?v= も同じにする
+  const VERSION = "2026-11-08a";   // 画面の「このサービスについて」に出す版。index.html の ?v= も同じにする
   console.log("住まいのSmiley", VERSION);
   const PAGE = 50;
   const DESKTOP = window.matchMedia("(min-width: 900px)");
@@ -68,6 +68,8 @@
   // 境界：1都3県の市区町村（細い線）と都県（太めの線）。地域を選んだ・地名で検索したときは、その範囲を青い太線で囲む
   ["bline", "bhi"].forEach((n, i) => { const p = map.createPane(n); p.style.zIndex = [380, 395][i]; p.style.pointerEvents = "none"; });
   let AREAS = null, hiLayer = null, hiKey = "";
+  let DATA_DATE = "";   // 公開データを最後に作った日（表示用）
+  const fmtDate = (d) => { const x = /^(\d{4})-(\d{2})-(\d{2})/.exec(d || ""); return x ? `${x[1]}/${+x[2]}/${+x[3]}` : ""; };
   const areaNorm = (t) => norm(t).replace(/[ヶケ]/g, "け");
   fetch("data/areas.json").then((r) => r.json()).then((A) => {
     AREAS = A.features;
@@ -232,7 +234,7 @@
     return SAVE_KEYS.some((k) => k !== "now" && (F[k] instanceof Set ? F[k].size : F[k])) || !F.now || (sortOk && o.sort !== "rent");
   }
   function init(rd, ld) {
-    OPS = rd.operators; ROUNDS = rd.rounds; ITEMS = ld.items;
+    OPS = rd.operators; ROUNDS = rd.rounds; ITEMS = ld.items; DATA_DATE = fmtDate(ld.generated_at || rd.generated_at);
     const roundById = new Map(ROUNDS.map((r) => [r.id, r]));
     ITEMS.forEach((r) => {
       byId.set(r.id, r);
@@ -655,7 +657,7 @@
   document.querySelectorAll("[data-open]").forEach((b) => b.addEventListener("click", () => openPage(b.dataset.open)));
 
   /* ---------------- 募集の予定：1年の早見表（都県 → 種別で絞る。横スクロールなし） ---------------- */
-  const CAL = { pref: null, kinds: new Set(), open: new Set() };
+  const CAL = { pref: null, kind: undefined, sel: null };   // kind: null＝すべて／sel: 押した月 { op, m }
   const md = (d) => `${d.getMonth() + 1}/${d.getDate()}`;
   const monthEnd = (y, m) => new Date(y, m, 0), monthStart = (y, m) => new Date(y, m - 1, 1);
   // 日付のある募集と、例年の月からの見込み（例年）を1つの並びにする
@@ -697,79 +699,81 @@
     const stored = store.get("cal") || {};
     if (!CAL.pref) CAL.pref = (F.prefs.size === 1 ? [...F.prefs][0] : null) || stored.pref || "東京都";
     if (!["all", ...PREFS].includes(CAL.pref)) CAL.pref = "東京都";
-    if (!CAL.kinds.size && Array.isArray(stored.kinds)) stored.kinds.filter((k) => KINDS.includes(k)).forEach((k) => CAL.kinds.add(k));
+    if (CAL.kind === undefined) CAL.kind = KINDS.includes(stored.kind) ? stored.kind : null;   // 保存した種別は最初の1回だけ読む
     const EV = calEvents();
-    // 1月〜12月で固定。今月より前の月は「来年のその月」を見せる（終わった募集は出さない）
+    // 1月〜12月で固定。今月より前の月は「来年のその月」を見せる（今年すでに締め切った分は出さない）
     const curM = TODAY.getMonth() + 1, curY = TODAY.getFullYear();
     const months = [...Array(12)].map((_, i) => ({ m: i + 1, y: i + 1 >= curM ? curY : curY + 1 }));
-    const yearStrip = curM === 1 ? `<span style="grid-column:1/13">${curY}年</span>`
-      : `<span class="next" style="grid-column:1/${curM}">${curY + 1}年</span><span style="grid-column:${curM}/13">${curY}年</span>`;
     const inPref = Object.keys(OPS).filter((k) => CAL.pref === "all" || !OPS[k].pref || OPS[k].pref === CAL.pref);
     const kindsHere = KINDS.filter((k) => inPref.some((o) => OPS[o].label === k));
-    CAL.kinds = new Set([...CAL.kinds].filter((k) => kindsHere.includes(k)));   // この地域に無い種別は外す（全部外れたら「すべて」）
-    if (CAL.kinds.size === kindsHere.length) CAL.kinds.clear();
-    store.set("cal", { pref: CAL.pref, kinds: [...CAL.kinds] });
-    const ops = inPref.filter((k) => !CAL.kinds.size || CAL.kinds.has(OPS[k].label)).sort((a, z) => KINDS.indexOf(OPS[a].label) - KINDS.indexOf(OPS[z].label));
+    if (CAL.kind && !kindsHere.includes(CAL.kind)) CAL.kind = null;   // この地域に無い種別なら「すべて」
+    store.set("cal", { pref: CAL.pref, kind: CAL.kind });
+    const ops = inPref.filter((k) => !CAL.kind || OPS[k].label === CAL.kind).sort((a, z) => KINDS.indexOf(OPS[a].label) - KINDS.indexOf(OPS[z].label));
     const nameOf = (k) => (CAL.pref !== "all" && OPS[k].label === "県営") ? "県営" : shortOp(OPS[k]);
     const countOf = (rid) => ITEMS.filter((x) => x.round_id === rid).length;
+    const yearStrip = curM === 1 ? `<span>${curY}年</span>`
+      : `<span class="next" style="grid-column:1/${curM}">${curY + 1}年</span><span style="grid-column:${curM}/13">${curY}年</span>`;
 
     let h = `<div class="cal-ctl"><label class="cal-pref">地域 <select id="calPref"><option value="all"${CAL.pref === "all" ? " selected" : ""}>1都3県すべて</option>${REGIONS.map(([n, ps]) => `<optgroup label="${esc(n)}">${ps.map((p) => PREFS.includes(p) ? `<option value="${esc(p)}"${CAL.pref === p ? " selected" : ""}>${esc(p)}</option>` : `<option disabled>${esc(p)}（準備中）</option>`).join("")}</optgroup>`).join("")}</select></label>
-      <div class="cal-kinds">${kindsHere.map((k) => `<button type="button" class="opt" data-kind="${esc(k)}" aria-pressed="${!CAL.kinds.size || CAL.kinds.has(k)}">${k}</button>`).join("")}</div></div>
+      ${kindsHere.length > 1 ? `<div class="seg" role="tablist">${["", ...kindsHere].map((k) => `<button type="button" data-kind="${esc(k)}" aria-pressed="${(CAL.kind || "") === k}">${k || "すべて"}</button>`).join("")}</div>` : ""}</div>
       <div class="cal-grid-head"><div class="cal-years">${yearStrip}</div>
-      <div class="cal-months">${months.map(({ m }) => `<div class="h${m === curM ? " now" : ""}${m === curM && m > 1 ? " yb" : ""}">${m === curM ? "今月" : m + "<small>月</small>"}</div>`).join("")}</div></div>`;
+      <div class="cal-mark">${months.map(({ m }) => `<span>${m === curM ? "今月" : ""}</span>`).join("")}</div></div>`;
     if (!ops.length) h += `<p class="hint">この条件に合う運営元がありません</p>`;
+    // 各運営元：1行目に名前と「いま／次」、2行目に12個の月ブロック。押した月の中身は下に出る
     for (const k of ops) {
       const op = OPS[k], es = EV.filter((e) => e.op === k), col = colorOf(op);
       const openE = es.filter((e) => evStatus(e) === "open" && !e.anyRange).sort((a, z) => a.to - z.to);
       const upE = es.filter((e) => evStatus(e) === "up" && !e.anyRange).sort((a, z) => a.from - z.from);
       const anyE = es.find((e) => e.kind === "any" || (e.anyRange && evStatus(e) !== "closed"));
       const anyOpen = anyE && (anyE.kind === "any" || evStatus(anyE) === "open");
-      // 1行目：いま／次がひと目で分かる
       let stat = "";
       if (openE.length) stat = `<span class="badge">受付中 あと${daysLeft(openE[0].r.apply_to)}日</span>`;
       else if (upE.length) { const e = upE[0]; stat = `<span class="badge ${dl(e.from) <= 30 ? "soon" : "gray"}">${e.kind === "fix" ? `${md(e.from)}から` : `次は${e.from.getMonth() + 1}月ごろ`}</span>`; }
       else if (!anyE) stat = `<span class="badge gray">時期は未発表</span>`;
       if (anyOpen) stat += `<span class="badge ok">いつでも</span>`;
       else if (anyE) stat += `<span class="badge gray">先着順は${anyE.from.getMonth() + 1}月から</span>`;
-      const opened = CAL.open.has(k) || (!CAL.open.has("!" + k) && openE.length > 0);
-      h += `<div class="cal-op${opened ? " opened" : ""}" style="--op:${col}" data-op="${esc(k)}"><button type="button" class="cal-head"><i class="dot"></i><b>${esc(nameOf(k))}</b>${stat}<span class="caret">${opened ? "▴" : "▾"}</span></button><div class="cal-cells">`;
-      const cells = months.map(({ m, y }) => {
-        const inM = es.filter((e) => (e.kind === "fix" || e.kind === "exp" || e.kind === "unk") && !e.anyRange && evStatus(e) !== "closed" && e.from <= monthEnd(y, m) && e.to >= monthStart(y, m));
+      const selM = CAL.sel?.op === k ? CAL.sel.m : null;
+      h += `<div class="cal-op" style="--op:${col}" data-op="${esc(k)}"><div class="cal-head"><i class="dot"></i><b>${esc(nameOf(k))}</b>${stat}</div><div class="cal-blocks">`;
+      const inMonth = (y, m) => es.filter((e) => (e.kind === "fix" || e.kind === "exp" || e.kind === "unk") && !e.anyRange && evStatus(e) !== "closed" && e.from <= monthEnd(y, m) && e.to >= monthStart(y, m));
+      for (const { m, y } of months) {
+        const inM = inMonth(y, m);
+        const anyHere = anyE && (anyE.kind === "any" || (anyE.from <= monthEnd(y, m) && anyE.to >= monthStart(y, m)));
         let st = "";
         if (inM.some((e) => evStatus(e) === "open")) st = "open";
         else if (inM.some((e) => e.kind === "fix")) st = "fix";
         else if (inM.length) st = "exp";
-        else if (anyE && (anyE.kind === "any" || (anyE.from <= monthEnd(y, m) && anyE.to >= monthStart(y, m)))) st = "any";
-        return { m, st, tip: inM.map((e) => `${md(e.from)}〜${md(e.to)}`).join(" / ") };
-      });
-      // 隣の月と同じ種類なら1本の帯につなげる（今月の左＝年の切れ目ではつなげない）
-      const joined = (a, z) => a && z && a.st && a.st === z.st && z.m !== curM;
-      cells.forEach((c, i) => {
-        let cls = "c" + (c.st ? " " + c.st : "");
-        if (c.st && joined(cells[i - 1], c)) cls += " jl";
-        if (c.st && joined(c, cells[i + 1])) cls += " jr";
-        if (c.m === curM) cls += " now";
-        if (c.m === curM && c.m > 1) cls += " yb";
-        h += `<div class="${cls}" title="${esc(c.tip)}"></div>`;
-      });
-      const sc = op.schedule || {};
-      const subtxt = sc.months?.length ? `例年 ${sc.months.join("・")}月${sc.days ? "（" + sc.days + "）" : ""}・${sc.how || ""}${sc.anytime_note ? "／" + sc.anytime_note : ""}` : (sc.anytime_note || sc.note || "");
-      h += `</div><div class="cal-detail"><div class="cal-sub">${esc(subtxt)}</div>${[...openE, ...upE.slice(0, 2), ...(anyE ? [anyE] : [])].map((e) => evHtml(e, countOf)).join("")}<div class="cal-official"><a href="${esc(safeUrl(op.url))}" target="_blank" rel="noopener">${esc(nameOf(k))}の公式ページ ↗</a></div></div></div>`;
+        else if (anyHere) st = "any";
+        const has = !!(inM.length || anyHere);
+        h += `<button type="button" class="blk${st ? " " + st : ""}${m === curM ? " now" : ""}${selM === m ? " sel" : ""}" data-m="${m}" data-y="${y}"${has ? "" : " disabled"} aria-label="${m}月${st ? "：" + { open: "受付中", fix: "申込期間（確定）", exp: "例年の時期", any: "いつでも" }[st] : ""}">${m}</button>`;
+      }
+      h += `</div>`;
+      if (selM) {
+        const y = months.find((x) => x.m === selM).y;
+        const inM = inMonth(y, selM), anyHere = anyE && (anyE.kind === "any" || (anyE.from <= monthEnd(y, selM) && anyE.to >= monthStart(y, selM)));
+        const list = [...inM, ...(anyHere ? [anyE] : [])];
+        const sc = op.schedule || {};
+        const subtxt = sc.months?.length ? `例年 ${sc.months.join("・")}月${sc.days ? "（" + sc.days + "）" : ""}・${sc.how || ""}${sc.anytime_note ? "／" + sc.anytime_note : ""}` : (sc.anytime_note || sc.note || "");
+        h += `<div class="cal-pop"><div class="cal-pop-h"><b>${y}年${selM}月</b><span>${esc(nameOf(k))}</span><button type="button" class="cal-pop-x" aria-label="閉じる">×</button></div>
+          ${list.map((e) => evHtml(e, countOf)).join("") || `<p class="hint">この月の募集はありません</p>`}
+          ${subtxt ? `<div class="cal-sub">${esc(subtxt)}</div>` : ""}<div class="cal-official"><a href="${esc(safeUrl(op.url))}" target="_blank" rel="noopener">${esc(nameOf(k))}の公式ページ ↗</a></div></div>`;
+      }
+      h += `</div>`;
     }
-    h += `<div class="legend"><span><i class="fix"></i>申込期間（確定）</span><span><i class="exp"></i>例年の時期（見込み）</span><span><i class="any"></i>いつでも（先着順）</span><span><i class="now"></i>今月</span></div>${curM > 1 ? `<p class="cal-note">左の1〜${curM - 1}月は来年（${curY + 1}年）の予定です。今年すでに締め切った分は出しません。</p>` : ""}
+    h += `<div class="legend"><span><i class="open"></i>受付中</span><span><i class="fix"></i>申込期間（確定）</span><span><i class="exp"></i>例年の時期</span><span><i class="any"></i>いつでも</span><span><i class="now"></i>今月</span></div>
+      <p class="cal-note">色のついた月を押すと、申込期間や抽せん日が見られます。${curM > 1 ? `左の1〜${curM - 1}月は来年（${curY + 1}年）の予定です。` : ""}${DATA_DATE ? `データは月・木の朝に自動更新（最終 ${DATA_DATE}）。` : ""}</p>
       <div class="line-cta"><span><b>LINE</b>で「募集が始まった」「締切3日前」を受け取る。見逃しゼロに</span><a class="line-btn" data-line href="#">友だち追加</a></div>
       <button type="button" class="btn ghost" id="calNotify" style="width:100%;margin-top:10px">お知らせの受け取り方を見る</button>`;
     $("calBody").innerHTML = h;
     setupLine();
-    $("calPref").addEventListener("change", (e) => { CAL.pref = e.target.value; CAL.open.clear(); renderCal(); });
-    $("calBody").querySelectorAll("[data-kind]").forEach((b) => b.addEventListener("click", () => {
-      const k = b.dataset.kind; if (!CAL.kinds.size) kindsHere.forEach((x) => CAL.kinds.add(x));
-      CAL.kinds.has(k) ? CAL.kinds.delete(k) : CAL.kinds.add(k); if (CAL.kinds.size === kindsHere.length) CAL.kinds.clear(); renderCal();
+    $("calPref").addEventListener("change", (e) => { CAL.pref = e.target.value; CAL.sel = null; renderCal(); });
+    $("calBody").querySelectorAll("[data-kind]").forEach((b) => b.addEventListener("click", () => { CAL.kind = b.dataset.kind || null; CAL.sel = null; renderCal(); }));
+    $("calBody").querySelectorAll(".blk:not([disabled])").forEach((b) => b.addEventListener("click", () => {
+      const k = b.closest(".cal-op").dataset.op, m = +b.dataset.m;
+      CAL.sel = (CAL.sel?.op === k && CAL.sel.m === m) ? null : { op: k, m };
+      const top = $("calBody").scrollTop; renderCal(); $("calBody").scrollTop = top;
+      const pop = $("calBody").querySelector(".cal-pop"); if (pop) { const r = pop.getBoundingClientRect(), br = $("calBody").getBoundingClientRect(); if (r.bottom > br.bottom) $("calBody").scrollBy({ top: Math.min(r.bottom - br.bottom + 12, r.top - br.top - 60), behavior: "smooth" }); }
     }));
-    $("calBody").querySelectorAll(".cal-head").forEach((b) => b.addEventListener("click", () => {
-      const box = b.closest(".cal-op"), k = box.dataset.op, now = box.classList.toggle("opened");
-      b.querySelector(".caret").textContent = now ? "▴" : "▾"; CAL.open.delete(k); CAL.open.delete("!" + k); CAL.open.add(now ? k : "!" + k);
-    }));
+    $("calBody").querySelectorAll(".cal-pop-x").forEach((b) => b.addEventListener("click", () => { CAL.sel = null; const top = $("calBody").scrollTop; renderCal(); $("calBody").scrollTop = top; }));
     $("calBody").querySelectorAll("[data-round]").forEach((b) => b.addEventListener("click", () => { F.round = b.dataset.round; F.now = false; closePages(); apply(); if (!DESKTOP.matches) drawer.classList.add("open"); }));
     $("calNotify").addEventListener("click", () => openPage("pageNotify"));
   }
@@ -803,7 +807,7 @@
       if (url) { a.href = url; a.target = "_blank"; a.rel = "noopener"; a.addEventListener("click", () => { store.set("subscribed", true); }); }
       else a.addEventListener("click", (e) => { e.preventDefault(); toast(SITE.line_note || "LINE公式アカウントは準備中です"); });
     });
-    $("lineNote").textContent = url ? "友だち追加のあと、LINEの中で都県を選ぶと、その都県の「募集が始まった」「締切3日前」が届きます。" : (SITE.line_note || "");
+    $("lineNote").textContent = url ? "友だち追加すると、すぐに都県を選ぶボタンが届きます。" : (SITE.line_note || "");
   }
   $("mailForm").addEventListener("submit", (e) => {
     e.preventDefault();
@@ -825,6 +829,7 @@
   function buildAbout() {
     renderUseLog();
     if ($("ver")) $("ver").textContent = VERSION;
+    if ($("dataDate")) $("dataDate").textContent = DATA_DATE || "—";
     $("aboutSources").innerHTML = Object.values(OPS).map((o) => `<li><a href="${esc(safeUrl(o.url))}" target="_blank" rel="noopener">${esc(o.long)}</a></li>`).join("");
   }
 
