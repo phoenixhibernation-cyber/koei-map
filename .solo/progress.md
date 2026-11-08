@@ -61,7 +61,7 @@ status: 進行中
 - 2026-11-05 工程06：GitHub Actions で10ソースの自動取得が通った（初回キャッシュなし、2,741件・失敗なし）
 
 ## オーナー待ちのこと
-- 2026-11-08 工程06：LINE公式アカウント @736rlgzw をつないだ（Webhook検証 成功）。秘密の値はVercelの画面で直接入れる（pbpaste方式はコマンド文字が入る事故あり）
+- 2026-11-08 工程06：LINE公式アカウント @736rlgzw をつないだ（Webhook検証 成功・友だち追加→見張る→返信まで実機で確認）。秘密の値はVercelの画面で直接入れる（pbpaste方式はコマンド文字が入る事故あり）
 - 2026-11-08 工程06：LINE通知サーバーを本番に置いた（https://koei-map-line.vercel.app 、webhook応答・cron（合言葉つき）・dry実行OK）
 - 工程06：LINE公式アカウント作成 → Vercel に LINE_CHANNEL_ACCESS_TOKEN と LINE_CHANNEL_SECRET を入れる → LINE Developers に Webhook URL を設定
 - 2026-11-07 工程06：オーナー決定（追記）。カレンダーは1〜12月固定・今月が分かる・終わった分なし／地域は全国の地方→都道府県→市区町村（載っていない所は準備中）→ 実装・公開（版 2026-11-07b）
