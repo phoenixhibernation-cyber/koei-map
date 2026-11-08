@@ -66,7 +66,7 @@ export async function POST(req) {
   const sig = req.headers.get("x-line-signature") || "";
   const mac = crypto.createHmac("sha256", secret).update(raw).digest("base64");
   if (!secret || sig.length !== mac.length || !crypto.timingSafeEqual(Buffer.from(sig), Buffer.from(mac))) {
-    console.warn("署名が合いません（LINE_CHANNEL_SECRET 未設定か、LINE 以外からの呼び出し）");
+    console.warn("署名が合いません（LINE_CHANNEL_SECRET 未設定か、LINE 以外からの呼び出し）", { secretLen: secret.length, secretLooksRight: /^[0-9a-f]{32}$/.test(secret), sigLen: sig.length });
     return new Response("bad signature", { status: 401 });
   }
   const body = JSON.parse(raw || "{}");
