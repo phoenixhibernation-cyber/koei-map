@@ -6,7 +6,7 @@
   const esc = (s) => String(s ?? "").replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
   const yen = (n) => (n == null ? "—" : n.toLocaleString("ja-JP"));
   const norm = (s) => String(s || "").normalize("NFKC").toLowerCase().replace(/\s+/g, "");
-  const VERSION = "2026-11-08a";   // 画面の「このサービスについて」に出す版。index.html の ?v= も同じにする
+  const VERSION = "2026-11-08b";   // 画面の「このサービスについて」に出す版。index.html の ?v= も同じにする
   console.log("住まいのSmiley", VERSION);
   const PAGE = 50;
   const DESKTOP = window.matchMedia("(min-width: 900px)");
@@ -657,7 +657,7 @@
   document.querySelectorAll("[data-open]").forEach((b) => b.addEventListener("click", () => openPage(b.dataset.open)));
 
   /* ---------------- 募集の予定：1年の早見表（都県 → 種別で絞る。横スクロールなし） ---------------- */
-  const CAL = { pref: null, kind: undefined, sel: null };   // kind: null＝すべて／sel: 押した月 { op, m }
+  const CAL = { pref: null, hide: undefined, sel: null };   // hide: チェックを外した運営元の集合／sel: 押した月 { op, m }
   const md = (d) => `${d.getMonth() + 1}/${d.getDate()}`;
   const monthEnd = (y, m) => new Date(y, m, 0), monthStart = (y, m) => new Date(y, m - 1, 1);
   // 日付のある募集と、例年の月からの見込み（例年）を1つの並びにする
@@ -699,26 +699,26 @@
     const stored = store.get("cal") || {};
     if (!CAL.pref) CAL.pref = (F.prefs.size === 1 ? [...F.prefs][0] : null) || stored.pref || "東京都";
     if (!["all", ...PREFS].includes(CAL.pref)) CAL.pref = "東京都";
-    if (CAL.kind === undefined) CAL.kind = KINDS.includes(stored.kind) ? stored.kind : null;   // 保存した種別は最初の1回だけ読む
+    if (CAL.hide === undefined) CAL.hide = new Set(Array.isArray(stored.hide) ? stored.hide.filter((k) => OPS[k]) : []);   // 外した運営元は最初の1回だけ読む（空＝全部表示）
     const EV = calEvents();
     // 1月〜12月で固定。今月より前の月は「来年のその月」を見せる（今年すでに締め切った分は出さない）
     const curM = TODAY.getMonth() + 1, curY = TODAY.getFullYear();
     const months = [...Array(12)].map((_, i) => ({ m: i + 1, y: i + 1 >= curM ? curY : curY + 1 }));
     const inPref = Object.keys(OPS).filter((k) => CAL.pref === "all" || !OPS[k].pref || OPS[k].pref === CAL.pref);
-    const kindsHere = KINDS.filter((k) => inPref.some((o) => OPS[o].label === k));
-    if (CAL.kind && !kindsHere.includes(CAL.kind)) CAL.kind = null;   // この地域に無い種別なら「すべて」
-    store.set("cal", { pref: CAL.pref, kind: CAL.kind });
-    const ops = inPref.filter((k) => !CAL.kind || OPS[k].label === CAL.kind).sort((a, z) => KINDS.indexOf(OPS[a].label) - KINDS.indexOf(OPS[z].label));
+    store.set("cal", { pref: CAL.pref, hide: [...CAL.hide] });
+    const allIn = [...inPref].sort((a, z) => KINDS.indexOf(OPS[a].label) - KINDS.indexOf(OPS[z].label));   // この地域の運営元ぜんぶ
+    const ops = allIn.filter((k) => !CAL.hide.has(k));                                                      // チェックが付いているものだけ見せる
     const nameOf = (k) => (CAL.pref !== "all" && OPS[k].label === "県営") ? "県営" : shortOp(OPS[k]);
     const countOf = (rid) => ITEMS.filter((x) => x.round_id === rid).length;
     const yearStrip = curM === 1 ? `<span>${curY}年</span>`
       : `<span class="next" style="grid-column:1/${curM}">${curY + 1}年</span><span style="grid-column:${curM}/13">${curY}年</span>`;
 
     let h = `<div class="cal-ctl"><label class="cal-pref">地域 <select id="calPref"><option value="all"${CAL.pref === "all" ? " selected" : ""}>1都3県すべて</option>${REGIONS.map(([n, ps]) => `<optgroup label="${esc(n)}">${ps.map((p) => PREFS.includes(p) ? `<option value="${esc(p)}"${CAL.pref === p ? " selected" : ""}>${esc(p)}</option>` : `<option disabled>${esc(p)}（準備中）</option>`).join("")}</optgroup>`).join("")}</select></label>
-      ${kindsHere.length > 1 ? `<div class="seg" role="tablist">${["", ...kindsHere].map((k) => `<button type="button" data-kind="${esc(k)}" aria-pressed="${(CAL.kind || "") === k}">${k || "すべて"}</button>`).join("")}</div>` : ""}</div>
+</div>
+      ${allIn.length > 1 ? `<div class="cal-ops-h">表示する運営元（チェックで選ぶ）</div><div class="cal-ops" role="group" aria-label="表示する運営元"><label class="chip all${ops.length === allIn.length ? " on" : ""}"><input type="checkbox" data-all${ops.length === allIn.length ? " checked" : ""}>すべて</label>${allIn.map((k) => `<label class="chip${CAL.hide.has(k) ? "" : " on"}" style="--op:${colorOf(OPS[k])}"><input type="checkbox" data-op="${esc(k)}"${CAL.hide.has(k) ? "" : " checked"}><i class="dot"></i>${esc(nameOf(k))}</label>`).join("")}</div>` : ""}
       <div class="cal-grid-head"><div class="cal-years">${yearStrip}</div>
       <div class="cal-mark">${months.map(({ m }) => `<span>${m === curM ? "今月" : ""}</span>`).join("")}</div></div>`;
-    if (!ops.length) h += `<p class="hint">この条件に合う運営元がありません</p>`;
+    if (!ops.length) h += `<p class="hint">${allIn.length ? "表示する運営元にチェックを入れてください" : "この地域の運営元はまだありません"}</p>`;
     // 各運営元：1行目に名前と「いま／次」、2行目に12個の月ブロック。押した月の中身は下に出る
     for (const k of ops) {
       const op = OPS[k], es = EV.filter((e) => e.op === k), col = colorOf(op);
@@ -759,14 +759,17 @@
       }
       h += `</div>`;
     }
-    h += `<div class="legend"><span><i class="open"></i>受付中</span><span><i class="fix"></i>申込期間（確定）</span><span><i class="exp"></i>例年の時期</span><span><i class="any"></i>いつでも</span><span><i class="now"></i>今月</span></div>
-      <p class="cal-note">色のついた月を押すと、申込期間や抽せん日が見られます。${curM > 1 ? `左の1〜${curM - 1}月は来年（${curY + 1}年）の予定です。` : ""}${DATA_DATE ? `データは月・木の朝に自動更新（最終 ${DATA_DATE}）。` : ""}</p>
+    // 凡例は運営元の色を使わない（灰色）。色は運営元ごと、形が状態
+    h += `<div class="legend" style="--op:#4a5563"><span><i class="open">11</i>受付中</span><span><i class="fix">11</i>申込期間が確定</span><span><i class="exp">11</i>例年の時期（見込み）</span><span><i class="any">11</i>いつでも申し込める</span><span><i class="now">11</i>今月</span><span><i>11</i>募集なし</span></div>
+      <p class="cal-note">ブロックの色は運営元ごと（名前の左の●と同じ色）。色のついた月を押すと、申込期間や抽せん日が見られます。${curM > 1 ? `左の1〜${curM - 1}月は来年（${curY + 1}年）の予定です。` : ""}${DATA_DATE ? `データは月・木の朝に自動更新（最終 ${DATA_DATE}）。` : ""}</p>
       <div class="line-cta"><span><b>LINE</b>で「募集が始まった」「締切3日前」を受け取る。見逃しゼロに</span><a class="line-btn" data-line href="#">友だち追加</a></div>
       <button type="button" class="btn ghost" id="calNotify" style="width:100%;margin-top:10px">お知らせの受け取り方を見る</button>`;
     $("calBody").innerHTML = h;
     setupLine();
     $("calPref").addEventListener("change", (e) => { CAL.pref = e.target.value; CAL.sel = null; renderCal(); });
-    $("calBody").querySelectorAll("[data-kind]").forEach((b) => b.addEventListener("click", () => { CAL.kind = b.dataset.kind || null; CAL.sel = null; renderCal(); }));
+    $("calBody").querySelectorAll(".cal-ops input[data-op]").forEach((c) => c.addEventListener("change", () => { c.checked ? CAL.hide.delete(c.dataset.op) : CAL.hide.add(c.dataset.op); CAL.sel = null; renderCal(); }));
+    const allChk = $("calBody").querySelector(".cal-ops input[data-all]");
+    if (allChk) allChk.addEventListener("change", () => { allIn.forEach((k) => allChk.checked ? CAL.hide.delete(k) : CAL.hide.add(k)); CAL.sel = null; renderCal(); });
     $("calBody").querySelectorAll(".blk:not([disabled])").forEach((b) => b.addEventListener("click", () => {
       const k = b.closest(".cal-op").dataset.op, m = +b.dataset.m;
       CAL.sel = (CAL.sel?.op === k && CAL.sel.m === m) ? null : { op: k, m };

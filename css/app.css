@@ -199,13 +199,14 @@ button { cursor: pointer; }
 .cal-kinds { display: flex; gap: 6px; flex-wrap: wrap; }
 .cal-kinds .opt { padding: 5px 11px; font-size: 13px; }
 .legend { display: flex; gap: 6px 12px; flex-wrap: wrap; font-size: 11px; color: var(--ink-3); margin: 12px 0 10px; }
-.legend i { display: inline-block; width: 14px; height: 9px; border-radius: 2px; vertical-align: -1px; margin-right: 3px; --op: #1a73e8; }
-.legend i.fix { background: var(--op); }
-.legend i { border-radius: 3px; width: 13px; height: 13px; vertical-align: -2px; }
-.legend i.open { background: var(--op); box-shadow: 0 0 0 2px color-mix(in srgb, var(--op) 30%, #fff); }
-.legend i.exp { background: #fff; box-shadow: inset 0 0 0 1.5px var(--op); }
-.legend i.any { background: color-mix(in srgb, var(--op) 22%, #fff); }
-.legend i.now { background: #fff; box-shadow: inset 0 0 0 2px #f9ab00; }
+/* 凡例の小さいブロック：本物の月ブロックと同じ見た目（色は灰色＝運営元の色ではない） */
+.legend i { display: inline-flex; align-items: center; justify-content: center; width: 18px; height: 20px; border-radius: 5px; font-size: 9.5px; font-style: normal; font-weight: 700; background: var(--bg-2); color: #a4acb6; margin-right: 4px; vertical-align: -6px; position: relative; }
+.legend i.any { background: color-mix(in srgb, var(--op) 24%, #fff); color: var(--op); }
+.legend i.exp { background: #fff; box-shadow: inset 0 0 0 1.5px var(--op); color: var(--op); }
+.legend i.fix { background: var(--op); color: #fff; }
+.legend i.open { background: var(--op); color: #fff; box-shadow: 0 0 0 2px color-mix(in srgb, var(--op) 30%, #fff); padding-bottom: 4px; }
+.legend i.open::after { content: ""; position: absolute; left: 50%; bottom: 2px; width: 4px; height: 4px; margin-left: -2px; border-radius: 50%; background: #fff; }
+.legend i.now { outline: 2px solid #f9ab00; outline-offset: 1px; }
 .cal-op { --op: var(--accent); margin: 10px 0 0; padding: 8px 0 2px; border-top: 1px solid var(--line); }
 .cal-head { display: flex; align-items: center; flex-wrap: wrap; gap: 5px 6px; padding: 2px 0 6px; font-size: 14px; color: var(--ink); }
 .cal-head b { white-space: nowrap; }
@@ -333,9 +334,15 @@ button { cursor: pointer; }
 .acc.open { background: linear-gradient(#fafbfd, #fafbfd); }
 
 /* ---- 募集カレンダー：月のブロック ---- */
-.cal-ctl .seg { display: inline-flex; background: var(--bg-2); border: 0; border-radius: 10px; padding: 3px; gap: 2px; margin: 0; overflow: visible; }
-.cal-ctl .seg button { flex: none; border: 0; background: transparent; border-radius: 8px; padding: 6px 11px; font-size: 13px; font-weight: 600; color: var(--ink-3); white-space: nowrap; }
-.cal-ctl .seg button[aria-pressed="true"] { background: #fff; color: var(--ink); box-shadow: 0 1px 3px rgba(20, 30, 50, .15); }
+/* 表示する運営元：チェックの付いたチップ（市営が増えても1つずつ選べる） */
+.cal-ops-h { font-size: 11.5px; color: var(--ink-3); margin: 0 0 5px; }
+.cal-ops { display: flex; flex-wrap: wrap; gap: 6px; margin: 0 0 12px; }
+.cal-ops .chip { display: inline-flex; align-items: center; gap: 5px; padding: 5px 11px 5px 8px; border: 1.5px solid var(--line); border-radius: 999px; background: #fff; font-size: 13px; font-weight: 600; color: var(--ink-3); cursor: pointer; -webkit-tap-highlight-color: transparent; user-select: none; }
+.cal-ops .chip input { width: 15px; height: 15px; margin: 0; accent-color: var(--op, var(--ink)); }
+.cal-ops .chip .dot { width: 9px; height: 9px; margin: 0; opacity: .35; }
+.cal-ops .chip.on { border-color: color-mix(in srgb, var(--op, var(--ink)) 45%, #fff); background: color-mix(in srgb, var(--op, var(--ink)) 8%, #fff); color: var(--ink); }
+.cal-ops .chip.on .dot { opacity: 1; }
+.cal-ops .chip.all { --op: var(--ink); }
 .cal-grid-head { position: sticky; top: 0; background: #fff; z-index: 1; padding: 2px 0 0; }
 .cal-years { display: grid; grid-template-columns: repeat(12, minmax(0, 1fr)); gap: 3px; font-size: 10.5px; font-weight: 700; color: var(--ink-3); letter-spacing: .3px; }
 .cal-years span { padding: 0 2px 2px; border-bottom: 1.5px solid var(--line); }
