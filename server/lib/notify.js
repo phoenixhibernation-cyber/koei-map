@@ -1,5 +1,5 @@
 // 公開データ（rounds.json / listings.json）から「今日送るべきお知らせ」を作る。scripts/notify_line.py と同じ決まり
-const SITE = "https://phoenixhibernation-cyber.github.io/koei-map/";
+const SITE = "https://sumai.kachitori.com/";
 
 export function todayJST() { const d = new Date(Date.now() + 9 * 3600e3); return new Date(Date.UTC(d.getUTCFullYear(), d.getUTCMonth(), d.getUTCDate())); }
 const day = (s) => new Date(s + "T00:00:00Z");

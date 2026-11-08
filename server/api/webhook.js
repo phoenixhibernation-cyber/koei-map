@@ -5,7 +5,7 @@ import { reply } from "../lib/line.js";
 import { watchKey } from "../lib/notify.js";
 
 const short = (p) => p.replace(/[都県]$/, "");
-const SITE = "https://phoenixhibernation-cyber.github.io/koei-map/";
+const SITE = "https://sumai.kachitori.com/";
 
 function menu(sub) {
   const chosen = new Set(sub.prefs || []);
