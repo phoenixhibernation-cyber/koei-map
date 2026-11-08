@@ -5,3 +5,4 @@ data/raw/*
 __pycache__/
 data/raw/toei/*
 !data/raw/toei/housing.json
+.vercel
