@@ -6,7 +6,7 @@
   const esc = (s) => String(s ?? "").replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
   const yen = (n) => (n == null ? "—" : n.toLocaleString("ja-JP"));
   const norm = (s) => String(s || "").normalize("NFKC").toLowerCase().replace(/\s+/g, "");
-  const VERSION = "2026-11-09d";   // 画面の「このサービスについて」に出す版。index.html の ?v= も同じにする
+  const VERSION = "2026-11-09e";   // 画面の「このサービスについて」に出す版。index.html の ?v= も同じにする
   console.log("カチトリ住まい", VERSION);
   const PAGE = 50;
   const DESKTOP = window.matchMedia("(min-width: 900px)");
@@ -606,7 +606,7 @@
   }
   // 提携カード：上に絵（img/aff/<種類>.webp。site.json の aff_img に載っている種類だけ。無ければ色の帯だけ）、下に名前と一言
   function affCard(kind, href, title, sub, real) {
-    return `<a class="card aff-${kind}" href="${esc(href)}"${real ? ' target="_blank" rel="noopener"' : ` data-aff="${kind}"`}><span class="card-img">${(SITE.aff_img || []).includes(kind) ? `<img src="img/aff/${kind}.webp" alt="" loading="lazy">` : ""}</span><b>${esc(title)}</b><span class="card-sub">${esc(sub)}</span><span class="card-go">見てみる ›</span></a>`;
+    return `<a class="card aff-${kind}" href="${esc(href)}"${real ? ' target="_blank" rel="noopener"' : ` data-aff="${kind}"`}><span class="card-img">${(SITE.aff_img || []).includes(kind) ? `<img src="img/aff/${kind}.webp?v=${VERSION}" alt="" loading="lazy">` : ""}</span><b>${esc(title)}</b><span class="card-sub">${esc(sub)}</span><span class="card-go">見てみる ›</span></a>`;
   }
   // 募集の状態：いま申し込めるか・いつまでか・決め方（抽せん／先着順）・抽せん日
   function roundBox(r, rd) {
