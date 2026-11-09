@@ -1,0 +1,56 @@
+{
+  "op": "kanagawa",
+  "how": [
+    "郵送"
+  ],
+  "apply_url": "https://www.pref.kanagawa.jp/docs/h5z/cnt/f6022/p28456.html",
+  "guide_url": "https://www.pref.kanagawa.jp/docs/h5z/cnt/f6022/index.html",
+  "docs_url": "https://www.pref.kanagawa.jp/docs/h5z/cnt/f6022/p28475.html",
+  "steps": [],
+  "eligibility": [],
+  "prepare": [],
+  "docs_after": [],
+  "tips": [],
+  "sources": [
+    {
+      "title": "県営住宅について",
+      "url": "https://www.pref.kanagawa.jp/docs/h5z/cnt/f6022/index.html",
+      "checked": "2026-11-09"
+    },
+    {
+      "title": "県営住宅 常時募集のお知らせ（令和8年度10月常時募集）",
+      "url": "https://www.pref.kanagawa.jp/docs/h5z/cnt/f6022/p28456.html",
+      "checked": "2026-11-09"
+    },
+    {
+      "title": "令和8年10月常時募集 募集のしおり（表紙からP9）",
+      "url": "https://www.pref.kanagawa.jp/documents/24850/0_9_siori0810.pdf",
+      "checked": "2026-11-09"
+    },
+    {
+      "title": "県営住宅 定期募集のお知らせ",
+      "url": "https://www.pref.kanagawa.jp/docs/h5z/cnt/f6022/p28450.html",
+      "checked": "2026-11-09"
+    },
+    {
+      "title": "県営住宅申込資格について",
+      "url": "https://www.pref.kanagawa.jp/docs/h5z/cnt/f6022/p28475.html",
+      "checked": "2026-11-09"
+    },
+    {
+      "title": "県営住宅 申込みから入居まで",
+      "url": "https://www.pref.kanagawa.jp/docs/h5z/cnt/f6022/p28448.html",
+      "checked": "2026-11-09"
+    },
+    {
+      "title": "常時募集「募集のしおり」配布場所一覧",
+      "url": "https://www.pref.kanagawa.jp/docs/h5z/cnt/f6022/p900954.html",
+      "checked": "2026-11-09"
+    }
+  ],
+  "unsure": [
+    "申込みは郵送のみ。申込書は配布場所で受け取る紙のもので、Web掲載の申込書は見本のため使えない（公式に明記）。apply_url は現在受付中の常時募集ページにした",
+    "11月定期募集（年2回、5月と11月）の令和8年11月分の日程・しおりは、確認日時点で公式ページにまだ掲載がなかった",
+    "第二次資格審査で出す書類は「住民票、収入証明書類、その他必要書類」とだけ書かれており、全体の一覧はWebでは確認できなかった。docs_url は申込資格のページ"
+  ]
+}

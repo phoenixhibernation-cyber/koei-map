@@ -1,0 +1,60 @@
+{
+  "op": "kawasaki",
+  "how": [
+    "インターネット",
+    "郵送",
+    "持参",
+    "窓口（常時募集のみ）"
+  ],
+  "apply_url": "https://www.kawasaki-jk.or.jp/shiei/subpage/page4.php",
+  "guide_url": "https://www.kawasaki-jk.or.jp/shiei/subpage/page1.php",
+  "docs_url": "https://www.kawasaki-jk.or.jp/shiei/subpage/page3.php",
+  "steps": [],
+  "eligibility": [],
+  "prepare": [],
+  "docs_after": [],
+  "tips": [],
+  "sources": [
+    {
+      "title": "川崎市住宅供給公社 市営住宅をお探しの方",
+      "url": "https://www.kawasaki-jk.or.jp/shiei/subpage/page1.php",
+      "checked": "2026-11-09"
+    },
+    {
+      "title": "川崎市住宅供給公社 申込資格",
+      "url": "https://www.kawasaki-jk.or.jp/shiei/subpage/page3.php",
+      "checked": "2026-11-09"
+    },
+    {
+      "title": "川崎市住宅供給公社 定期募集（抽選）",
+      "url": "https://www.kawasaki-jk.or.jp/shiei/subpage/page4.php",
+      "checked": "2026-11-09"
+    },
+    {
+      "title": "川崎市住宅供給公社 常時募集（申込順）",
+      "url": "https://www.kawasaki-jk.or.jp/shiei/subpage/page5.php",
+      "checked": "2026-11-09"
+    },
+    {
+      "title": "入居者募集のしおり【案内編】（令和8年度第2回）",
+      "url": "https://www.kawasaki-jk.or.jp/user_files/uploads/shiei/R8_teiki/R8_9/20260909_teikibosyuu_annnaihen.pdf",
+      "checked": "2026-11-09"
+    },
+    {
+      "title": "川崎市 市営住宅の定期募集（抽選）について（臨時掲載）",
+      "url": "https://www.city.kawasaki.jp/500/page/0000191068.html",
+      "checked": "2026-11-09"
+    },
+    {
+      "title": "川崎市 市営住宅の常時募集（申込順）について（臨時掲載）",
+      "url": "https://www.city.kawasaki.jp/500/page/0000191069.html",
+      "checked": "2026-11-09"
+    }
+  ],
+  "unsure": [
+    "インターネット申込はオンライン手続かわさき（e-KAWASAKI）で、専用ページは申込受付期間中のみ公開のためURLを確認できなかった。初回は利用者登録が必要",
+    "次回の定期募集（令和8年度第3回）は令和8年12月予定とだけ掲載。詳細日程は未発表",
+    "資格審査の必要書類は、審査日の約2週間前に郵送で通知されると案内編にあり、事前の一覧はWebにない",
+    "公社サイトのメンテナンス中は市公式サイトに臨時ページ（0000191065等）があったが、確認日時点で公社サイトは表示でき、こちらを採用した"
+  ]
+}

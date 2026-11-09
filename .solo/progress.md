@@ -71,6 +71,7 @@ status: 進行中
 - 2026-11-08 工程06：オーナー感想（4回目）：凡例の色を運営元の色と切り離す／種別切替を運営元ごとのチェックボックスに（#72〜74）→ 公開（版 2026-11-08b）
 - 2026-11-09 オーナー決定：名前を「カチトリ住まい」に改名／kachitori.com の下に sumai.kachitori.com として置く（別ドメインは買わない）／GitHub Pages から Vercel（プロジェクト kachitori-sumai）へ引っ越す／運営者・プライバシー・問い合わせは kachitori.com と共通 → 改名は公開（版 2026-11-09a）。Vercelのつなぎ込みはオーナーのコマンド待ち
 - 2026-11-09 引っ越し完了：https://sumai.kachitori.com （Vercel kachitori-sumai、GitHub連携で push ごとに自動デプロイ＝月・木のデータ更新も届く）。旧 github.io はJSで新URLへ転送（?round= 引き継ぎ）。server の SITE も新URLに（オーナーの server deploy 待ち）（版 2026-11-09b）
+- 2026-11-09 オーナー希望：申し込みの準備ガイド（公式ページへの案内だけ。言い換えない）→ 公開（版 2026-11-09c）。data/guide/*.json・リンク切れ確認 scripts/check_guide_links.py
 - 2026-11-09 工程06 完了：オーナーが「出せる」。次は工程09（セキュリティ確認）
 - 工程06：LINE公式アカウントを作り、トークンを GitHub Secrets（LINE_CHANNEL_ACCESS_TOKEN）に登録する（AIはアカウント作成・秘密の値の入力をしない決まりのため、オーナー自身で）
 

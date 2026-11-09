@@ -50,6 +50,13 @@ with sync_playwright() as p:
     check("募集の状態（申込期間）が出る", pg.is_visible("#detailBody .round-box") and ("申込期間" in pg.inner_text("#detailBody .round-box") or "受付" in pg.inner_text("#detailBody .round-box")))
     pg.screenshot(path=OUT / "04_detail.png")
     href = pg.get_attribute("#detailFoot .official", "href"); check("公式リンクが to-kousya.or.jp", "to-kousya.or.jp" in (href or ""))
+    pg.click("#detailBody [data-guide]"); pg.wait_for_timeout(800)
+    gt = pg.inner_text("#guideBody")
+    hrefs = pg.eval_on_selector_all("#guideBody .g-link", "els => els.map(e => e.href)")
+    check(f"申し込みの準備ガイドが開き、公式ページへのリンクだけを出す（{len(hrefs)}本）", pg.is_visible("#pageGuide") and "必要なもの" in gt and len(hrefs) >= 2 and all("kachitori" not in h for h in hrefs))
+    pg.screenshot(path=OUT / "04b_guide.png")
+    pg.click("#pageGuide [data-close]"); pg.wait_for_timeout(300)
+    check("ガイドを閉じると詳細に戻る", pg.is_visible("#detail") and not pg.is_visible("#pageGuide"))
     pg.click("#detailClose"); pg.wait_for_timeout(300)
 
     # 公式から戻った体で、1回だけの案内

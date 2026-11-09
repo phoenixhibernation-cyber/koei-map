@@ -6,7 +6,7 @@
   const esc = (s) => String(s ?? "").replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
   const yen = (n) => (n == null ? "—" : n.toLocaleString("ja-JP"));
   const norm = (s) => String(s || "").normalize("NFKC").toLowerCase().replace(/\s+/g, "");
-  const VERSION = "2026-11-09b";   // 画面の「このサービスについて」に出す版。index.html の ?v= も同じにする
+  const VERSION = "2026-11-09c";   // 画面の「このサービスについて」に出す版。index.html の ?v= も同じにする
   console.log("カチトリ住まい", VERSION);
   const PAGE = 50;
   const DESKTOP = window.matchMedia("(min-width: 900px)");
@@ -553,6 +553,7 @@
       <p class="hint">提携先のリンクは準備中です。いまは各サービスの入口に飛びます。</p>`;
     // この団地だけを見張る（LINEに「見張る 都道府県 団地名」を送る画面が開く。送ると、この団地が募集に入った日と締切3日前に届く）
     $("detailBody").querySelector(".round-box")?.insertAdjacentHTML("afterend", `<div class="line-cta slim watch"><span><b>LINE</b>でこの団地だけを見張る<small>募集に入った日と締切3日前に届きます</small></span><a class="line-btn" data-watch href="#">見張る</a></div>`);
+    $("detailBody").querySelector(".watch")?.insertAdjacentHTML("afterend", `<button type="button" class="guide-cta" data-guide="${esc(r.operator)}"><span><b>申し込みの準備ガイド</b><small>必要なものと申し込み先（公式ページ）を案内します</small></span><i>›</i></button>`);
     setupLine();
     const wb = $("detailBody").querySelector("[data-watch]");
     if (wb) {
@@ -570,6 +571,38 @@
     focusOn(r, true);   // シートを出してから、見えている範囲の中心にピンが来るよう寄せる
     $("detailFoot").querySelector(".official").addEventListener("click", () => { store.set("visitedOfficial", Date.now()); });
     $("detailBody").querySelectorAll("[data-aff]").forEach((a) => a.addEventListener("click", (e) => { e.preventDefault(); toast("提携先のリンクは準備中です（試作版）"); }));
+    $("detailBody").querySelector("[data-guide]")?.addEventListener("click", () => openGuide(r.operator));
+  }
+  // ---- 申し込みの準備ガイド：data/guide/<運営元>.json（公式の募集案内から作ったもの）を読んで出す ----
+  const GUIDE = {};
+  async function openGuide(opKey) {
+    const op = OPS[opKey]; if (!op) return;
+    openPage("pageGuide");
+    const body = $("guideBody");
+    body.innerHTML = `<p class="hint">読み込み中…</p>`;
+    let g = GUIDE[opKey];
+    if (!g) { try { g = GUIDE[opKey] = await fetch(`data/guide/${encodeURIComponent(opKey)}.json?v=${VERSION}`).then((x) => x.ok ? x.json() : null); } catch { g = null; } }
+    const name = op.long || op.label;
+    if (!g) { body.innerHTML = `<h3 class="g-op">${esc(name)}</h3><p>この運営元のガイドは準備中です。申し込み方法は公式ページで確かめてください。</p><a class="btn official" href="${esc(safeUrl(op.url))}" target="_blank" rel="noopener">公式ページへ ↗</a>`; return; }
+    // いま受付中・次の募集（カレンダーと同じデータ）
+    const now = ROUNDS.filter((x) => x.operator === opKey && x.apply_to && new Date(x.apply_to + "T23:59:59") >= TODAY).sort((a, z) => (a.apply_from || "").localeCompare(z.apply_from || ""))[0];
+    const when = now ? `<div class="g-when"><b>${esc(now.label)}</b><span>申込期間 ${esc(fmtDate(now.apply_from))}〜${esc(fmtDate(now.apply_to))}</span></div>` : "";
+    const checked = (g.sources || []).map((s) => s.checked).filter(Boolean).sort().pop() || "";
+    // 条件や書類の中身はここで言い換えない（間違って伝えないため）。公式のどのページを見ればよいかだけを案内する
+    const link = (url, t, sub, cls) => url ? `<a class="g-link${cls ? " " + cls : ""}" href="${esc(safeUrl(url))}" target="_blank" rel="noopener"><span><b>${t}</b><small>${sub}</small></span><i>↗</i></a>` : "";
+    body.innerHTML = `
+      <h3 class="g-op"><i class="dot" style="--op:${colorOf(op)}"></i>${esc(name)}</h3>
+      <p class="g-lead">申し込める人の条件や必要な書類は、募集ごとに変わることがあります。間違いのないよう、公式のページを直接ご案内します。</p>
+      ${when}
+      ${(g.how || []).length ? `<div class="g-how"><span>申し込み方法</span>${g.how.map((t) => `<b>${esc(t)}</b>`).join("")}</div>` : ""}
+      <div class="g-links">
+        ${link(g.docs_url, "申し込める人と必要なもの", "条件・必要な書類はこちら（公式）")}
+        ${g.guide_url && g.guide_url !== g.docs_url ? link(g.guide_url, "募集案内（しおり）", "申し込む前に一度読んでおくもの（公式）") : ""}
+        ${link(g.apply_url || op.url, "申し込みはこちら", "公式の受付ページへ", "main")}
+      </div>
+      <div class="line-cta slim"><span><b>LINE</b>で締切3日前に知らせる</span><a class="line-btn" data-line href="#">友だち追加</a></div>
+      <p class="g-src">リンク先は${checked ? ` ${esc(fmtDate(checked))} に` : ""}確かめた公式のページです。開けないときや内容が変わっているときは、${esc(name)}の公式ページから探してください。</p>`;
+    setupLine();
   }
   // 提携カード：上に絵（img/aff/<種類>.webp。site.json の aff_img に載っている種類だけ。無ければ色の帯だけ）、下に名前と一言
   function affCard(kind, href, title, sub, real) {
@@ -755,7 +788,7 @@
         const subtxt = sc.months?.length ? `例年 ${sc.months.join("・")}月${sc.days ? "（" + sc.days + "）" : ""}・${sc.how || ""}${sc.anytime_note ? "／" + sc.anytime_note : ""}` : (sc.anytime_note || sc.note || "");
         h += `<div class="cal-pop"><div class="cal-pop-h"><b>${y}年${selM}月</b><span>${esc(nameOf(k))}</span><button type="button" class="cal-pop-x" aria-label="閉じる">×</button></div>
           ${list.map((e) => evHtml(e, countOf)).join("") || `<p class="hint">この月の募集はありません</p>`}
-          ${subtxt ? `<div class="cal-sub">${esc(subtxt)}</div>` : ""}<div class="cal-official"><a href="${esc(safeUrl(op.url))}" target="_blank" rel="noopener">${esc(nameOf(k))}の公式ページ ↗</a></div></div>`;
+          ${subtxt ? `<div class="cal-sub">${esc(subtxt)}</div>` : ""}<div class="cal-official"><button type="button" class="linkish" data-guide="${esc(k)}">申し込みの準備ガイド</button>　<a href="${esc(safeUrl(op.url))}" target="_blank" rel="noopener">${esc(nameOf(k))}の公式ページ ↗</a></div></div>`;
       }
       h += `</div>`;
     }
@@ -779,6 +812,7 @@
     $("calBody").querySelectorAll(".cal-pop-x").forEach((b) => b.addEventListener("click", () => { CAL.sel = null; const top = $("calBody").scrollTop; renderCal(); $("calBody").scrollTop = top; }));
     $("calBody").querySelectorAll("[data-round]").forEach((b) => b.addEventListener("click", () => { F.round = b.dataset.round; F.now = false; closePages(); apply(); if (!DESKTOP.matches) drawer.classList.add("open"); }));
     $("calNotify").addEventListener("click", () => openPage("pageNotify"));
+    $("calBody").querySelectorAll("[data-guide]").forEach((b) => b.addEventListener("click", () => openGuide(b.dataset.guide)));
   }
   // 1つの募集（確定・例年・いつでも）の説明と、地図で見る／公式ページ
   function evHtml(e, countOf) {

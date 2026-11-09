@@ -1,0 +1,52 @@
+{
+  "op": "saitamacity",
+  "how": [
+    "インターネット",
+    "郵送"
+  ],
+  "apply_url": "https://www.saijk.or.jp/lookingfor/shiei/saitama/apply/",
+  "guide_url": null,
+  "docs_url": "https://www.saijk.or.jp/lookingfor/shiei/saitama/requirements/",
+  "steps": [],
+  "eligibility": [],
+  "prepare": [],
+  "docs_after": [],
+  "tips": [],
+  "sources": [
+    {
+      "title": "さいたま市の市営住宅",
+      "url": "https://www.saijk.or.jp/lookingfor/shiei/saitama/",
+      "checked": "2026-11-09"
+    },
+    {
+      "title": "申込資格",
+      "url": "https://www.saijk.or.jp/lookingfor/shiei/saitama/requirements/",
+      "checked": "2026-11-09"
+    },
+    {
+      "title": "募集時期・募集方法",
+      "url": "https://www.saijk.or.jp/lookingfor/shiei/saitama/apply/",
+      "checked": "2026-11-09"
+    },
+    {
+      "title": "入居までの流れ",
+      "url": "https://www.saijk.or.jp/lookingfor/shiei/saitama/process/",
+      "checked": "2026-11-09"
+    },
+    {
+      "title": "令和８年８月 さいたま市市営住宅入居者募集の案内",
+      "url": "https://www.saijk.or.jp/wp/wp-content/uploads/2026/08/HP用_令和8年8月募集案内チラシあり※解像度300bip.pdf",
+      "checked": "2026-11-09"
+    },
+    {
+      "title": "ニュース一覧（市町村営住宅）",
+      "url": "https://www.saijk.or.jp/category/sityoson/",
+      "checked": "2026-11-09"
+    }
+  ],
+  "unsure": [
+    "WEB申込みのURLと募集案内PDFは令和8年8月募集のもので、次回は変わる見込み。",
+    "必要書類は募集案内にのみ載っており、PDFが画像のため文字で確認できていない。",
+    "募集時期・募集方法のページは「原則郵送」のままで、WEB申込みの記載が古い。"
+  ]
+}

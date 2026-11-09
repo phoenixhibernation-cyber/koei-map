@@ -49,3 +49,5 @@ jobs:
             git pull --rebase --autostash origin main
             git push
           fi
+      - name: 申し込みガイドのリンクが切れていないか（切れていればこのワークフローが失敗し、メールで分かる）
+        run: python scripts/check_guide_links.py

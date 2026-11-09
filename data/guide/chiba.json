@@ -1,0 +1,51 @@
+{
+  "op": "chiba",
+  "how": [
+    "郵送"
+  ],
+  "apply_url": "https://www.chiba-kousya.or.jp/jutak/akitop.html",
+  "guide_url": "https://www.chiba-kousya.or.jp/jutak/mosihai.html",
+  "docs_url": "https://www.chiba-kousya.or.jp/jutak/mosisika.html",
+  "steps": [],
+  "eligibility": [],
+  "prepare": [],
+  "docs_after": [],
+  "tips": [],
+  "sources": [
+    {
+      "title": "空家募集のご案内",
+      "url": "https://www.chiba-kousya.or.jp/jutak/akitop.html",
+      "checked": "2026-11-09"
+    },
+    {
+      "title": "常時募集のご案内",
+      "url": "https://www.chiba-kousya.or.jp/jutak/jojitop.html",
+      "checked": "2026-11-09"
+    },
+    {
+      "title": "申込資格（一般）",
+      "url": "https://www.chiba-kousya.or.jp/jutak/mosisika.html",
+      "checked": "2026-11-09"
+    },
+    {
+      "title": "募集案内・申込書配布先",
+      "url": "https://www.chiba-kousya.or.jp/jutak/mosihai.html",
+      "checked": "2026-11-09"
+    },
+    {
+      "title": "よくある質問（Q&A）",
+      "url": "https://www.chiba-kousya.or.jp/jutak/qa.htm",
+      "checked": "2026-11-09"
+    },
+    {
+      "title": "一般県営住宅（市原市菊間）常時募集",
+      "url": "https://www.chiba-kousya.or.jp/jutak/joji_kikuma.html",
+      "checked": "2026-11-09"
+    }
+  ],
+  "unsure": [
+    "募集案内・申込書は紙の配布のみで、公式サイトにPDFは見当たらない。",
+    "当選後の審査書類の一覧はウェブ上で確認できなかった。",
+    "入居の流れのページ（mosina_f.html）はリンク切れ（404）だった。"
+  ]
+}

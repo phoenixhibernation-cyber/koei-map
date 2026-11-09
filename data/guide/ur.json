@@ -1,0 +1,57 @@
+{
+  "op": "ur",
+  "how": [
+    "店舗",
+    "インターネット（「ネットで仮申込」ボタンがある物件のみ）"
+  ],
+  "apply_url": "https://www.ur-net.go.jp/chintai/kanto/",
+  "guide_url": "https://www.ur-net.go.jp/chintai/rent/",
+  "docs_url": "https://www.ur-net.go.jp/chintai/rent/documents/",
+  "steps": [],
+  "eligibility": [],
+  "prepare": [],
+  "docs_after": [],
+  "tips": [],
+  "sources": [
+    {
+      "title": "UR賃貸住宅 関東エリア（物件検索）",
+      "url": "https://www.ur-net.go.jp/chintai/kanto/",
+      "checked": "2026-11-09"
+    },
+    {
+      "title": "URの借り方（仮申込から入居までの流れ）",
+      "url": "https://www.ur-net.go.jp/chintai/rent/",
+      "checked": "2026-11-09"
+    },
+    {
+      "title": "お申込み資格",
+      "url": "https://www.ur-net.go.jp/chintai/rent/requirements/",
+      "checked": "2026-11-09"
+    },
+    {
+      "title": "必要書類（本申込・契約時）",
+      "url": "https://www.ur-net.go.jp/chintai/rent/documents/",
+      "checked": "2026-11-09"
+    },
+    {
+      "title": "よくあるご質問（インターネット申込について）",
+      "url": "https://www.ur-net.go.jp/chintai/faq/",
+      "checked": "2026-11-09"
+    },
+    {
+      "title": "関東エリアの店舗（営業センター）",
+      "url": "https://www.ur-net.go.jp/chintai/kanto/counter/",
+      "checked": "2026-11-09"
+    },
+    {
+      "title": "インターネット申込みをされた方へ（ログイン）",
+      "url": "https://sumai.r6.ur-net.go.jp/chintai/s/usr/usrLogin/?fn=mypage",
+      "checked": "2026-11-09"
+    }
+  ],
+  "unsure": [
+    "インターネットの仮申込に共通の入口ページは見つからなかった。各物件ページの最下部の「ネットで仮申込」ボタンから申し込む（FAQより）ため、apply_url は関東の物件検索ページにした。",
+    "申込資格は requirements ページ、必要書類は documents ページと分かれている。docs_url は必要書類のページにした（資格ページへのリンクあり）。",
+    "抽選になる物件（新築など）の申込方法は確認していない。"
+  ]
+}

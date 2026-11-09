@@ -1,0 +1,58 @@
+{
+  "op": "saitama",
+  "how": [
+    "インターネット",
+    "郵送",
+    "窓口"
+  ],
+  "apply_url": "https://kenjyu-moushikomi.saijk.com/top",
+  "guide_url": "https://www.saijk.or.jp/lookingfor/kenei/apply/",
+  "docs_url": "https://www.saijk.or.jp/lookingfor/kenei/common-requirements/",
+  "steps": [],
+  "eligibility": [],
+  "prepare": [],
+  "docs_after": [],
+  "tips": [],
+  "sources": [
+    {
+      "title": "定期募集（抽せん）について",
+      "url": "https://www.saijk.or.jp/lookingfor/kenei/apply/",
+      "checked": "2026-11-09"
+    },
+    {
+      "title": "随時募集（先着順）について",
+      "url": "https://www.saijk.or.jp/lookingfor/kenei/zuiji/",
+      "checked": "2026-11-09"
+    },
+    {
+      "title": "入居までの流れ 申込み",
+      "url": "https://www.saijk.or.jp/lookingfor/kenei/process/step01/",
+      "checked": "2026-11-09"
+    },
+    {
+      "title": "共通申込み資格",
+      "url": "https://www.saijk.or.jp/lookingfor/kenei/common-requirements/",
+      "checked": "2026-11-09"
+    },
+    {
+      "title": "入居資格審査での必要書類等（県営住宅）",
+      "url": "https://www.saijk.or.jp/lookingfor/kenei/shinsa/",
+      "checked": "2026-11-09"
+    },
+    {
+      "title": "定期募集入居者募集案内【令和８年１０月】",
+      "url": "https://www.saijk.or.jp/wp/wp-content/uploads/2026/09/bosyuannai.202610.pdf",
+      "checked": "2026-11-09"
+    },
+    {
+      "title": "県営住宅WEB申込",
+      "url": "https://kenjyu-moushikomi.saijk.com/top",
+      "checked": "2026-11-09"
+    }
+  ],
+  "unsure": [
+    "募集案内PDFのURLは募集回ごとに変わる（現在は令和8年10月募集版）。",
+    "審査書類の詳しい一覧はPDFが画像のため文字で確認できていない。",
+    "窓口は随時募集（先着順）の支所申込みと、住まい相談プラザへの持参。"
+  ]
+}

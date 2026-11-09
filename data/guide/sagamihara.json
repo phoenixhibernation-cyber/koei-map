@@ -1,0 +1,32 @@
+{
+  "op": "sagamihara",
+  "how": [
+    "郵送",
+    "電話（随時募集のみ）"
+  ],
+  "apply_url": "https://www.city.sagamihara.kanagawa.jp/kurashi/1026489/sumai/1026509/1007952.html",
+  "guide_url": null,
+  "docs_url": "https://www.city.sagamihara.kanagawa.jp/kurashi/1026489/sumai/1026509/1007952.html",
+  "steps": [],
+  "eligibility": [],
+  "prepare": [],
+  "docs_after": [],
+  "tips": [],
+  "sources": [
+    {
+      "title": "相模原市 市営住宅について",
+      "url": "https://www.city.sagamihara.kanagawa.jp/kurashi/1026489/sumai/1026509/1007952.html",
+      "checked": "2026-11-09"
+    },
+    {
+      "title": "令和8年11月 市営住宅入居者募集 募集のしおり",
+      "url": "https://www.city.sagamihara.kanagawa.jp/_res/projects/default_project/_page_/001/007/952/2026/r0811_shiori.pdf",
+      "checked": "2026-11-09"
+    }
+  ],
+  "unsure": [
+    "インターネット申込は公式ページ・しおりに記載がなく、定期募集は郵送のみ（しおり付属の申込書）。apply_url は申込方法と送付先が載った市のページ",
+    "随時募集は住宅課への電話のみの先着順（令和9年1月29日まで）",
+    "2次審査（資格審査）の書類は「住民票の写しや収入を証明する書類等」とあるのみで、全体の一覧は確認できなかった"
+  ]
+}

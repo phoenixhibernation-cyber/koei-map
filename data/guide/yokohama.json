@@ -1,0 +1,43 @@
+{
+  "op": "yokohama",
+  "how": [
+    "インターネット",
+    "郵送",
+    "窓口（常時募集のみ）"
+  ],
+  "apply_url": "https://www.yokohama-kousya.or.jp/municipal/regular.php",
+  "guide_url": null,
+  "docs_url": "https://www.yokohama-kousya.or.jp/municipal/regular.php",
+  "steps": [],
+  "eligibility": [],
+  "prepare": [],
+  "docs_after": [],
+  "tips": [],
+  "sources": [
+    {
+      "title": "市営住宅 定期募集（令和8年10月募集のお知らせ）",
+      "url": "https://www.yokohama-kousya.or.jp/municipal/regular.php",
+      "checked": "2026-11-09"
+    },
+    {
+      "title": "令和8年10月市営住宅入居者募集『募集のしおり』",
+      "url": "https://www.yokohama-kousya.or.jp/src/files/municipal/shiori/2026/bsunsor_2610_01-2.pdf",
+      "checked": "2026-11-09"
+    },
+    {
+      "title": "市営住宅 常時募集",
+      "url": "https://www.yokohama-kousya.or.jp/municipal/about.php",
+      "checked": "2026-11-09"
+    },
+    {
+      "title": "常時募集 募集のしおり",
+      "url": "https://www.yokohama-kousya.or.jp/user_files/uploads/safety/shiei/0808jyojishiori-pdf.pdf",
+      "checked": "2026-11-09"
+    }
+  ],
+  "unsure": [
+    "インターネット申込の申込フォームのURLは公式ページに直接のリンクがない。しおりP88では「横浜市 市営住宅 インターネット申込」で検索するか二次元バーコードを使うよう案内しており、事前に横浜市電子申請・届出サービスの利用者登録が必要",
+    "令和8年10月定期募集の受付は終了済み。次回（例年4月）の日程は確認日時点で未掲載",
+    "docs_url はしおりPDF全体（申込資格は世帯向P13-14・単身向P39-41、審査書類はP4と収入計算P73-85）。審査書類の全体一覧は当選者への案内で示される旨のみ確認"
+  ]
+}

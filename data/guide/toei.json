@@ -1,0 +1,68 @@
+{
+  "op": "toei",
+  "how": [
+    "インターネット",
+    "郵送"
+  ],
+  "apply_url": "https://www.juutakuseisaku.metro.tokyo.lg.jp/toei_online/",
+  "guide_url": "https://www.to-kousya.or.jp/kouei/toeibosyu/index_teiki.html",
+  "docs_url": "https://www.to-kousya.or.jp/kouei/toeibosyu/index_teiki.html#anchor5",
+  "steps": [],
+  "eligibility": [],
+  "prepare": [],
+  "docs_after": [],
+  "tips": [],
+  "sources": [
+    {
+      "title": "都営住宅 年4回 定期募集（入居資格等の一覧あり）",
+      "url": "https://www.to-kousya.or.jp/kouei/toeibosyu/index_teiki.html",
+      "checked": "2026-11-09"
+    },
+    {
+      "title": "令和8年11月 都営住宅 定期募集",
+      "url": "https://www.to-kousya.or.jp/kouei/toeibosyu/teiki_2026_11.html",
+      "checked": "2026-11-09"
+    },
+    {
+      "title": "都営住宅入居者募集サイト（東京都住宅政策本部）",
+      "url": "https://www.juutakuseisaku.metro.tokyo.lg.jp/toei_online/",
+      "checked": "2026-11-09"
+    },
+    {
+      "title": "一般募集住宅等 パンフレット ダウンロード（郵送申込の申込書・募集案内）",
+      "url": "https://www.to-kousya.or.jp/kouei/toeibosyu/teiki8_11_dl.html",
+      "checked": "2026-11-09"
+    },
+    {
+      "title": "募集案内 表紙・スケジュール（申込方法・注意・入居までの流れ）",
+      "url": "https://www.to-kousya.or.jp/content/000060264.pdf",
+      "checked": "2026-11-09"
+    },
+    {
+      "title": "募集案内 入居資格など・申込書の書き方",
+      "url": "https://www.to-kousya.or.jp/content/000060265.pdf",
+      "checked": "2026-11-09"
+    },
+    {
+      "title": "募集案内 申込区分・所得計算・入居資格審査に必要な主な書類（38ページ）",
+      "url": "https://www.to-kousya.or.jp/content/000060266.pdf",
+      "checked": "2026-11-09"
+    },
+    {
+      "title": "家族向の入居資格（5月・11月募集）",
+      "url": "https://www.to-kousya.or.jp/content/000051504.pdf",
+      "checked": "2026-11-09"
+    },
+    {
+      "title": "単身者向の入居資格（5月・11月募集）",
+      "url": "https://www.to-kousya.or.jp/content/000051505.pdf",
+      "checked": "2026-11-09"
+    }
+  ],
+  "unsure": [
+    "docs_url のページは入居資格のPDF一覧で、当選後の必要書類の一覧は載っていない。必要書類は今回の募集案内PDF（000060266.pdf の38ページ）にある。",
+    "募集案内PDFと申込書のダウンロードは申込書配布期間（今回は11月11日18時まで）だけとされており、期間後にリンクが残るかは不明。",
+    "guide_url と募集案内PDFは令和8年11月募集のもの。次回募集ではURLが変わる見込み。",
+    "apply_url は募集サイトの入口。申込受付は募集期間中だけ（今回は11月2日から17日まで）。"
+  ]
+}

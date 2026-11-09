@@ -12,7 +12,7 @@
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='8' fill='%23234e8c'/%3E%3Cpath d='M16 7l-9 7.5V25h6.5v-6h5v6H25V14.5z' fill='white'/%3E%3C/svg%3E">
 <link rel="stylesheet" href="vendor/leaflet/leaflet.css">
 <link rel="stylesheet" href="vendor/markercluster/MarkerCluster.css">
-<link rel="stylesheet" href="css/app.css?v=20261109b">
+<link rel="stylesheet" href="css/app.css?v=20261109c">
 </head>
 <body>
 
@@ -76,6 +76,12 @@
   <section class="page" id="pageCal" hidden aria-label="募集カレンダー">
     <header><button type="button" class="back" data-close aria-label="戻る">←</button><h2>募集の予定（1年の早見表）</h2></header>
     <div class="page-body" id="calBody"></div>
+  </section>
+
+  <!-- S8: 申し込みガイド（運営元ごと。申し込み自体は公式で本人が行う） -->
+  <section class="page" id="pageGuide" hidden aria-label="申し込みガイド">
+    <header><button type="button" class="back" data-close aria-label="戻る">←</button><h2>申し込みの準備ガイド</h2></header>
+    <div class="page-body guide" id="guideBody"></div>
   </section>
 
   <!-- S6: 通知登録 -->
@@ -160,6 +166,6 @@
 
 <script src="vendor/leaflet/leaflet.js"></script>
 <script src="vendor/markercluster/leaflet.markercluster.js"></script>
-<script src="js/app.js?v=20261109b"></script>
+<script src="js/app.js?v=20261109c"></script>
 </body>
 </html>

@@ -1,0 +1,45 @@
+{
+  "op": "chibacity",
+  "how": [
+    "郵送"
+  ],
+  "apply_url": "https://www.cjkk.or.jp/shiei/shiei/wish/",
+  "guide_url": null,
+  "docs_url": "https://www.cjkk.or.jp/shiei/shiei/wish/",
+  "steps": [],
+  "eligibility": [],
+  "prepare": [],
+  "docs_after": [],
+  "tips": [],
+  "sources": [
+    {
+      "title": "入居を希望される方",
+      "url": "https://www.cjkk.or.jp/shiei/shiei/wish/",
+      "checked": "2026-11-09"
+    },
+    {
+      "title": "募集住宅と抽選結果",
+      "url": "https://www.cjkk.or.jp/shiei/shiei/result/",
+      "checked": "2026-11-09"
+    },
+    {
+      "title": "収入基準及び計算方法",
+      "url": "https://www.cjkk.or.jp/shiei/shiei/calculation/",
+      "checked": "2026-11-09"
+    },
+    {
+      "title": "申込案内書 令和8年度",
+      "url": "https://www.cjkk.or.jp/wp-content/uploads/2026/03/01_入居者募集案内_web品質.pdf",
+      "checked": "2026-11-09"
+    },
+    {
+      "title": "入居申込書（公社指定書式）",
+      "url": "https://www.cjkk.or.jp/wp-content/uploads/2026/03/02_入居申込書_Web品質.pdf",
+      "checked": "2026-11-09"
+    }
+  ],
+  "unsure": [
+    "常時募集は「電話、郵送等」で受付と書かれており、窓口での扱いは未確認。",
+    "申込書と案内書のPDFは令和8年度版で、年度が変わるとURLが変わる見込み。"
+  ]
+}
