@@ -6,7 +6,7 @@
   const esc = (s) => String(s ?? "").replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
   const yen = (n) => (n == null ? "—" : n.toLocaleString("ja-JP"));
   const norm = (s) => String(s || "").normalize("NFKC").toLowerCase().replace(/\s+/g, "");
-  const VERSION = "2026-11-09e";   // 画面の「このサービスについて」に出す版。index.html の ?v= も同じにする
+  const VERSION = "2026-11-09f";   // 画面の「このサービスについて」に出す版。index.html の ?v= も同じにする
   console.log("カチトリ住まい", VERSION);
   const PAGE = 50;
   const DESKTOP = window.matchMedia("(min-width: 900px)");
@@ -539,18 +539,18 @@
       ${b.feats.length ? `<div class="feats">${b.feats.map((t) => `<span>${esc(t)}</span>`).join("")}</div>` : ""}
       <h3 class="sec">建物と場所</h3>
       <table>${rows.map(([k, v]) => `<tr><td>${k}</td><td>${v}</td></tr>`).join("")}</table>
-      <p class="cards-h">当選したら</p>
+      <p class="cards-h">当選したら<span class="pr">PR</span></p>
       <div class="cards">
         ${affCard("move", "#", "引っ越し見積もり", "複数社を一括で比べる")}
         ${affCard("net", "#", "ネット回線", "入居日に合わせて開通")}
         ${affCard("power", "#", "電気・ガス", "まとめて申し込み")}
       </div>
-      <p class="cards-h">落選したら、今すぐ入れる家</p>
+      <p class="cards-h">落選したら、今すぐ入れる家<span class="pr">PR</span></p>
       <div class="cards">
         ${affCard("ur", safeUrl(urUrl(r)), `UR賃貸（${r.pref.replace(/[都県]$/, "")}）`, "礼金・仲介手数料なし。空き部屋を探す", true)}
         ${affCard("rent", "#", "家賃の安い賃貸", `${r.city}の近くで探す`)}
       </div>
-      <p class="hint">提携先のリンクは準備中です。いまは各サービスの入口に飛びます。</p>`;
+      <p class="hint">「PR」の枠は広告です。リンク先で申し込みがあると、このサービスに紹介料が入ることがあります。提携先のリンクは準備中です。</p>`;
     // この団地だけを見張る（LINEに「見張る 都道府県 団地名」を送る画面が開く。送ると、この団地が募集に入った日と締切3日前に届く）
     $("detailBody").querySelector(".round-box")?.insertAdjacentHTML("afterend", `<div class="line-cta slim watch"><span><b>LINE</b>でこの団地だけを見張る<small>募集に入った日と締切3日前に届きます</small></span><a class="line-btn" data-watch href="#">見張る</a></div>`);
     $("detailBody").querySelector(".watch")?.insertAdjacentHTML("afterend", `<button type="button" class="guide-cta" data-guide="${esc(r.operator)}"><span><b>申し込みの準備ガイド</b><small>必要なものと申し込み先（公式ページ）を案内します</small></span><i>›</i></button>`);
