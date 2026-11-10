@@ -6,3 +6,4 @@ __pycache__/
 data/raw/toei/*
 !data/raw/toei/housing.json
 .vercel
+.yomiyasu
