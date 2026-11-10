@@ -50,6 +50,8 @@ with sync_playwright() as p:
     check("募集の状態（申込期間）が出る", pg.is_visible("#detailBody .round-box") and ("申込期間" in pg.inner_text("#detailBody .round-box") or "受付" in pg.inner_text("#detailBody .round-box")))
     pg.screenshot(path=OUT / "04_detail.png")
     href = pg.get_attribute("#detailFoot .official", "href"); check("公式リンクが to-kousya.or.jp", "to-kousya.or.jp" in (href or ""))
+    hrefs = pg.eval_on_selector_all("#detailBody .card", "els => els.map(e => e.getAttribute('href'))")
+    check(f"提携カードが広告リンク（A8.net）に差し替わる（{sum('px.a8.net' in (h or '') for h in hrefs)}枚）", sum('px.a8.net' in (h or '') for h in hrefs) >= 4)
     pg.click("#detailBody [data-guide]"); pg.wait_for_timeout(800)
     gt = pg.inner_text("#guideBody")
     hrefs = pg.eval_on_selector_all("#guideBody .g-link", "els => els.map(e => e.href)")

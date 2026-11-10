@@ -1,0 +1,40 @@
+{
+  "updated": "2026-11-11",
+  "criteria": "点数＝利用者への合い方40＋サービスの質・信頼20＋確定率15＋報酬・EPC15＋わかりやすさ10。status が active（提携中で広告リンクあり）の中で点数が一番高いものをカードに出す。pending＝審査中、rejected＝不承認（載せない）、ended＝終了",
+  "cards": {
+    "move": [
+      { "id": "s00000004657008", "name": "引越し侍（予約・一括見積）", "sub": "引越し侍で料金を比べて予約", "score": 90, "status": "pending" },
+      { "id": "s00000027506001", "name": "引越しポルタ", "sub": "引っ越しと電気・ガス・ネットの手続きをまとめて", "score": 82, "status": "pending" },
+      { "id": "s00000004657003", "name": "引越し侍（一括見積）", "sub": "引越し侍で複数社を一括で比べる", "score": 85, "status": "active", "a8mat": "4BGHVT+1PX58I+ZXM+HYNBM", "px": "www19" },
+      { "id": "s00000000489005", "name": "ズバット引越し比較", "sub": "ズバットで複数社を一括で比べる", "score": 75, "status": "pending" },
+      { "id": "s00000027564001", "name": "HALESEE引越し見積もり", "sub": "電話は3社まで。メールで比べられる", "score": 72, "status": "pending" },
+      { "id": "s00000027341001", "name": "ケーエー引越センター", "sub": "単身の引っ越しに強い", "score": 70, "status": "pending" },
+      { "id": "s00000020949005", "name": "ハコブ引っ越しサービス", "sub": "都内の引っ越しを安く", "score": 65, "status": "active", "a8mat": "4BGHVT+3ITE6A+4HN6+TS3OI", "px": "www16" },
+      { "id": "s00000015642001", "name": "引越しラクっとNAVI", "sub": "見積もりから完了までサポート", "score": 60, "status": "pending" }
+    ],
+    "net": [
+      { "id": "s00000022354001", "name": "おてがる光", "sub": "おてがる光。契約期間のしばりなし", "score": 86, "status": "active", "a8mat": "4BGHVT+4TUMYQ+4SHG+61RI9", "px": "www10" },
+      { "id": "s00000014546010", "name": "ビッグローブ光", "sub": "ビッグローブ光。移転の工事費が無料", "score": 80, "status": "active", "a8mat": "4BGHVT+5E3DJ6+348K+1NK7CY", "px": "www10" },
+      { "id": "s00000027581001", "name": "ドコモ光", "sub": "ドコモ光。ドコモのスマホとセットで割引", "score": 70, "status": "pending" },
+      { "id": "s00000019208002", "name": "@nifty光", "sub": "@nifty光。キャッシュバックあり", "score": 65, "status": "active", "a8mat": "4BGHVT+69NCLE+447K+BYLJM", "px": "www10" },
+      { "id": "s00000008091019", "name": "DTI光", "sub": "DTI光", "score": 60, "status": "active", "a8mat": "4BGHVT+6MQVWI+1QFI+35A59T", "px": "www13" },
+      { "id": "s00000000979016", "name": "BB.excite光 MEC", "sub": "BB.excite光", "score": 55, "status": "active", "a8mat": "4BGHVT+6Y24EA+7JY+2NBXDT", "px": "www10" }
+    ],
+    "power": [
+      { "id": "s00000020187011", "name": "電気の手続きサポートセンター", "sub": "引っ越し先の電気・ガス・ネットをまとめて無料で手続き", "score": 90, "status": "pending" },
+      { "id": "s00000025632001", "name": "エネワンでんき", "sub": "エネワンでんきに切り替え", "score": 80, "status": "pending" },
+      { "id": "s00000020901002", "name": "Looopでんき", "sub": "Looopでんきに切り替え", "score": 75, "status": "pending" },
+      { "id": "s00000021732002", "name": "まちエネ", "sub": "まちエネで電気代を節約", "score": 65, "status": "pending" },
+      { "id": "s00000027182001", "name": "みんな電力", "sub": "再エネの電気に切り替え", "score": 60, "status": "pending" },
+      { "id": "s00000026810003", "name": "ソフトバンク自然でんき", "sub": "ソフトバンク自然でんきに切り替え", "score": 60, "status": "pending" },
+      { "id": "s00000013511010", "name": "エネピ", "sub": "エネピで一番安い電気料金を探す", "score": 55, "status": "active", "a8mat": "4BGHVT+AEHPTU+2W92+1NJK7M", "px": "www14" }
+    ],
+    "rent": [
+      { "id": "s00000019376001", "name": "ビレッジハウス", "sub": "家賃2万円台から。敷金・礼金・手数料・更新料0円", "score": 95, "status": "pending" },
+      { "id": "s00000016994001", "name": "部屋まる。", "sub": "東京の家賃7万円以下の専門店", "score": 75, "status": "pending" },
+      { "id": "s00000020603002", "name": "クロスワンルーム", "sub": "都内3.8万円から。家具家電付き・敷金礼金0円", "score": 70, "status": "active", "a8mat": "4BGHVT+AS6OQQ+4EZ2+BZO4I", "px": "www15" },
+      { "id": "s00000023134001", "name": "レオパレス21", "sub": "家具家電付きの部屋を探す", "score": 65, "status": "pending" },
+      { "id": "s00000027882001", "name": "home365", "sub": "AIで賃貸探しをサポート", "score": 55, "status": "pending" }
+    ]
+  }
+}

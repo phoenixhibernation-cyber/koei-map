@@ -6,7 +6,7 @@
   const esc = (s) => String(s ?? "").replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
   const yen = (n) => (n == null ? "—" : n.toLocaleString("ja-JP"));
   const norm = (s) => String(s || "").normalize("NFKC").toLowerCase().replace(/\s+/g, "");
-  const VERSION = "2026-11-09f";   // 画面の「このサービスについて」に出す版。index.html の ?v= も同じにする
+  const VERSION = "2026-11-11a";   // 画面の「このサービスについて」に出す版。index.html の ?v= も同じにする
   console.log("カチトリ住まい", VERSION);
   const PAGE = 50;
   const DESKTOP = window.matchMedia("(min-width: 900px)");
@@ -185,6 +185,13 @@
 
   /* ---------------- データ ---------------- */
   let SITE = { line_url: "" };
+  let AFF = null;   // 提携先の候補と優先順位（data/aff.json）。読めなくても画面は出す
+  fetch("data/aff.json", { cache: "no-cache" }).then((r) => r.ok ? r.json() : null).then((j) => { AFF = j; }).catch(() => {});
+  // その種類のカードに出す提携先：提携中（active）で広告リンクがあるもののうち、点数が一番高いもの
+  const affPick = (kind) => {
+    const list = (AFF && AFF.cards && AFF.cards[kind]) || [];
+    return list.filter((c) => c.status === "active" && /^[A-Z0-9+]+$/.test(c.a8mat || "") && /^www\d+$/.test(c.px || "")).sort((a, z) => z.score - a.score)[0] || null;
+  };
   Promise.all([fetch("data/rounds.json", { cache: "no-cache" }).then((r) => r.json()), fetch("data/listings.json", { cache: "no-cache" }).then((r) => r.json()),
     fetch("data/site.json", { cache: "no-cache" }).then((r) => r.json()).catch(() => ({}))])
     .then(([rd, ld, st]) => {
@@ -550,7 +557,7 @@
         ${affCard("ur", safeUrl(urUrl(r)), `UR賃貸（${r.pref.replace(/[都県]$/, "")}）`, "礼金・仲介手数料なし。空き部屋を探す", true)}
         ${affCard("rent", "#", "家賃の安い賃貸", `${r.city}の近くで探す`)}
       </div>
-      <p class="hint">「PR」の枠は広告です。リンク先で申し込みがあると、このサービスに紹介料が入ることがあります。提携先のリンクは準備中です。</p>`;
+      <p class="hint">「PR」の枠は広告です。リンク先で申し込みがあると、このサービスに紹介料が入ることがあります。</p>`;
     // この団地だけを見張る（LINEに「見張る 都道府県 団地名」を送る画面が開く。送ると、この団地が募集に入った日と締切3日前に届く）
     $("detailBody").querySelector(".round-box")?.insertAdjacentHTML("afterend", `<div class="line-cta slim watch"><span><b>LINE</b>でこの団地だけを見張る<small>募集に入った日と締切3日前に届きます</small></span><a class="line-btn" data-watch href="#">見張る</a></div>`);
     $("detailBody").querySelector(".watch")?.insertAdjacentHTML("afterend", `<button type="button" class="guide-cta" data-guide="${esc(r.operator)}"><span><b>申し込みの準備ガイド</b><small>必要なものと申し込み先（公式ページ）を案内します</small></span><i>›</i></button>`);
@@ -606,7 +613,10 @@
   }
   // 提携カード：上に絵（img/aff/<種類>.webp。site.json の aff_img に載っている種類だけ。無ければ色の帯だけ）、下に名前と一言
   function affCard(kind, href, title, sub, real) {
-    return `<a class="card aff-${kind}" href="${esc(href)}"${real ? ' target="_blank" rel="noopener"' : ` data-aff="${kind}"`}><span class="card-img">${(SITE.aff_img || []).includes(kind) ? `<img src="img/aff/${kind}.webp?v=${VERSION}" alt="" loading="lazy">` : ""}</span><b>${esc(title)}</b><span class="card-sub">${esc(sub)}</span><span class="card-go">見てみる ›</span></a>`;
+    const p = real ? null : affPick(kind);   // 提携先が決まっていれば、その広告リンク（A8.net）に差し替える
+    let pixel = "";
+    if (p) { href = `https://px.a8.net/svt/ejp?a8mat=${p.a8mat}`; sub = p.sub || sub; real = true; pixel = `<img class="a8px" src="https://${p.px}.a8.net/0.gif?a8mat=${p.a8mat}" width="1" height="1" alt="">`; }
+    return `<a class="card aff-${kind}" href="${esc(href)}"${real ? ` target="_blank" rel="${p ? "nofollow sponsored noopener" : "noopener"}"` : ` data-aff="${kind}"`}><span class="card-img">${(SITE.aff_img || []).includes(kind) ? `<img src="img/aff/${kind}.webp?v=${VERSION}" alt="" loading="lazy">` : ""}</span><b>${esc(title)}</b><span class="card-sub">${esc(sub)}</span><span class="card-go">見てみる ›</span>${pixel}</a>`;
   }
   // 募集の状態：いま申し込めるか・いつまでか・決め方（抽せん／先着順）・抽せん日
   function roundBox(r, rd) {

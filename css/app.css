@@ -413,3 +413,5 @@ button { cursor: pointer; }
 .guide .g-link.main { background: var(--accent); border-color: var(--accent); color: #fff; }
 .guide .g-link.main small, .guide .g-link.main i { color: #fff; opacity: .9; }
 .cards-h .pr { display: inline-block; margin-left: 6px; padding: 0 5px; border: 1px solid var(--line); border-radius: 4px; font-size: 10.5px; line-height: 16px; color: var(--ink-3); vertical-align: 1px; }
+.card .a8px { position: absolute; width: 1px; height: 1px; opacity: 0; pointer-events: none; }
+.card { position: relative; }
