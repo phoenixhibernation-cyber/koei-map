@@ -197,7 +197,7 @@
    "kind": "先着順・公社窓口で申込",
    "anytime": false,
    "url": "https://www.yokohama-kousya.or.jp/municipal/about.php",
-   "note": "定期募集で応募がなかった住宅を先着順で受付（公社窓口のみ）。住戸一覧は公式ページのPDF（毎週水曜更新）で確認。令和8年11月4日更新。現在、単身向住戸なし",
+   "note": "定期募集で応募がなかった住宅を先着順で受付（公社窓口のみ）。住戸一覧は公式ページのPDF（毎週水曜更新）で確認。現在、単身向住戸なし",
    "apply_from": "2026-08-27",
    "apply_to": "2026-12-28"
   },
@@ -281,6 +281,16 @@
    "note": "定期募集で応募がなかった住戸。一覧は毎週火曜に更新"
   },
   {
+   "id": "kanagawa-2026-11",
+   "operator": "kanagawa",
+   "label": "神奈川県営住宅 2026年11月定期募集",
+   "kind": "抽選・郵送申込",
+   "url": "https://www.pref.kanagawa.jp/docs/h5z/cnt/f6022/p28450.html",
+   "note": "年2回（5月・11月）。募集のしおりは配布期間中に県政情報センター・市区町役場等で配布",
+   "apply_from": "2026-11-13",
+   "apply_to": "2026-12-01"
+  },
+  {
    "id": "chibacity-2026-11r",
    "operator": "chibacity",
    "label": "千葉市営住宅 11月再募集（第3期再）",
@@ -328,15 +338,6 @@
    "expected": "例年4月（前回の10月募集は10/9〜10/23）",
    "url": "https://www.yokohama-kousya.or.jp/municipal/regular.php",
    "note": "年2回（4月・10月）。公式発表待ち"
-  },
-  {
-   "id": "kanagawa-2026-11",
-   "operator": "kanagawa",
-   "label": "神奈川県営住宅 2026年11月定期募集",
-   "kind": "抽選・郵送申込",
-   "expected": "2026年11月（公式：年2回 5月・11月。配布期間等は県のたより11月号で発表）",
-   "url": "https://www.pref.kanagawa.jp/docs/h5z/cnt/f6022/p28450.html",
-   "note": "公式発表待ち"
   },
   {
    "id": "toei-2027-02",
