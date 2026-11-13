@@ -1,0 +1,3 @@
+User-agent: *
+Allow: /
+Sitemap: https://sumai.kachitori.com/sitemap.xml
