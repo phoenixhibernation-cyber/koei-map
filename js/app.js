@@ -6,7 +6,7 @@
   const esc = (s) => String(s ?? "").replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
   const yen = (n) => (n == null ? "—" : n.toLocaleString("ja-JP"));
   const norm = (s) => String(s || "").normalize("NFKC").toLowerCase().replace(/\s+/g, "");
-  const VERSION = "2026-11-11a";   // 画面の「このサービスについて」に出す版。index.html の ?v= も同じにする
+  const VERSION = "2026-11-14a";   // 画面の「このサービスについて」に出す版。index.html の ?v= も同じにする
   console.log("カチトリ住まい", VERSION);
   const PAGE = 50;
   const DESKTOP = window.matchMedia("(min-width: 900px)");
@@ -185,8 +185,8 @@
 
   /* ---------------- データ ---------------- */
   let SITE = { line_url: "" };
-  let AFF = null;   // 提携先の候補と優先順位（data/aff.json）。読めなくても画面は出す
-  fetch("data/aff.json", { cache: "no-cache" }).then((r) => r.ok ? r.json() : null).then((j) => { AFF = j; }).catch(() => {});
+  let AFF = null;   // 提携先の候補と優先順位（data/partners.json。「aff」の名前は広告ブロッカーに消されるので使わない）。読めなくても画面は出す
+  fetch("data/partners.json", { cache: "no-cache" }).then((r) => r.ok ? r.json() : null).then((j) => { AFF = j; }).catch(() => {});
   // その種類のカードに出す提携先：提携中（active）で広告リンクがあるもののうち、点数が一番高いもの
   const affPick = (kind) => {
     const list = (AFF && AFF.cards && AFF.cards[kind]) || [];
@@ -577,7 +577,7 @@
     drawer.classList.add("hidden-by-detail");
     focusOn(r, true);   // シートを出してから、見えている範囲の中心にピンが来るよう寄せる
     $("detailFoot").querySelector(".official").addEventListener("click", () => { store.set("visitedOfficial", Date.now()); });
-    $("detailBody").querySelectorAll("[data-aff]").forEach((a) => a.addEventListener("click", (e) => { e.preventDefault(); toast("提携先のリンクは準備中です（試作版）"); }));
+    $("detailBody").querySelectorAll("[data-pick]").forEach((a) => a.addEventListener("click", (e) => { e.preventDefault(); toast("提携先のリンクは準備中です（試作版）"); }));
     $("detailBody").querySelector("[data-guide]")?.addEventListener("click", () => openGuide(r.operator));
   }
   // ---- 申し込みの準備ガイド：data/guide/<運営元>.json（公式の募集案内から作ったもの）を読んで出す ----
@@ -611,12 +611,12 @@
       <p class="g-src">リンク先は${checked ? ` ${esc(fmtDate(checked))} に` : ""}確かめた公式のページです。開けないときや内容が変わっているときは、${esc(name)}の公式ページから探してください。</p>`;
     setupLine();
   }
-  // 提携カード：上に絵（img/aff/<種類>.webp。site.json の aff_img に載っている種類だけ。無ければ色の帯だけ）、下に名前と一言
+  // 提携カード：上に絵（img/cards/<種類>.webp。パスやクラス名に aff を入れない（広告ブロッカーの一般規則で display:none にされ、絵が消える。2026-11-14 判明）。site.json の aff_img に載っている種類だけ。無ければ色の帯だけ）、下に名前と一言
   function affCard(kind, href, title, sub, real) {
     const p = real ? null : affPick(kind);   // 提携先が決まっていれば、その広告リンク（A8.net）に差し替える
     let pixel = "";
     if (p) { href = `https://px.a8.net/svt/ejp?a8mat=${p.a8mat}`; sub = p.sub || sub; real = true; pixel = `<img class="a8px" src="https://${p.px}.a8.net/0.gif?a8mat=${p.a8mat}" width="1" height="1" alt="">`; }
-    return `<a class="card aff-${kind}" href="${esc(href)}"${real ? ` target="_blank" rel="${p ? "nofollow sponsored noopener" : "noopener"}"` : ` data-aff="${kind}"`}><span class="card-img">${(SITE.aff_img || []).includes(kind) ? `<img src="img/aff/${kind}.webp?v=${VERSION}" alt="" loading="lazy">` : ""}</span><b>${esc(title)}</b><span class="card-sub">${esc(sub)}</span><span class="card-go">見てみる ›</span>${pixel}</a>`;
+    return `<a class="card pick-${kind}" href="${esc(href)}"${real ? ` target="_blank" rel="${p ? "nofollow sponsored noopener" : "noopener"}"` : ` data-pick="${kind}"`}><span class="card-img">${(SITE.aff_img || []).includes(kind) ? `<img src="img/cards/${kind}.webp?v=${VERSION}" alt="" loading="lazy">` : ""}</span><b>${esc(title)}</b><span class="card-sub">${esc(sub)}</span><span class="card-go">見てみる ›</span>${pixel}</a>`;
   }
   // 募集の状態：いま申し込めるか・いつまでか・決め方（抽せん／先着順）・抽せん日
   function roundBox(r, rd) {
