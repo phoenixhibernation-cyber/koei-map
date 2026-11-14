@@ -100,7 +100,7 @@ def cards_block(city: str) -> str:
     <section class="pick-sec">
       <p class="cards-h">落選したら、今すぐ入れる家<span class="pr">PR</span></p>
       <div class="cards pick-cards" data-kinds="ur,rent" data-pref="東京都" data-city="{esc(city)}"></div>
-      <p class="hint">「PR」の枠は広告です。リンク先で申し込みがあると、このサービスに紹介料が入ることがあります。</p>
+      <p class="hint">この枠には広告（PR）を含みます。リンク先で申し込みがあると、このサービスに紹介料が入ることがあります。UR のカードは UR都市機構の公式サイトへのリンクで、広告ではありません。</p>
     </section>"""
 
 
@@ -125,7 +125,7 @@ def reading_block() -> str:
     <ol>
       <li><b>倍率＝申し込んだ人の数÷募集した戸数</b>。10倍なら、1戸に10人が申し込んだということです。1倍以下なら、申し込んだ人がほぼ全員当たった回です。</li>
       <li><b>「前回」の数字です</b>。同じ団地でも、募集のたびに倍率は変わります。次の募集で同じになるとは限りません。予想ではなく、過去の事実として見てください。</li>
-      <li><b>同じ区でも団地で差が大きい</b>。区の中央値だけで決めず、団地ごとの表を見てください。駅から遠い・築年が古い・階数が高い団地は、倍率が低いことがよくあります。</li>
+      <li><b>同じ区でも団地で差が大きい</b>。区の中央値だけで決めず、団地ごとの表を見てください。</li>
     </ol>"""
 
 
@@ -134,7 +134,7 @@ def build():
     rounds = json.loads((ROOT / "data" / "rounds.json").read_text(encoding="utf-8"))
     site = json.loads((ROOT / "data" / "site.json").read_text(encoding="utf-8"))
     global VER
-    VER = re.sub(r"\D", "", site.get("version", ""))
+    VER = re.sub(r"[^0-9a-z]", "", site.get("version", ""))   # 2026-11-14b → 20261114b（index.html の ?v= と同じ）
     data_date = data.get("generated_at") or datetime.date.today().isoformat()
     toei_all = [r for r in data["items"] if r.get("operator") == "toei"]
     rows = [r for r in toei_all if isinstance(r.get("ratio_prev"), (int, float)) and r["ratio_prev"] > 0]
@@ -267,7 +267,7 @@ def build():
     <h1>{esc(city)}の都営住宅 前回の倍率｜団地ごとの一覧</h1>
     <p class="meta">データ {esc(data_date)} 時点 ／ 出どころ：{esc(round_label)}の募集案内（ページ末尾）</p>
     <div class="lead">
-      <p>{esc(city)}の都営住宅で、倍率の数字がある団地（住戸区分）は <b>{s['n']}件</b>。倍率の中央値は <b>{fmt_ratio(s['med'])}倍</b>（最低 {fmt_ratio(s['lo'])}倍 〜 最高 {fmt_ratio(s['hi'])}倍）。都内{len(stats)}区・市の中で、中央値が低い方から <b>{rank}番目</b>です。</p>
+      <p>{esc(city)}の都営住宅で、倍率の数字がある団地（住戸区分）は <b>{s['n']}件</b>。倍率の中央値は <b>{fmt_ratio(s['med'])}倍</b>（最低 {fmt_ratio(s['lo'])}倍 〜 最高 {fmt_ratio(s['hi'])}倍）。倍率の数字がある{len(stats)}の区・市の中で、中央値が低い方から <b>{rank}番目</b>です。</p>
       <p>{s['n']}件のうち、1倍以下（申し込んだ人がほぼ当たった）は {ones}件、3倍以下は {under3}件でした。</p>
     </div>
     <div class="map-cta">
