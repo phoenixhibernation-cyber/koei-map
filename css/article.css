@@ -1,0 +1,69 @@
+/* カチトリ住まい：文字のページ（記事・倍率）。app.css の色と部品（.card .cards .btn .hint .pr）を土台にして、地図とは別の縦に読む形にする */
+html, body { height: auto; overflow: visible; overscroll-behavior: auto; }
+body.article { background: #f8f9fb; }
+.wrap { max-width: 720px; margin: 0 auto; padding: 0 16px 48px; }
+.site-head { display: flex; align-items: center; justify-content: space-between; gap: 12px; height: 52px; }
+.site-head .brand { display: inline-flex; align-items: center; gap: 8px; color: var(--ink); text-decoration: none; font-weight: 700; font-size: 15px; }
+.site-head .brand i { width: 24px; height: 24px; border-radius: 7px; background: #234e8c; display: inline-block; position: relative; }
+.site-head .brand i::after { content: ""; position: absolute; left: 6px; top: 5px; width: 12px; height: 12px; background: #fff; clip-path: polygon(50% 0, 100% 42%, 85% 42%, 85% 100%, 60% 100%, 60% 65%, 40% 65%, 40% 100%, 15% 100%, 15% 42%, 0 42%); }
+.site-head .to-map { font-size: 13px; font-weight: 600; color: var(--accent); text-decoration: none; background: var(--accent-soft); padding: 7px 12px; border-radius: 16px; white-space: nowrap; }
+.crumb { font-size: 12px; color: var(--ink-3); margin: 10px 0 0; }
+.crumb a { color: var(--ink-3); }
+.pr-note { font-size: 12px; color: var(--ink-3); margin: 12px 0 0; }
+article, .sheet { background: #fff; border: 1px solid var(--line); border-radius: 12px; padding: 20px 18px 24px; margin: 12px 0; }
+article h1, .sheet h1 { font-size: 24px; line-height: 1.35; margin: 0 0 8px; letter-spacing: -.01em; }
+.meta { font-size: 12px; color: var(--ink-3); margin: 0 0 16px; }
+.lead { font-size: 15.5px; margin: 0 0 16px; }
+.lead p { margin: 0 0 8px; }
+.summary { background: var(--accent-soft); border-radius: 10px; padding: 12px 14px 12px 32px; margin: 0 0 20px; font-size: 14.5px; }
+.summary li { margin: 4px 0; }
+article h2, .sheet h2 { font-size: 19px; margin: 32px 0 10px; padding: 0 0 6px; border-bottom: 2px solid var(--accent-soft); }
+article h3, .sheet h3 { font-size: 16px; margin: 20px 0 6px; }
+article p, .sheet p { margin: 0 0 12px; }
+article ul, article ol, .sheet ul, .sheet ol { padding-left: 1.4em; margin: 0 0 12px; }
+article li, .sheet li { margin: 4px 0; }
+.steps { list-style: none; padding: 0; margin: 0 0 12px; counter-reset: s; }
+.steps li { position: relative; padding: 10px 0 10px 40px; border-top: 1px solid var(--line); counter-increment: s; }
+.steps li:first-child { border-top: 0; }
+.steps li::before { content: counter(s); position: absolute; left: 0; top: 10px; width: 28px; height: 28px; border-radius: 50%; background: var(--accent); color: #fff; font-weight: 700; font-size: 14px; display: flex; align-items: center; justify-content: center; }
+.steps li b { display: block; font-size: 15px; }
+.steps li span { color: var(--ink-2); font-size: 14px; }
+.box { border: 1.5px solid var(--line); border-radius: 10px; padding: 12px 14px; margin: 0 0 14px; background: #fbfcfe; font-size: 14px; }
+.box b { display: block; margin-bottom: 4px; }
+.box.warn { background: #fff8e1; border-color: #f3dd9a; }
+.tbl-wrap { overflow-x: auto; -webkit-overflow-scrolling: touch; margin: 0 -18px 14px; padding: 0 18px; }
+table.tbl { width: 100%; border-collapse: collapse; font-size: 14px; }
+table.tbl th, table.tbl td { padding: 8px 8px; border-bottom: 1px solid var(--line); text-align: left; vertical-align: top; white-space: nowrap; }
+table.tbl th { font-size: 12px; color: var(--ink-3); font-weight: 600; background: #fafbfd; }
+table.tbl td.num, table.tbl th.num { text-align: right; font-variant-numeric: tabular-nums; }
+table.tbl td.wrap { white-space: normal; }
+table.tbl tr.me td { background: var(--accent-soft); }
+.ratio-pill { display: inline-block; min-width: 46px; text-align: center; font-weight: 700; border-radius: 999px; padding: 2px 8px; font-size: 13px; }
+.ratio-pill.r1 { background: #e6f4ea; color: #188038; }
+.ratio-pill.r2 { background: #fef7e0; color: #b06000; }
+.ratio-pill.r3 { background: #fce8e6; color: #c5221f; }
+.ratio-pill.r0 { background: var(--bg-2); color: var(--ink-3); }
+.map-cta { display: flex; flex-direction: column; gap: 8px; margin: 18px 0; }
+.map-cta .btn { text-align: center; }
+.faq details { border-top: 1px solid var(--line); padding: 10px 0; }
+.faq details:last-child { border-bottom: 1px solid var(--line); }
+.faq summary { font-weight: 700; cursor: pointer; font-size: 15px; }
+.faq details p { margin: 8px 0 0; color: var(--ink-2); font-size: 14.5px; }
+.pick-sec .cards { margin: 0 -18px; padding: 0 18px 4px; }
+.sources { font-size: 12.5px; color: var(--ink-3); }
+.sources ul { padding-left: 1.3em; }
+.sources a { color: var(--ink-3); overflow-wrap: anywhere; }
+.chip-row { display: flex; flex-wrap: wrap; gap: 6px; margin: 0 0 14px; }
+.chip-row a { display: inline-block; font-size: 13px; padding: 6px 11px; border-radius: 16px; border: 1px solid var(--line); background: #fff; color: var(--ink-2); text-decoration: none; }
+.chip-row a:hover { border-color: var(--accent); color: var(--accent); }
+.site-foot { font-size: 12px; color: var(--ink-3); margin: 24px 0 0; line-height: 1.8; }
+.site-foot a { color: var(--ink-3); }
+.line-cta.article { margin: 18px 0; }
+@media (min-width: 900px) {
+  article, .sheet { padding: 28px 32px 32px; }
+  article h1, .sheet h1 { font-size: 28px; }
+  .tbl-wrap { margin: 0 0 14px; padding: 0; }
+  .pick-sec .cards { margin: 0; padding: 0 0 4px; }
+  .map-cta { flex-direction: row; }
+  .map-cta .btn { flex: 1; }
+}

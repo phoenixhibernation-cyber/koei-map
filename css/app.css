@@ -320,6 +320,7 @@ button { cursor: pointer; }
 .cond button { flex: none; border: 0; background: var(--bg-2); color: var(--ink-2); font-size: 11.5px; border-radius: 10px; padding: 2px 8px; }
 .drawer:not(.open) .cond { display: none; }
 .about-link { display: block; margin: 8px auto 20px; border: 0; background: none; color: var(--ink-3); font-size: 12.5px; text-decoration: underline; }
+.about-link.read-link { margin: 10px auto 0; width: fit-content; color: var(--accent-soft-ink); }
 /* 絞り込み：項目ごとの折りたたみ */
 .pop-head .pop-n { margin-left: auto; margin-right: 10px; font-size: 13px; color: var(--ink-3); }
 .acc { border-bottom: 1px solid var(--line); }

@@ -6,7 +6,7 @@
   const esc = (s) => String(s ?? "").replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
   const yen = (n) => (n == null ? "—" : n.toLocaleString("ja-JP"));
   const norm = (s) => String(s || "").normalize("NFKC").toLowerCase().replace(/\s+/g, "");
-  const VERSION = "2026-11-14a";   // 画面の「このサービスについて」に出す版。index.html の ?v= も同じにする
+  const VERSION = "2026-11-14b";   // 画面の「このサービスについて」に出す版。index.html の ?v= も同じにする
   console.log("カチトリ住まい", VERSION);
   const PAGE = 50;
   const DESKTOP = window.matchMedia("(min-width: 900px)");
@@ -18,6 +18,8 @@
     set: (k, v) => { try { localStorage.setItem("smiley:" + k, JSON.stringify(v)); } catch (e) { console.warn("設定を保存できません（プライベートモードなど）:", k, e); } } };
   const colorOf = (op) => /^#[0-9a-f]{3,8}$/i.test(op?.color || "") ? op.color : "#888";            // データ由来の色は形式を確かめてから属性に入れる
   const safeUrl = (u) => /^https?:\/\//i.test(u || "") ? u : "#";                                  // href は http(s) だけ
+  // 押された回数を Google アナリティクスに送る（B2・2026-11-14）。gtag が無くても落ちない。個人情報は送らない（種類・運営元・物件IDだけ）
+  const track = (name, params) => { try { window.gtag?.("event", name, params); } catch (e) { /* 計測は本体の動きを止めない */ } };
 
   let OPS = {}, ROUNDS = [], ITEMS = [], byId = new Map(), markers = new Map();
   const CITY_PREF = new Map();   // 市区町村名 → 都県
@@ -255,6 +257,7 @@
     const params = new URLSearchParams(location.search);
     NOSAVE = params.has("e2e");
     if (params.get("round") && roundById.has(params.get("round"))) { F.round = params.get("round"); F.now = false; }
+    else if (params.get("city") && CITY_PREF.has(params.get("city"))) { F.prefs = new Set([CITY_PREF.get(params.get("city"))]); F.cities = new Set([params.get("city")]); }   // 倍率ページなどから「/?city=足立区」で開いたとき、その市区で絞る
     else if (!NOSAVE && restoreCond()) setTimeout(() => toast("前回の条件で表示しています（「条件を外す」で戻せます）"), 600);
     bindUI();
     apply();
@@ -519,6 +522,7 @@
     document.querySelectorAll(".item.active").forEach((el) => el.classList.remove("active"));
     document.querySelector(`.item[data-id="${CSS.escape(id)}"]`)?.classList.add("active");
     showActivePin(r);
+    track("pin_open", { operator: r._opLabel, pref: r.pref, category: r.category || "", from: fromList ? "list" : "map" });
     const rd = r._round;
     const gq = encodeURIComponent(`${r.pref}${r.address}`);
     const b = buildingInfo(r);
@@ -564,7 +568,7 @@
     setupLine();
     const wb = $("detailBody").querySelector("[data-watch]");
     if (wb) {
-      if (SITE.line_id) { wb.href = `https://line.me/R/oaMessage/${encodeURIComponent(SITE.line_id)}/?${encodeURIComponent(`見張る ${r.pref} ${r.name}`)}`; wb.target = "_blank"; wb.rel = "noopener"; }
+      if (SITE.line_id) { wb.href = `https://line.me/R/oaMessage/${encodeURIComponent(SITE.line_id)}/?${encodeURIComponent(`見張る ${r.pref} ${r.name}`)}`; wb.target = "_blank"; wb.rel = "noopener"; wb.addEventListener("click", () => track("line_click", { place: "watch", listing_id: r.id, operator: r._opLabel })); }
       else wb.addEventListener("click", (e) => { e.preventDefault(); toast(SITE.line_note || "LINE公式アカウントは準備中です"); });
     }
     $("detailFoot").innerHTML = `
@@ -578,6 +582,7 @@
     focusOn(r, true);   // シートを出してから、見えている範囲の中心にピンが来るよう寄せる
     $("detailFoot").querySelector(".official").addEventListener("click", () => { store.set("visitedOfficial", Date.now()); });
     $("detailBody").querySelectorAll("[data-pick]").forEach((a) => a.addEventListener("click", (e) => { e.preventDefault(); toast("提携先のリンクは準備中です（試作版）"); }));
+    $("detailBody").querySelectorAll(".card[data-kind]").forEach((a) => a.addEventListener("click", () => track("partner_click", { kind: a.dataset.kind, partner: a.dataset.partner, listing_id: r.id, operator: r._opLabel })));
     $("detailBody").querySelector("[data-guide]")?.addEventListener("click", () => openGuide(r.operator));
   }
   // ---- 申し込みの準備ガイド：data/guide/<運営元>.json（公式の募集案内から作ったもの）を読んで出す ----
@@ -616,7 +621,7 @@
     const p = real ? null : affPick(kind);   // 提携先が決まっていれば、その広告リンク（A8.net）に差し替える
     let pixel = "";
     if (p) { href = `https://px.a8.net/svt/ejp?a8mat=${p.a8mat}`; sub = p.sub || sub; real = true; pixel = `<img class="a8px" src="https://${p.px}.a8.net/0.gif?a8mat=${p.a8mat}" width="1" height="1" alt="">`; }
-    return `<a class="card pick-${kind}" href="${esc(href)}"${real ? ` target="_blank" rel="${p ? "nofollow sponsored noopener" : "noopener"}"` : ` data-pick="${kind}"`}><span class="card-img">${(SITE.aff_img || []).includes(kind) ? `<img src="img/cards/${kind}.webp?v=${VERSION}" alt="" loading="lazy">` : ""}</span><b>${esc(title)}</b><span class="card-sub">${esc(sub)}</span><span class="card-go">見てみる ›</span>${pixel}</a>`;
+    return `<a class="card pick-${kind}" href="${esc(href)}"${real ? ` target="_blank" rel="${p ? "nofollow sponsored noopener" : "noopener"}" data-kind="${esc(kind)}" data-partner="${esc(p ? p.name : title)}"` : ` data-pick="${kind}"`}><span class="card-img">${(SITE.aff_img || []).includes(kind) ? `<img src="img/cards/${kind}.webp?v=${VERSION}" alt="" loading="lazy">` : ""}</span><b>${esc(title)}</b><span class="card-sub">${esc(sub)}</span><span class="card-go">見てみる ›</span>${pixel}</a>`;
   }
   // 募集の状態：いま申し込めるか・いつまでか・決め方（抽せん／先着順）・抽せん日
   function roundBox(r, rd) {
@@ -851,7 +856,7 @@
   function setupLine() {
     const url = SITE.line_url || "";
     document.querySelectorAll("[data-line]").forEach((a) => {
-      if (url) { a.href = url; a.target = "_blank"; a.rel = "noopener"; a.addEventListener("click", () => { store.set("subscribed", true); }); }
+      if (url) { a.href = url; a.target = "_blank"; a.rel = "noopener"; a.addEventListener("click", () => { store.set("subscribed", true); track("line_click", { place: a.closest(".page")?.id || (a.closest(".detail") ? "detail" : a.className.split(" ")[0]) }); }); }
       else a.addEventListener("click", (e) => { e.preventDefault(); toast(SITE.line_note || "LINE公式アカウントは準備中です"); });
     });
     $("lineNote").textContent = url ? "友だち追加すると、すぐに都県を選ぶボタンが届きます。" : (SITE.line_note || "");
